@@ -17,3 +17,4 @@ logs/
 *.sqlite*
 .vscode/
 .runtime-venv/
+.git.backup*/
