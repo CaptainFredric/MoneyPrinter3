@@ -82,22 +82,51 @@ def _check_rate_limit():
 
 
 # ---------------------------------------------------------------------------
-# LLM helper (uses project's Ollama setup)
+# LLM helper — Ollama (local) → Gemini (cloud) fallback chain
 # ---------------------------------------------------------------------------
-def _llm_generate(prompt: str, max_retries: int = 2) -> str:
+def _llm_generate(prompt: str) -> str:
+    """Generate text via local Ollama first, then Gemini API as fallback."""
+    # 1. Try the project's built-in provider (Ollama → Gemini chain)
     try:
         from llm_provider import generate_text
         return generate_text(prompt)
     except Exception:
         pass
 
+    # 2. Direct Ollama attempt
     try:
-        import ollama
-        client = ollama.Client(host="http://127.0.0.1:11434")
-        resp = client.generate(model="llama3.2:3b", prompt=prompt)
-        return resp.get("response", "")
-    except Exception as e:
-        raise RuntimeError(f"LLM unavailable: {e}")
+        import ollama as _ollama
+        client = _ollama.Client(host=os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434"))
+        model = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
+        resp = client.generate(model=model, prompt=prompt)
+        text = resp.get("response", "").strip()
+        if text:
+            return text
+    except Exception:
+        pass
+
+    # 3. Direct Gemini attempt (for cloud deployment where Ollama isn't available)
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if api_key:
+        try:
+            from google import genai
+            from google.genai import types
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
+                contents=prompt,
+                config=types.GenerateContentConfig(temperature=0.9, max_output_tokens=300),
+            )
+            text = (response.text or "").strip()
+            if text:
+                return text
+        except Exception as e:
+            raise RuntimeError(f"Gemini failed: {e}")
+
+    raise RuntimeError(
+        "No LLM available. Set GEMINI_API_KEY for cloud deployment, "
+        "or run Ollama locally."
+    )
 
 
 # ---------------------------------------------------------------------------

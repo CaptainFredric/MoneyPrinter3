@@ -1,0 +1,5 @@
+# ContentForge API — minimal dependencies for cloud deployment
+flask>=3.0
+gunicorn>=21.2
+google-genai>=1.0
+ollama>=0.4    # optional: only needed if Ollama is co-located
