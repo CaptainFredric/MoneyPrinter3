@@ -70,25 +70,15 @@ _rate_buckets: dict[str, list[float]] = {}
 RATE_LIMIT = 30  # requests per minute per IP
 
 
-def _check_rate_limit() -> tuple[bool, int]:
-    """Returns (allowed, remaining_this_minute)."""
+def _check_rate_limit():
     ip = request.remote_addr or "unknown"
     now = time.time()
     bucket = _rate_buckets.setdefault(ip, [])
     bucket[:] = [t for t in bucket if now - t < 60]
-    remaining = max(0, RATE_LIMIT - len(bucket))
     if len(bucket) >= RATE_LIMIT:
-        return False, 0
+        return False
     bucket.append(now)
-    return True, max(0, remaining - 1)
-
-
-def _add_rate_headers(response, remaining: int):
-    """Attach standard rate-limit headers so developers can monitor usage."""
-    response.headers["X-RateLimit-Limit"] = str(RATE_LIMIT)
-    response.headers["X-RateLimit-Remaining"] = str(remaining)
-    response.headers["X-RateLimit-Window"] = "60s"
-    return response
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -214,8 +204,7 @@ def analyze_headline(text: str) -> dict:
 
 @app.route("/v1/analyze_headline", methods=["GET", "POST"])
 def endpoint_analyze_headline():
-    allowed, remaining = _check_rate_limit()
-    if not allowed:
+    if not _check_rate_limit():
         return jsonify({"error": "rate limit exceeded (30/min)"}), 429
 
     start = time.time()
@@ -232,7 +221,7 @@ def endpoint_analyze_headline():
 
     result = analyze_headline(text)
     _log_usage("analyze_headline", int((time.time() - start) * 1000))
-    return _add_rate_headers(jsonify(result), remaining)
+    return jsonify(result)
 
 
 # Keep old path working for backwards compat
@@ -246,8 +235,7 @@ def endpoint_analyze_headline_legacy():
 # ---------------------------------------------------------------------------
 @app.route("/v1/generate_hooks", methods=["POST"])
 def endpoint_generate_hooks():
-    allowed, remaining = _check_rate_limit()
-    if not allowed:
+    if not _check_rate_limit():
         return jsonify({"error": "rate limit exceeded (30/min)"}), 429
 
     start = time.time()
@@ -294,7 +282,7 @@ def endpoint_generate_hooks():
         return jsonify({"error": f"LLM generation failed: {e}"}), 503
 
     _log_usage("generate_hooks", int((time.time() - start) * 1000))
-    return _add_rate_headers(jsonify({"topic": topic, "style": style, "hooks": hooks}), remaining)
+    return jsonify({"topic": topic, "style": style, "hooks": hooks})
 
 
 # ---------------------------------------------------------------------------
@@ -302,8 +290,7 @@ def endpoint_generate_hooks():
 # ---------------------------------------------------------------------------
 @app.route("/v1/rewrite", methods=["POST"])
 def endpoint_rewrite():
-    allowed, remaining = _check_rate_limit()
-    if not allowed:
+    if not _check_rate_limit():
         return jsonify({"error": "rate limit exceeded (30/min)"}), 429
 
     start = time.time()
@@ -333,13 +320,13 @@ def endpoint_rewrite():
         return jsonify({"error": f"LLM generation failed: {e}"}), 503
 
     _log_usage("rewrite", int((time.time() - start) * 1000))
-    return _add_rate_headers(jsonify({
+    return jsonify({
         "original": text,
         "rewritten": rewritten,
         "platform": platform,
         "tone": tone,
         "char_count": len(rewritten),
-    }), remaining)
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -347,8 +334,7 @@ def endpoint_rewrite():
 # ---------------------------------------------------------------------------
 @app.route("/v1/tweet_ideas", methods=["POST"])
 def endpoint_tweet_ideas():
-    allowed, remaining = _check_rate_limit()
-    if not allowed:
+    if not _check_rate_limit():
         return jsonify({"error": "rate limit exceeded (30/min)"}), 429
 
     start = time.time()
@@ -396,7 +382,7 @@ def endpoint_tweet_ideas():
         return jsonify({"error": f"LLM generation failed: {e}"}), 503
 
     _log_usage("tweet_ideas", int((time.time() - start) * 1000))
-    return _add_rate_headers(jsonify({"niche": niche, "count": len(tweets), "tweets": tweets}), remaining)
+    return jsonify({"niche": niche, "count": len(tweets), "tweets": tweets})
 
 
 # ---------------------------------------------------------------------------
@@ -404,21 +390,7 @@ def endpoint_tweet_ideas():
 # ---------------------------------------------------------------------------
 @app.route("/health", methods=["GET"])
 def health():
-    # Probe LLM backend so RapidAPI's daily health check is meaningful
-    llm_status = "unavailable"
-    try:
-        import ollama as _o
-        _o.Client(host=os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")).list()
-        llm_status = "ollama"
-    except Exception:
-        if os.environ.get("GEMINI_API_KEY"):
-            llm_status = "gemini"
-    return jsonify({
-        "status": "ok",
-        "service": "contentforge",
-        "version": "1.0.0",
-        "llm_backend": llm_status,
-    })
+    return jsonify({"status": "ok", "service": "contentforge", "version": "1.0.0"})
 
 
 @app.route("/", methods=["GET"])
