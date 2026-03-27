@@ -19,3 +19,8 @@ logs/
 .vscode/
 .runtime-venv/
 .git.backup*/
+docs/chat_history/
+*.mp4
+*.wav
+*.srt
+*.png.tmp
