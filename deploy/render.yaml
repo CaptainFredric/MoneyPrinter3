@@ -8,7 +8,9 @@ services:
     envVars:
       - key: GEMINI_API_KEY
         sync: false   # set manually in Render dashboard
+      - key: RAPIDAPI_PROXY_SECRET
+        sync: false   # set manually after listing on RapidAPI (Provider → My APIs → backend secret)
       - key: GEMINI_MODEL
         value: gemini-2.0-flash
       - key: PYTHONPATH
-        value: /opt/render/project/src/src
+        value: /opt/render/project/src   # repo root — makes `scripts` and `src` importable

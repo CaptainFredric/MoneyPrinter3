@@ -15,6 +15,31 @@
       "description": "Production"
     }
   ],
+  "components": {
+    "securitySchemes": {
+      "RapidApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-RapidAPI-Key",
+        "description": "Your RapidAPI subscription key. Provided automatically by RapidAPI when you subscribe to ContentForge."
+      }
+    },
+    "headers": {
+      "X-RateLimit-Limit": {
+        "description": "Maximum requests per minute for your plan.",
+        "schema": {"type": "integer"}
+      },
+      "X-RateLimit-Remaining": {
+        "description": "Requests remaining in the current 60-second window.",
+        "schema": {"type": "integer"}
+      },
+      "X-RateLimit-Window": {
+        "description": "Rate limit window duration.",
+        "schema": {"type": "string", "example": "60s"}
+      }
+    }
+  },
+  "security": [{"RapidApiKey": []}],
   "paths": {
     "/v1/analyze_headline": {
       "post": {

@@ -64,21 +64,51 @@ def _log_usage(endpoint: str, latency_ms: int):
 
 
 # ---------------------------------------------------------------------------
+# RapidAPI proxy-secret verification
+# ---------------------------------------------------------------------------
+_RAPIDAPI_SECRET = os.environ.get("RAPIDAPI_PROXY_SECRET", "")
+
+
+def _verify_rapidapi_request() -> bool:
+    """When RAPIDAPI_PROXY_SECRET is set, only allow requests that carry the
+    matching X-RapidAPI-Proxy-Secret header.  This prevents callers from
+    bypassing RapidAPI's billing layer and hitting the backend directly."""
+    if not _RAPIDAPI_SECRET:
+        return True  # not configured — open access (local / direct testing)
+    return request.headers.get("X-RapidAPI-Proxy-Secret", "") == _RAPIDAPI_SECRET
+
+
+# ---------------------------------------------------------------------------
 # Rate limiting (simple in-memory, per-IP)
 # ---------------------------------------------------------------------------
 _rate_buckets: dict[str, list[float]] = {}
 RATE_LIMIT = 30  # requests per minute per IP
 
 
-def _check_rate_limit():
-    ip = request.remote_addr or "unknown"
+def _check_rate_limit() -> tuple[bool, int]:
+    """Returns (allowed, remaining_this_minute)."""
+    ip = request.headers.get("X-RapidAPI-User") or request.remote_addr or "unknown"
     now = time.time()
+    # Purge stale buckets every ~100 requests to prevent unbounded growth
+    if len(_rate_buckets) > 500:
+        stale = [k for k, v in _rate_buckets.items() if not v or now - v[-1] > 120]
+        for k in stale:
+            del _rate_buckets[k]
     bucket = _rate_buckets.setdefault(ip, [])
     bucket[:] = [t for t in bucket if now - t < 60]
+    remaining = max(0, RATE_LIMIT - len(bucket))
     if len(bucket) >= RATE_LIMIT:
-        return False
+        return False, 0
     bucket.append(now)
-    return True
+    return True, max(0, remaining - 1)
+
+
+def _add_rate_headers(response, remaining: int):
+    """Attach standard rate-limit headers so API consumers can self-monitor."""
+    response.headers["X-RateLimit-Limit"] = str(RATE_LIMIT)
+    response.headers["X-RateLimit-Remaining"] = str(remaining)
+    response.headers["X-RateLimit-Window"] = "60s"
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -204,7 +234,10 @@ def analyze_headline(text: str) -> dict:
 
 @app.route("/v1/analyze_headline", methods=["GET", "POST"])
 def endpoint_analyze_headline():
-    if not _check_rate_limit():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
         return jsonify({"error": "rate limit exceeded (30/min)"}), 429
 
     start = time.time()
@@ -221,7 +254,7 @@ def endpoint_analyze_headline():
 
     result = analyze_headline(text)
     _log_usage("analyze_headline", int((time.time() - start) * 1000))
-    return jsonify(result)
+    return _add_rate_headers(jsonify(result), remaining)
 
 
 # Keep old path working for backwards compat
@@ -235,13 +268,19 @@ def endpoint_analyze_headline_legacy():
 # ---------------------------------------------------------------------------
 @app.route("/v1/generate_hooks", methods=["POST"])
 def endpoint_generate_hooks():
-    if not _check_rate_limit():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
         return jsonify({"error": "rate limit exceeded (30/min)"}), 429
 
     start = time.time()
     payload = request.get_json(silent=True) or {}
     topic = payload.get("topic", "").strip()
-    count = min(int(payload.get("count", 5)), 10)
+    try:
+        count = min(int(payload.get("count", 5)), 10)
+    except (ValueError, TypeError):
+        return jsonify({"error": "'count' must be an integer"}), 400
     style = payload.get("style", "viral")  # viral, professional, casual
 
     if not topic:
@@ -282,7 +321,7 @@ def endpoint_generate_hooks():
         return jsonify({"error": f"LLM generation failed: {e}"}), 503
 
     _log_usage("generate_hooks", int((time.time() - start) * 1000))
-    return jsonify({"topic": topic, "style": style, "hooks": hooks})
+    return _add_rate_headers(jsonify({"topic": topic, "style": style, "hooks": hooks}), remaining)
 
 
 # ---------------------------------------------------------------------------
@@ -290,7 +329,10 @@ def endpoint_generate_hooks():
 # ---------------------------------------------------------------------------
 @app.route("/v1/rewrite", methods=["POST"])
 def endpoint_rewrite():
-    if not _check_rate_limit():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
         return jsonify({"error": "rate limit exceeded (30/min)"}), 429
 
     start = time.time()
@@ -320,13 +362,13 @@ def endpoint_rewrite():
         return jsonify({"error": f"LLM generation failed: {e}"}), 503
 
     _log_usage("rewrite", int((time.time() - start) * 1000))
-    return jsonify({
+    return _add_rate_headers(jsonify({
         "original": text,
         "rewritten": rewritten,
         "platform": platform,
         "tone": tone,
         "char_count": len(rewritten),
-    })
+    }), remaining)
 
 
 # ---------------------------------------------------------------------------
@@ -334,13 +376,19 @@ def endpoint_rewrite():
 # ---------------------------------------------------------------------------
 @app.route("/v1/tweet_ideas", methods=["POST"])
 def endpoint_tweet_ideas():
-    if not _check_rate_limit():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
         return jsonify({"error": "rate limit exceeded (30/min)"}), 429
 
     start = time.time()
     payload = request.get_json(silent=True) or {}
     niche = payload.get("niche", "").strip()
-    count = min(int(payload.get("count", 5)), 10)
+    try:
+        count = min(int(payload.get("count", 5)), 10)
+    except (ValueError, TypeError):
+        return jsonify({"error": "'count' must be an integer"}), 400
     include_hashtags = payload.get("hashtags", True)
 
     if not niche:
@@ -382,7 +430,7 @@ def endpoint_tweet_ideas():
         return jsonify({"error": f"LLM generation failed: {e}"}), 503
 
     _log_usage("tweet_ideas", int((time.time() - start) * 1000))
-    return jsonify({"niche": niche, "count": len(tweets), "tweets": tweets})
+    return _add_rate_headers(jsonify({"niche": niche, "count": len(tweets), "tweets": tweets}), remaining)
 
 
 # ---------------------------------------------------------------------------
@@ -390,7 +438,31 @@ def endpoint_tweet_ideas():
 # ---------------------------------------------------------------------------
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "service": "contentforge", "version": "1.0.0"})
+    gemini_configured = bool(os.environ.get("GEMINI_API_KEY", ""))
+    ollama_reachable = False
+    try:
+        import urllib.request as _ureq
+        _ureq.urlopen(
+            os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434") + "/api/tags",
+            timeout=1,
+        )
+        ollama_reachable = True
+    except Exception:
+        pass
+
+    llm_backend = "none"
+    if ollama_reachable:
+        llm_backend = "ollama"
+    elif gemini_configured:
+        llm_backend = "gemini"
+
+    return jsonify({
+        "status": "ok",
+        "service": "contentforge",
+        "version": "1.0.0",
+        "llm_backend": llm_backend,
+        "ai_endpoints_ready": llm_backend != "none",
+    })
 
 
 @app.route("/", methods=["GET"])
