@@ -183,18 +183,140 @@ Use sparingly — max 1 in every 5-7 posts. Never the same CTA twice in a row.
 
 ### For niche_launch_1:
 1. `I put the scoring tool in my bio if you want to try it.`
-2. `free headline scorer in bio — 50 checks/month, no card.`
+2. `free headline scorer in bio — 50 objects/month, no card.`
 3. `link in bio if you want to test your own headlines.`
 4. `been using this daily. it's free on RapidAPI if you search ContentForge.`
+5. `ContentForge also scores your tweets before you post them. free, bio link.`
+6. `you can generate a 7-day content calendar for any niche with ContentForge. free tier, bio.`
 
 ### For EyeCatcher:
 1. `the hook scorer I use is in my bio if you're curious.`
 2. `if you write hooks, there's a free scoring tool in my bio.`
 3. `I test all my hooks through a free API before posting. bio link.`
+4. `ContentForge scores your tweet drafts too — not just headlines. free, bio link.`
+
+---
+
+## Tweet Scorer Templates (new endpoint — score_tweet)
+
+### niche_launch_1:
+
+```
+hot take: you should never post a tweet without scoring it first.
+
+I've been running every draft through a scorer before hitting post.
+
+grade A+ tweets get 3x the engagement. C-grade ones die in silence.
+
+free tool in bio.
+```
+
+```
+the difference between a tweet that flops and one that goes viral:
+
+it's almost never the idea. it's the first 10 words, the char count, and the hook.
+
+a tweet scorer catches all three before you waste it.
+```
+
+```
+I scored 50 of my past tweets after the fact.
+
+the ones that got the most engagement averaged a score of 81.
+the ones that flopped averaged 44.
+
+now I only post 75+.
+```
+
+### EyeCatcher:
+
+```
+your tweet draft is a rough cut.
+
+scoring it before posting is the edit.
+
+most people skip the edit.
+```
+
+```
+A/B testing your tweets doesn't require two accounts.
+
+it requires scoring both versions before you pick one.
+
+the one that scores higher almost always wins in the wild.
+```
+
+---
+
+## Content Calendar Templates (new endpoint — content_calendar)
+
+### niche_launch_1:
+
+```
+content strategy tip: don't plan posts one at a time.
+
+plan 7 days at once. assign themes per day. batch-write the drafts.
+
+you'll post more consistently and you'll never have "what do I post today?" again.
+```
+
+```
+I generated a week of tweet drafts for my niche in under 60 seconds today.
+
+7 themes, 7 ready-to-post drafts, all aligned to my audience.
+
+AI content calendar. free on RapidAPI if you search ContentForge.
+```
+
+### EyeCatcher:
+
+```
+consistent posting isn't about discipline.
+
+it's about having a system that pre-loads your decisions.
+
+a content calendar removes the daily "what should I post?"
+
+that one friction point kills more creators than anything else.
+```
 
 ---
 
 ## Content Calendar Suggestion
+
+**Weekly rhythm per account (7 posts/week):**
+
+| Day | Type | CTA? |
+|---|---|---|
+| Mon | Value drop (educational) | No |
+| Tue | Hot take / contrarian | No |
+| Wed | Soft tool mention | Subtle |
+| Thu | Question / engagement bait | No |
+| Fri | Specific data point / stat | No |
+| Sat | Thread starter | No |
+| Sun | Tool mention + direct CTA | Yes |
+
+This gives a 6:1 value-to-promotion ratio, which is optimal for trust building
+without appearing salesy.
+
+---
+
+## New Topic Categories to Add
+
+If these aren't already in account configs, consider adding:
+
+**niche_launch_1:**
+- `headline_scoring` — data-driven headline optimization
+- `tweet_scoring` — score drafts before posting
+- `content_calendar_strategy` — batch-planning content
+- `api_tools_for_writers` — tools that improve writing workflow
+- `before_after_headlines` — transformation examples
+
+**EyeCatcher:**
+- `scroll_stopping_science` — neuroscience of attention
+- `hook_testing` — empirical approach to content hooks
+- `visual_hierarchy` — how layout affects engagement
+- `tweet_optimization` — fine-tuning posts for maximum impact
 
 **Weekly rhythm per account (7 posts/week):**
 

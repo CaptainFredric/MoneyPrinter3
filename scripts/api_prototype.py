@@ -3,9 +3,11 @@
 
 Endpoints:
   POST /v1/analyze_headline    — Score & improve any headline (heuristic, instant)
+  POST /v1/score_tweet         — Score a tweet draft before posting (heuristic, instant)
   POST /v1/generate_hooks      — Generate scroll-stopping hooks for a topic (AI)
   POST /v1/rewrite             — Rewrite text for a target platform/tone (AI)
   POST /v1/tweet_ideas         — Generate tweet ideas for a niche/topic (AI)
+  POST /v1/content_calendar    — AI-generated 7-day content calendar for any niche (AI)
   GET  /health                 — Service health check
 
 Run smoke test:
@@ -36,6 +38,32 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 app = Flask(__name__)
+
+
+# ---------------------------------------------------------------------------
+# CORS — allow browser clients (RapidAPI playground, web apps)
+# ---------------------------------------------------------------------------
+@app.after_request
+def _add_cors(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = (
+        "Content-Type, X-RapidAPI-Proxy-Secret, X-RapidAPI-User, X-RapidAPI-Key"
+    )
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+
+@app.route("/<path:dummy>", methods=["OPTIONS"])
+@app.route("/", methods=["OPTIONS"])
+def _cors_preflight(dummy=""):
+    from flask import Response
+    return Response(status=204, headers={
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": (
+            "Content-Type, X-RapidAPI-Proxy-Secret, X-RapidAPI-User, X-RapidAPI-Key"
+        ),
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    })
 
 # ---------------------------------------------------------------------------
 # Usage tracking (simple JSON log for analytics / future billing)
@@ -176,10 +204,30 @@ def analyze_headline(text: str) -> dict:
     has_number = any(char.isdigit() for char in txt)
 
     power_words = [
-        "secret", "proven", "free", "new", "easy", "instant", "guaranteed",
-        "discover", "shocking", "ultimate", "exclusive", "limited", "urgent",
-        "massive", "breakthrough", "insider", "hack", "mistake", "simple",
-        "powerful", "surprising", "essential", "critical", "warning",
+        # Urgency / scarcity
+        "urgent", "limited", "exclusive", "expires", "deadline", "now", "today",
+        # Money / results
+        "free", "guaranteed", "money", "profit", "income", "revenue", "earn",
+        "cash", "rich", "wealth", "savings", "roi", "returns",
+        # Social proof / authority
+        "proven", "tested", "experts", "trusted", "endorsed", "award",
+        "official", "certified",
+        # Curiosity / mystery
+        "secret", "hidden", "unknown", "revealed", "discover", "inside",
+        "truth", "expose", "uncover", "mystery", "forbidden",
+        # Ease / speed
+        "easy", "instant", "simple", "fast", "quick", "effortless", "done",
+        "automated", "no-effort", "hands-off",
+        # Superlatives / intensity
+        "ultimate", "best", "top", "new", "breakthrough", "massive", "powerful",
+        "essential", "critical", "shocking", "surprising", "incredible",
+        "unbelievable", "insane", "mind-blowing",
+        # Negative hooks
+        "mistake", "wrong", "avoid", "warning", "danger", "failed", "lose",
+        "never", "stop", "quit",
+        # Positive hooks
+        "hack", "trick", "tip", "strategy", "system", "formula", "blueprint",
+        "insider", "cheat", "shortcut", "boost",
     ]
     pw_found = [w for w in power_words if w in txt.lower()]
 
@@ -434,6 +482,237 @@ def endpoint_tweet_ideas():
 
 
 # ---------------------------------------------------------------------------
+# 5. Tweet Scorer (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_tweet(text: str) -> dict:
+    """Score a tweet draft 0-100 for engagement potential."""
+    if not isinstance(text, str):
+        text = str(text or "")
+    txt = text.strip()
+    char_count = len(txt)
+    words = txt.split()
+    word_count = len(words)
+
+    # Extract hashtags and mentions
+    hashtags = re.findall(r'#\w+', txt)
+    mentions = re.findall(r'@\w+', txt)
+    urls = re.findall(r'https?://\S+', txt)
+
+    # Detect emojis (simple unicode range check)
+    emoji_count = sum(1 for c in txt if ord(c) > 0x1F300)
+
+    # Readability: avg word length
+    clean_words = [re.sub(r'[^a-zA-Z0-9]', '', w) for w in words if w and not w.startswith(('#', '@', 'http'))]
+    avg_word_len = (sum(len(w) for w in clean_words) / len(clean_words)) if clean_words else 0
+
+    # Power words from the headline analyzer pool
+    power_word_set = {
+        "secret", "proven", "free", "new", "easy", "instant", "guaranteed",
+        "discover", "shocking", "ultimate", "exclusive", "limited", "urgent",
+        "massive", "breakthrough", "insider", "hack", "mistake", "simple",
+        "powerful", "surprising", "essential", "critical", "warning", "hidden",
+        "revealed", "truth", "best", "money", "earn", "fast", "quick", "boost",
+        "strategy", "tip", "formula", "blueprint",
+    }
+    pw_found = [w for w in power_word_set if w in txt.lower()]
+
+    # Scoring
+    score = 40  # baseline
+
+    # Character count sweet spot: 71-100 for engagement per studies
+    if 71 <= char_count <= 100:
+        score += 20
+    elif 50 <= char_count <= 140:
+        score += 12
+    elif char_count <= 30:
+        score -= 15
+    elif char_count > 240:
+        score -= 8
+
+    # Hashtags: 1-2 is optimal
+    if len(hashtags) == 1:
+        score += 8
+    elif len(hashtags) == 2:
+        score += 6
+    elif len(hashtags) >= 4:
+        score -= 12  # over-hashtagging looks spammy
+
+    # Emojis moderate use
+    if 1 <= emoji_count <= 3:
+        score += 8
+    elif emoji_count > 5:
+        score -= 5
+
+    # Has a URL (link tweets often do well)
+    if urls:
+        score += 5
+
+    # Power words
+    score += min(12, len(pw_found) * 4)
+
+    # Question mark (curiosity hook)
+    if '?' in txt:
+        score += 7
+
+    # Starts with a number (list-style)
+    if txt and txt[0].isdigit():
+        score += 6
+
+    # Excessive caps
+    caps_words = sum(1 for w in words if any(c.isalpha() for c in w) and w.isupper())
+    caps_ratio = (caps_words / word_count) if word_count else 0
+    if caps_ratio >= 0.5:
+        score -= 15
+
+    # Multiple mentions (reply-bait penalty)
+    if len(mentions) >= 3:
+        score -= 8
+
+    # Readability: short avg word length = more readable
+    if avg_word_len < 5:
+        score += 5
+
+    score = max(0, min(100, int(score)))
+    grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
+
+    suggestions = []
+    if char_count > 240:
+        suggestions.append("Shorten to under 240 chars — shorter tweets get more engagement.")
+    if char_count < 40:
+        suggestions.append("Add more context — very short tweets get overlooked.")
+    if len(hashtags) == 0:
+        suggestions.append("Add 1-2 relevant hashtags to reach more people.")
+    if len(hashtags) >= 4:
+        suggestions.append("Use at most 2 hashtags — more looks spammy.")
+    if emoji_count == 0:
+        suggestions.append("Add 1-2 emojis to make the tweet more visually engaging.")
+    if not pw_found:
+        suggestions.append("Add a power word (e.g. 'secret', 'proven', 'hack') to grab attention.")
+    if caps_ratio >= 0.5:
+        suggestions.append("Avoid ALL CAPS — it reduces credibility.")
+    if '?' not in txt and not txt[0:1].isdigit():
+        suggestions.append("Try starting with a number or a question for a stronger hook.")
+
+    return {
+        "text": txt,
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "hashtag_count": len(hashtags),
+        "hashtags": hashtags,
+        "mention_count": len(mentions),
+        "emoji_count": emoji_count,
+        "has_url": bool(urls),
+        "power_words_found": pw_found,
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/score_tweet", methods=["POST"])
+def endpoint_score_tweet():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = payload.get("text", "").strip()
+
+    if not text:
+        return jsonify({"error": "missing 'text' parameter"}), 400
+    if len(text) > 1000:
+        return jsonify({"error": "text too long (max 1000 chars)"}), 400
+
+    result = score_tweet(text)
+    _log_usage("score_tweet", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 6. Content Calendar (AI-powered)
+# ---------------------------------------------------------------------------
+@app.route("/v1/content_calendar", methods=["POST"])
+def endpoint_content_calendar():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    niche = payload.get("niche", "").strip()
+    try:
+        days = max(1, min(int(payload.get("days", 7)), 7))
+    except (ValueError, TypeError):
+        return jsonify({"error": "'days' must be an integer (1-7)"}), 400
+    platform = payload.get("platform", "twitter")
+    tone = payload.get("tone", "engaging")
+
+    if not niche:
+        return jsonify({"error": "missing 'niche' parameter"}), 400
+    if len(niche) > 200:
+        return jsonify({"error": "niche too long (max 200 chars)"}), 400
+
+    day_labels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][:days]
+
+    prompt = (
+        f"Create a {days}-day {platform} content calendar for the '{niche}' niche.\n"
+        f"Tone: {tone}\n"
+        f"Rules:\n"
+        f"- One post idea per day\n"
+        f"- Each day: a short topic/theme label and a ready-to-post draft\n"
+        f"- Mix content types: tip, story, hot take, question, list\n"
+        f"- Keep each draft under 280 characters for {platform}\n"
+        f"- Return ONLY valid JSON in this exact format:\n"
+        f'{{"calendar": [{{"day": "Monday", "theme": "...", "draft": "..."}}, ...]}}\n'
+        f"Use these day labels in order: {', '.join(day_labels)}"
+    )
+
+    try:
+        raw = _llm_generate(prompt)
+        # Try to extract JSON object
+        match = re.search(r'\{.*\}', raw, re.DOTALL)
+        calendar_data = None
+        if match:
+            try:
+                calendar_data = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                calendar_data = None
+
+        if not calendar_data or "calendar" not in calendar_data:
+            # Fallback: parse as line-by-line and build structure
+            lines = [l.strip() for l in raw.strip().split("\n") if l.strip() and len(l.strip()) > 10]
+            entries = []
+            for i, label in enumerate(day_labels):
+                draft = lines[i] if i < len(lines) else f"Post about {niche} today."
+                draft = re.sub(r'^[\d.\-\)\]]+\s*', '', draft).strip().strip('"')
+                entries.append({"day": label, "theme": niche, "draft": draft})
+            calendar_data = {"calendar": entries}
+
+        # Trim to requested days and label correctly
+        entries = calendar_data.get("calendar", [])
+        for i, entry in enumerate(entries):
+            if i < len(day_labels):
+                entry["day"] = day_labels[i]
+
+        entries = entries[:days]
+
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    _log_usage("content_calendar", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "niche": niche,
+        "platform": platform,
+        "tone": tone,
+        "days": len(entries),
+        "calendar": entries,
+    }), remaining)
+# ---------------------------------------------------------------------------
 # Health + Root
 # ---------------------------------------------------------------------------
 @app.route("/health", methods=["GET"])
@@ -456,12 +735,27 @@ def health():
     elif gemini_configured:
         llm_backend = "gemini"
 
+    # Pull quick usage stats from usage log
+    total_requests = 0
+    endpoint_counts: dict = {}
+    try:
+        if USAGE_LOG.exists():
+            entries = json.loads(USAGE_LOG.read_text())
+            total_requests = len(entries)
+            for e in entries:
+                ep = e.get("endpoint", "unknown")
+                endpoint_counts[ep] = endpoint_counts.get(ep, 0) + 1
+    except Exception:
+        pass
+
     return jsonify({
         "status": "ok",
         "service": "contentforge",
         "version": "1.0.0",
         "llm_backend": llm_backend,
         "ai_endpoints_ready": llm_backend != "none",
+        "total_requests_served": total_requests,
+        "endpoint_usage": endpoint_counts,
     })
 
 
@@ -471,13 +765,16 @@ def root():
         "service": "ContentForge API",
         "version": "1.0.0",
         "endpoints": {
-            "POST /v1/analyze_headline": "Score & improve any headline (instant)",
+            "POST /v1/analyze_headline": "Score & improve any headline (instant, no AI)",
+            "POST /v1/score_tweet": "Score a tweet draft for engagement potential (instant, no AI)",
             "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
             "POST /v1/rewrite": "Rewrite text for any platform/tone",
             "POST /v1/tweet_ideas": "Generate tweet ideas for any niche",
-            "GET /health": "Service health check",
+            "POST /v1/content_calendar": "AI-generated 7-day content calendar",
+            "GET /health": "Service health check + usage stats",
         },
-        "docs": "https://rapidapi.com/contentforge/api/contentforge",
+        "docs": "https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1",
+        "rapidapi": "https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1",
     })
 
 
@@ -489,6 +786,10 @@ def _run_test():
     with app.test_client() as c:
         print("=== Headline Analyzer ===")
         rv = c.post("/v1/analyze_headline", json={"text": "How I made $6,000 a month from a tiny weekend project"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Tweet Scorer ===")
+        rv = c.post("/v1/score_tweet", json={"text": "Built an API in 48 hours. It made $500 last month 💸 Here's how: #indiehacker #buildinpublic"})
         pprint.pprint(rv.get_json())
 
         print("\n=== Generate Hooks ===")
@@ -505,6 +806,10 @@ def _run_test():
 
         print("\n=== Tweet Ideas ===")
         rv = c.post("/v1/tweet_ideas", json={"niche": "developer tools", "count": 3})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Content Calendar ===")
+        rv = c.post("/v1/content_calendar", json={"niche": "indie hacking", "days": 3, "platform": "twitter"})
         pprint.pprint(rv.get_json())
 
         print("\n=== Health ===")

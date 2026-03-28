@@ -2,11 +2,11 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, generate scroll-stopping hooks, rewrite text for any platform, and get tweet ideas for any niche.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, generate scroll-stopping hooks, rewrite text for any platform, get tweet ideas for any niche, and generate full 7-day content calendars.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
-      "email": "alt550458@gmail.com"
+      "email": "captainarmoreddude@gmail.com"
     }
   },
   "servers": [
@@ -32,6 +32,178 @@
     }
   },
   "paths": {
+    "/v1/score_tweet": {
+      "post": {
+        "summary": "Score a Tweet Draft",
+        "description": "Score any tweet draft 0-100 for engagement potential before you post. Heuristic analysis — instant, no AI needed. Evaluates character count, hashtag usage, emoji presence, power words, and readability. Returns a grade (A-D) plus actionable improvement tips.",
+        "operationId": "scoreTweet",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "description": "The tweet draft text to score",
+                    "example": "Built an API in 48 hours. It made $500 last month 💸 Here's how: #indiehacker #buildinpublic"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tweet score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D"]},
+                    "char_count": {"type": "integer"},
+                    "word_count": {"type": "integer"},
+                    "hashtag_count": {"type": "integer"},
+                    "hashtags": {"type": "array", "items": {"type": "string"}},
+                    "mention_count": {"type": "integer"},
+                    "emoji_count": {"type": "integer"},
+                    "has_url": {"type": "boolean"},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "text": "Built an API in 48 hours. It made $500 last month 💸 Here's how: #indiehacker #buildinpublic",
+                  "score": 83,
+                  "grade": "A",
+                  "char_count": 91,
+                  "word_count": 16,
+                  "hashtag_count": 2,
+                  "hashtags": ["#indiehacker", "#buildinpublic"],
+                  "mention_count": 0,
+                  "emoji_count": 1,
+                  "has_url": false,
+                  "power_words_found": ["hack"],
+                  "suggestions": ["Try starting with a number or a question for a stronger hook."]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid text parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'text' parameter"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/content_calendar": {
+      "post": {
+        "summary": "Generate a 7-Day Content Calendar",
+        "description": "AI-powered content calendar generator. Give it a niche and get a ready-to-use multi-day posting plan with daily themes and pre-written post drafts. Supports Twitter, LinkedIn, and more. Ideal for content creators, social media managers, and indie hackers.",
+        "operationId": "contentCalendar",
+        "tags": ["AI Content Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["niche"],
+                "properties": {
+                  "niche": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Your niche or topic area",
+                    "example": "indie hacking"
+                  },
+                  "days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7,
+                    "default": 7,
+                    "description": "Number of days to generate (1-7)"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": ["twitter", "linkedin", "instagram", "blog"],
+                    "default": "twitter",
+                    "description": "Target platform"
+                  },
+                  "tone": {
+                    "type": "string",
+                    "enum": ["engaging", "professional", "casual", "humorous"],
+                    "default": "engaging",
+                    "description": "Content tone"
+                  }
+                }
+              },
+              "example": {
+                "niche": "indie hacking",
+                "days": 3,
+                "platform": "twitter",
+                "tone": "engaging"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated content calendar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "niche": {"type": "string"},
+                    "platform": {"type": "string"},
+                    "tone": {"type": "string"},
+                    "days": {"type": "integer"},
+                    "calendar": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "day": {"type": "string", "description": "Day of the week"},
+                          "theme": {"type": "string", "description": "Content theme for the day"},
+                          "draft": {"type": "string", "description": "Ready-to-post draft"}
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "niche": "indie hacking",
+                  "platform": "twitter",
+                  "tone": "engaging",
+                  "days": 3,
+                  "calendar": [
+                    {"day": "Monday", "theme": "Motivation Monday", "draft": "Your first $1 online proves the model works. The next $1,000 is just systems. What's your system? #indiehackers"},
+                    {"day": "Tuesday", "theme": "Tip Tuesday", "draft": "3 tools every solo founder needs: 1/ Stripe for payments 2/ Notion for docs 3/ Plausible for analytics. All under $50/mo. #buildinpublic"},
+                    {"day": "Wednesday", "theme": "Story Hook", "draft": "6 months ago I had 0 users. Today I have 847. The only thing I changed: I started shipping every week. Thread 🧵"}
+                  ]
+                }
+              }
+            }
+          },
+          "400": {"description": "Missing niche parameter"},
+          "429": {"description": "Rate limit exceeded"},
+          "503": {"description": "AI generation temporarily unavailable"}
+        }
+      }
+    },
     "/v1/analyze_headline": {
       "post": {
         "summary": "Analyze & Score a Headline",
@@ -352,7 +524,7 @@
                     "version": {"type": "string"}
                   }
                 },
-                "example": {"status": "ok", "service": "contentforge", "version": "1.0.0"}
+                "example": {"status": "ok", "service": "contentforge", "version": "1.0.0", "llm_backend": "gemini", "ai_endpoints_ready": true, "total_requests_served": 42, "endpoint_usage": {"analyze_headline": 15, "generate_hooks": 10, "rewrite": 8, "tweet_ideas": 7, "score_tweet": 2}}
               }
             }
           }

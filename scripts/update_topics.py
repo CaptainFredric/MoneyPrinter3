@@ -22,7 +22,9 @@ TOPICS: dict[str, str] = {
         "viral hooks, and why some posts get 10x more engagement than others. "
         "Mix formats: specific tips backed by data or numbers, hot takes on content strategy, "
         "short threads that teach one concrete skill per post. "
-        "Occasionally mention ContentForge API as a free tool for scoring and improving headlines. "
+        "Occasionally mention ContentForge API as a free tool for scoring headlines, scoring tweet drafts "
+        "before posting, generating viral hooks, generating tweet ideas for any niche, and building 7-day "
+        "content calendars — all available free on RapidAPI. "
         "Voice: sharp, knowledgeable, slightly contrarian. No generic motivational fluff."
     ),
     "EyeCatcher": (
@@ -30,6 +32,8 @@ TOPICS: dict[str, str] = {
         "pattern interrupts in marketing, the science of color and emotion in content. "
         "Mix: surprising facts about human perception, breakdowns of why specific viral posts worked, "
         "questions that provoke genuine replies. "
+        "Occasionally mention ContentForge API — a free tool that scores tweets before posting and "
+        "generates content calendars for any niche, available on RapidAPI. "
         "Voice: curious, observational, the kind of account that makes people stop mid-scroll."
     ),
 }
