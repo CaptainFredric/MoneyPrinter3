@@ -37,7 +37,9 @@ from pathlib import Path
 # ── Resolve repo root regardless of CWD ───────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT_DIR   = SCRIPT_DIR.parent
-VENV_PYTHON = ROOT_DIR / "venv" / "bin" / "python"
+# Prefer .runtime-venv (created by setup_local.sh), fall back to legacy venv
+_rt_venv = ROOT_DIR / ".runtime-venv" / "bin" / "python"
+VENV_PYTHON = _rt_venv if _rt_venv.exists() else ROOT_DIR / "venv" / "bin" / "python"
 CRON_SCRIPT = ROOT_DIR / "src" / "cron.py"
 CONFIG_PATH = ROOT_DIR / "config.json"
 LOG_DIR     = ROOT_DIR / "logs"

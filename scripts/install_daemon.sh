@@ -16,7 +16,12 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLIST_LABEL="com.moneyprinterv2.daemon"
 PLIST_PATH="$HOME/Library/LaunchAgents/${PLIST_LABEL}.plist"
 LOG_DIR="$ROOT_DIR/logs"
-VENV_PYTHON="$ROOT_DIR/venv/bin/python"
+# Prefer .runtime-venv (setup_local.sh creates this), fall back to legacy venv
+if [[ -x "$ROOT_DIR/.runtime-venv/bin/python" ]]; then
+    VENV_PYTHON="$ROOT_DIR/.runtime-venv/bin/python"
+else
+    VENV_PYTHON="$ROOT_DIR/venv/bin/python"
+fi
 DAEMON_SCRIPT="$ROOT_DIR/scripts/daemon.py"
 
 mkdir -p "$LOG_DIR"
