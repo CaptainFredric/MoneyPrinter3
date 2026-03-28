@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, generate scroll-stopping hooks, rewrite text for any platform, get tweet ideas for any niche, and generate full 7-day content calendars.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, and generate full 7-day content calendars.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
@@ -199,6 +199,88 @@
             }
           },
           "400": {"description": "Missing niche parameter"},
+          "429": {"description": "Rate limit exceeded"},
+          "503": {"description": "AI generation temporarily unavailable"}
+        }
+      }
+    },
+    "/v1/improve_headline": {
+      "post": {
+        "summary": "Improve a Headline with AI",
+        "description": "Analyze a weak headline and generate N better versions using AI. First scores the original, identifies weaknesses, then rewrites it into improved versions — each one scored and graded. Perfect for the analyze → improve workflow. Returns versions sorted by score descending.",
+        "operationId": "improveHeadline",
+        "tags": ["AI Content Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "The headline to improve",
+                    "example": "How to make money online"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5,
+                    "default": 3,
+                    "description": "Number of improved versions to generate"
+                  }
+                }
+              },
+              "example": {
+                "text": "How to make money online",
+                "count": 3
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Original analysis + improved versions scored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "original": {"type": "string"},
+                    "original_score": {"type": "integer"},
+                    "original_grade": {"type": "string"},
+                    "original_suggestions": {"type": "array", "items": {"type": "string"}},
+                    "improved_versions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "text": {"type": "string"},
+                          "score": {"type": "integer"},
+                          "grade": {"type": "string"},
+                          "power_words_found": {"type": "array", "items": {"type": "string"}}
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "original": "How to make money online",
+                  "original_score": 49,
+                  "original_grade": "C",
+                  "original_suggestions": ["Make the headline longer and more specific.", "Add a number for specificity (e.g. '5 ways', '$6K/mo')."],
+                  "improved_versions": [
+                    {"text": "Can You Really Earn $5,000 a Month Online? Discover the Secrets", "score": 100, "grade": "A", "power_words_found": ["earn", "secret", "discover"]},
+                    {"text": "Unlock $6,000/month: 7 Proven Strategies for Online Success", "score": 85, "grade": "A", "power_words_found": ["proven"]},
+                    {"text": "5 Lucrative Ways to Make $10K/Mo Online", "score": 80, "grade": "A", "power_words_found": []}
+                  ]
+                }
+              }
+            }
+          },
+          "400": {"description": "Missing text parameter"},
           "429": {"description": "Rate limit exceeded"},
           "503": {"description": "AI generation temporarily unavailable"}
         }

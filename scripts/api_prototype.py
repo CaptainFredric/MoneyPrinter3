@@ -4,6 +4,7 @@
 Endpoints:
   POST /v1/analyze_headline    — Score & improve any headline (heuristic, instant)
   POST /v1/score_tweet         — Score a tweet draft before posting (heuristic, instant)
+  POST /v1/improve_headline    — AI-rewrites a headline into N better scored versions (AI)
   POST /v1/generate_hooks      — Generate scroll-stopping hooks for a topic (AI)
   POST /v1/rewrite             — Rewrite text for a target platform/tone (AI)
   POST /v1/tweet_ideas         — Generate tweet ideas for a niche/topic (AI)
@@ -712,6 +713,91 @@ def endpoint_content_calendar():
         "days": len(entries),
         "calendar": entries,
     }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 7. Improve Headline (AI-powered)
+# ---------------------------------------------------------------------------
+@app.route("/v1/improve_headline", methods=["POST"])
+def endpoint_improve_headline():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = payload.get("text", "").strip()
+    try:
+        count = max(1, min(int(payload.get("count", 3)), 5))
+    except (ValueError, TypeError):
+        return jsonify({"error": "'count' must be an integer (1-5)"}), 400
+
+    if not text:
+        return jsonify({"error": "missing 'text' parameter"}), 400
+    if len(text) > 500:
+        return jsonify({"error": "text too long (max 500 chars)"}), 400
+
+    # First score the original to identify weaknesses
+    original_analysis = analyze_headline(text)
+
+    prompt = (
+        f"Rewrite this headline into {count} improved versions that score higher on engagement.\n"
+        f"Original: {text}\n"
+        f"Current weaknesses to fix: {'; '.join(original_analysis.get('suggestions', [])) or 'none identified'}\n"
+        f"Rules:\n"
+        f"- Each version should be a significant improvement, not just minor word swaps\n"
+        f"- Keep the core message/topic intact\n"
+        f"- Use power words, numbers, questions, or curiosity gaps\n"
+        f"- Each improved headline under 100 characters\n"
+        f"- Return ONLY a JSON array of strings\n"
+        f"Example: [\"Improved version 1\", \"Improved version 2\", \"Improved version 3\"]"
+    )
+
+    try:
+        raw = _llm_generate(prompt)
+        match = re.search(r'\[.*?\]', raw, re.DOTALL)
+        improved = None
+        if match:
+            try:
+                improved = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                improved = None
+
+        if not improved:
+            improved = [
+                re.sub(r'^[\d.\-\)\]]+\s*', '', line).strip().strip('"')
+                for line in raw.strip().split("\n")
+                if line.strip() and len(line.strip()) > 5
+            ]
+        improved = [h for h in improved if isinstance(h, str) and len(h) > 5][:count]
+
+        # Score each improved version
+        scored_versions = []
+        for version in improved:
+            analysis = analyze_headline(version)
+            scored_versions.append({
+                "text": version,
+                "score": analysis["score"],
+                "grade": analysis["grade"],
+                "power_words_found": analysis["power_words_found"],
+            })
+
+        # Sort by score descending
+        scored_versions.sort(key=lambda x: -x["score"])
+
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    _log_usage("improve_headline", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "original": text,
+        "original_score": original_analysis["score"],
+        "original_grade": original_analysis["grade"],
+        "original_suggestions": original_analysis["suggestions"],
+        "improved_versions": scored_versions,
+    }), remaining)
 # ---------------------------------------------------------------------------
 # Health + Root
 # ---------------------------------------------------------------------------
@@ -767,6 +853,7 @@ def root():
         "endpoints": {
             "POST /v1/analyze_headline": "Score & improve any headline (instant, no AI)",
             "POST /v1/score_tweet": "Score a tweet draft for engagement potential (instant, no AI)",
+            "POST /v1/improve_headline": "AI-rewrite a headline into N better scored versions",
             "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
             "POST /v1/rewrite": "Rewrite text for any platform/tone",
             "POST /v1/tweet_ideas": "Generate tweet ideas for any niche",
@@ -790,6 +877,10 @@ def _run_test():
 
         print("\n=== Tweet Scorer ===")
         rv = c.post("/v1/score_tweet", json={"text": "Built an API in 48 hours. It made $500 last month 💸 Here's how: #indiehacker #buildinpublic"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Improve Headline ===")
+        rv = c.post("/v1/improve_headline", json={"text": "How to make money online", "count": 3})
         pprint.pprint(rv.get_json())
 
         print("\n=== Generate Hooks ===")

@@ -1,7 +1,7 @@
 # ContentForge API — Documentation
 
 **ContentForge** is an AI-powered content toolkit for creators, marketers, and developers.
-Use it to score headlines, score tweet drafts, generate viral hooks, rewrite for any platform, brainstorm tweet ideas, and build full content calendars — all from a single API.
+Use it to score headlines, score tweet drafts, improve weak headlines with AI, generate viral hooks, rewrite for any platform, brainstorm tweet ideas, and build full content calendars — all from a single API.
 
 ---
 
@@ -15,7 +15,7 @@ All endpoints are available via RapidAPI. Subscribe to a plan and include your `
 
 ## Endpoints
 
-### 1. `POST /v1/analyze_headline` — Score a Headline
+### 1. `POST /v1/analyze_headline` — Score a Headline (instant, no AI)
 
 Score any headline 0-100 with a letter grade and actionable tips. **Instant response, no AI needed.**
 
@@ -91,7 +91,65 @@ Score a tweet draft 0-100 for engagement potential before posting. **Instant, no
 
 ---
 
-### 3. `POST /v1/generate_hooks` — AI-Generated Hooks
+### 3. `POST /v1/improve_headline` — Improve a Headline with AI
+
+Takes a weak headline, identifies its problems, and generates N better AI-written versions — each scored and graded. Returns results sorted by score, best first.
+
+**Request:**
+```json
+{
+  "text": "How to make money online",
+  "count": 3
+}
+```
+
+**Parameters:**
+| Field | Type | Required | Default |
+|-------|------|----------|---------|
+| `text` | string | ✅ | — |
+| `count` | integer | ❌ | 3 (max 5) |
+
+**Response:**
+```json
+{
+  "original": "How to make money online",
+  "original_score": 49,
+  "original_grade": "C",
+  "original_suggestions": [
+    "Make the headline longer and more specific.",
+    "Add a number for specificity (e.g. '5 ways', '$6K/mo')."
+  ],
+  "improved_versions": [
+    {
+      "text": "Can You Really Earn $5,000 a Month Online? Discover the Secrets",
+      "score": 100,
+      "grade": "A",
+      "power_words_found": ["earn", "secret", "discover"]
+    },
+    {
+      "text": "Unlock $6,000/month: 7 Proven Strategies for Online Success",
+      "score": 85,
+      "grade": "A",
+      "power_words_found": ["proven"]
+    },
+    {
+      "text": "5 Lucrative Ways to Make $10K/Mo Online",
+      "score": 80,
+      "grade": "A",
+      "power_words_found": []
+    }
+  ]
+}
+```
+
+**Typical workflow:**
+1. Call `analyze_headline` → get score + suggestions
+2. If score < 80, call `improve_headline` → get 3 better versions
+3. Pick the top-scored version → publish
+
+---
+
+### 4. `POST /v1/generate_hooks` — AI-Generated Hooks
 
 Generate scroll-stopping hooks and headlines for any topic. Choose from viral, professional, or casual styles.
 
@@ -126,7 +184,7 @@ Generate scroll-stopping hooks and headlines for any topic. Choose from viral, p
 
 ---
 
-### 4. `POST /v1/rewrite` — Rewrite for Any Platform
+### 5. `POST /v1/rewrite` — Rewrite for Any Platform
 
 AI-rewrites any text for a specific platform and tone. Automatically respects character limits for each platform.
 
@@ -165,7 +223,7 @@ AI-rewrites any text for a specific platform and tone. Automatically respects ch
 
 ---
 
-### 5. `POST /v1/tweet_ideas` — Tweet Ideas for Any Niche
+### 6. `POST /v1/tweet_ideas` — Tweet Ideas for Any Niche
 
 AI-generates tweet ideas tailored to your niche. Returns a mix of formats: hot takes, tips, questions, story hooks, and lists.
 
@@ -200,7 +258,7 @@ AI-generates tweet ideas tailored to your niche. Returns a mix of formats: hot t
 
 ---
 
-### 6. `POST /v1/content_calendar` — 7-Day Content Calendar
+### 7. `POST /v1/content_calendar` — 7-Day Content Calendar
 
 AI-generates a full content calendar with daily themes and ready-to-post drafts for any niche and platform.
 
@@ -251,7 +309,7 @@ AI-generates a full content calendar with daily themes and ready-to-post drafts 
 
 ---
 
-### 7. `GET /health` — Health Check
+### 8. `GET /health` — Health Check
 
 Returns service status and usage statistics.
 
