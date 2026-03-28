@@ -11,7 +11,7 @@
   },
   "servers": [
     {
-      "url": "https://contentforge-api-1pp9.onrender.com",
+      "url": "https://contentforge-api-lpp9.onrender.com",
       "description": "Production"
     }
   ],
