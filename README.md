@@ -6,6 +6,21 @@ A Python 3.12 automation platform that runs Twitter bots, generates AI content, 
 
 ---
 
+## Current Status (March 28, 2026)
+
+| Component | Status | Notes |
+|---|---|---|
+| **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
+| **RapidAPI Listing** | ✅ Public | All 5 endpoints, 4-tier pricing configured |
+| **Twitter bot: niche_launch_1** | ✅ Active | health=50, 2 verified posts |
+| **Twitter bot: EyeCatcher** | ✅ Active | health=100, 1 verified post |
+| **Gemini backend** | ✅ Configured | `gemini-2.0-flash` on Render |
+| **Ollama local** | ✅ Running | `llama3.2:3b` at `http://127.0.0.1:11434` |
+| **Keep-warm cron** | ✅ Active | cron-job.org pings `/health` every 10 min |
+| **Legal docs** | ✅ Done | `docs/TERMS_OF_USE.md`, `docs/TERMS_AND_CONDITIONS.md` |
+
+---
+
 ## What This Does
 
 1. **Twitter Bots** — AI-generated posts (copywriting tips, attention psychology) published on schedule via Selenium + Firefox profiles
@@ -57,11 +72,11 @@ A monetized API product hosted on Render and listed on RapidAPI.
 | `POST /v1/tweet_ideas` | Generate tweet ideas for any niche with hashtags. Mix of hot takes, tips, and questions. |
 | `GET /health` | Service health check with LLM backend detection. |
 
-**Pricing tiers** (via RapidAPI):
-- **BASIC** — Free, 50 requests/month
-- **PRO** — $9.99/month, 500 requests
-- **ULTRA** — $29.99/month, 2000 requests
-- **MEGA** — $99/month, 10000 requests
+**Pricing tiers** (via RapidAPI — live):
+- **BASIC** — Free, 50 AI objects + 30 requests/month
+- **PRO** — $9.99/month, 750 AI objects + 1,000 requests
+- **ULTRA** — $29.99/month, 3,000 AI objects + 4,000 requests
+- **MEGA** — $99/month, 18,000 AI objects + 20,000 requests
 
 Full deployment guide: [docs/ContentForge_Deploy.md](docs/ContentForge_Deploy.md)
 
@@ -164,6 +179,8 @@ Key external dependencies:
 | [SAFEGUARDS_IMPLEMENTATION.md](docs/SAFEGUARDS_IMPLEMENTATION.md) | Safety and reliability features |
 | [ProfileMapping.md](docs/ProfileMapping.md) | Firefox profile setup |
 | [LoginRecovery.md](docs/LoginRecovery.md) | Session recovery procedures |
+| [TERMS_OF_USE.md](docs/TERMS_OF_USE.md) | API Terms of Use (RapidAPI) |
+| [TERMS_AND_CONDITIONS.md](docs/TERMS_AND_CONDITIONS.md) | Full Terms & Conditions |
 
 ---
 
