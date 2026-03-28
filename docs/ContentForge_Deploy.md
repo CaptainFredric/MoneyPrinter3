@@ -170,7 +170,7 @@ Click **Create Web Service**. Render will:
 1. Clone the repo
 2. Run `pip install -r deploy/requirements-api.txt` (~30 seconds)
 3. Start gunicorn
-4. Assign you a URL: `https://contentforge-api.onrender.com`
+4. Assign you a URL: `https://contentforge-api-lpp9.onrender.com`
 
 Watch the build logs for errors. A successful deploy log ends with something like:
 ```
@@ -183,15 +183,15 @@ Watch the build logs for errors. A successful deploy log ends with something lik
 
 ```bash
 # Health check
-curl https://contentforge-api.onrender.com/health
+curl https://contentforge-api-lpp9.onrender.com/health
 
 # Headline analyzer (instant, no AI)
-curl -X POST https://contentforge-api.onrender.com/v1/analyze_headline \
+curl -X POST https://contentforge-api-lpp9.onrender.com/v1/analyze_headline \
   -H "Content-Type: application/json" \
   -d '{"text": "5 AI Tools That Print Money While You Sleep"}'
 
 # Tweet ideas (calls Gemini)
-curl -X POST https://contentforge-api.onrender.com/v1/tweet_ideas \
+curl -X POST https://contentforge-api-lpp9.onrender.com/v1/tweet_ideas \
   -H "Content-Type: application/json" \
   -d '{"niche": "indie hacking", "count": 3}'
 ```
@@ -226,7 +226,7 @@ If you own a domain, point a subdomain at Render:
 3. Add the CNAME record Render gives you at your DNS provider
 4. Render issues a free TLS cert automatically
 
-Having `api.yoursite.com` instead of `contentforge-api.onrender.com` looks more professional on the RapidAPI listing and lets you switch hosting providers later without changing your listing URL.
+Having `api.yoursite.com` instead of `contentforge-api-lpp9.onrender.com` looks more professional on the RapidAPI listing and lets you switch hosting providers later without changing your listing URL.
 
 ---
 
@@ -239,7 +239,7 @@ RapidAPI lets you import an OpenAPI spec to auto-create all your endpoints. The 
 ```json
 "servers": [
   {
-    "url": "https://contentforge-api.onrender.com",
+    "url": "https://contentforge-api-lpp9.onrender.com",
     "description": "Production"
   }
 ]
@@ -248,7 +248,7 @@ RapidAPI lets you import an OpenAPI spec to auto-create all your endpoints. The 
 If your URL is different (e.g. you used a custom domain), update it now with:
 ```bash
 # Replace the URL in openapi.json
-sed -i '' 's|contentforge-api.onrender.com|api.yoursite.com|g' deploy/openapi.json
+sed -i '' 's|contentforge-api-lpp9.onrender.com|api.yoursite.com|g' deploy/openapi.json
 ```
 
 ---
@@ -643,7 +643,7 @@ Render free tier was idle. RapidAPI's default request timeout is 10 seconds, but
 3. Add a cron job that pings `/health` every 10 minutes to keep it warm (see below)
 
 **Keep-warm cron (free):**
-Use https://cron-job.org (free) to ping `https://contentforge-api.onrender.com/health` every 10 minutes. This prevents cold starts entirely on the free tier. No code changes needed.
+Use https://cron-job.org (free) to ping `https://contentforge-api-lpp9.onrender.com/health` every 10 minutes. This prevents cold starts entirely on the free tier. No code changes needed.
 
 ### RapidAPI returns 403 from your backend
 
@@ -655,6 +655,17 @@ The proxy secret does not match. Steps:
 ### RapidAPI returns 429 from your backend
 
 A subscriber is hitting your in-API rate limiter (30/min). This is expected. The rate limiter in `api_prototype.py` uses `X-RapidAPI-User` so each subscriber gets their own 30/min bucket. If a legitimate Pro subscriber is hitting this, consider increasing `RATE_LIMIT` for the Pro tier. For now, it protects your Gemini quota.
+
+### AI endpoints return 503 "Gemini failed: 429 RESOURCE_EXHAUSTED"
+
+You've hit the **Gemini free tier daily quota** (1,500 req/day). This only affects AI endpoints (`generate_hooks`, `rewrite`, `tweet_ideas`). The `analyze_headline` endpoint is always available since it uses no AI.
+
+Options:
+1. **Wait for daily reset** — quota resets at midnight Pacific time. Next day, all endpoints work again.
+2. **Enable Gemini billing** — go to https://aistudio.google.com → API key → Enable billing. Free tier usage stays free; you only pay beyond the quota. At API MVP scale you likely never pay anything.
+3. **Rotate API keys** — create a second Gemini API key in a different Google Cloud project and swap it in Render environment when the first hits its daily limit.
+
+> **Note**: This error should not appear for normal RapidAPI users. Gemini's daily limit is 1,500 requests/day which handles ~30 users' full BASIC-tier monthly allocation (50 req/month × 30 = 1,500). You'd only hit this limit during intensive testing or if you have unexpectedly high traffic — at which point you should enable billing anyway.
 
 ---
 

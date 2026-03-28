@@ -60,15 +60,25 @@
 
 ## What YOU Need to Do Next
 
-### Immediate (before going live)
+> **Current Status as of session end (March 28, 2026, ~1 PM):**
+> - ✅ Render deployed: `https://contentforge-api-lpp9.onrender.com` — live and healthy
+> - ✅ Gemini AI: configured on Render (`llm_backend: gemini`, `ai_endpoints_ready: true`)
+> - ✅ Twitter bots: both posted successfully (niche_launch_1 + EyeCatcher, 1 verified post each)
+> - ✅ Firefox profiles: fixed (different sessions for each account)
+> - ⚠️ AI endpoints hitting Gemini daily quota (from test calls) — resets midnight Pacific. Use tomorrow.
+> - ⬜ RapidAPI: still needs endpoint cleanup and pricing configured
 
-- [ ] **Deploy to Render**: Go to render.com → New → Blueprint → select CaptainFredric/MoneyPrinter3 → enter your `GEMINI_API_KEY` → Apply. Full instructions in `docs/ContentForge_Deploy.md` Step 2a.
+### Immediate
 
-- [ ] **Fix RapidAPI endpoints**: You have 5 endpoint groups but some are empty/duplicates. Follow `docs/ContentForge_Deploy.md` Section 4b-fix to delete the stray `v1` and `health` groups and fill in the missing endpoint bodies.
+- [ ] **RapidAPI endpoint cleanup**: Go to your RapidAPI listing → Definitions → clean up the `v1` and `health` duplicate groups. See `docs/ContentForge_Deploy.md` Section 4b-fix for exact steps.
 
-- [ ] **Set proxy secret**: After Render deploys, copy the RapidAPI proxy secret (Settings → Security) and add it as `RAPIDAPI_PROXY_SECRET` in Render's Environment tab.
+- [ ] **Re-import openapi.json**: The server URL was wrong (`1pp9` vs `lpp9`). Re-import `deploy/openapi.json` to RapidAPI to update the base URL. Must match exactly or requests will fail.
 
-- [ ] **Test the live API**: Run the curl commands in Step 2e of the deploy doc to confirm all 5 endpoints work.
+- [ ] **Set RapidAPI proxy secret**: After listing is published → Settings → Security → copy `X-RapidAPI-Proxy-Secret` → paste into Render Environment tab as `RAPIDAPI_PROXY_SECRET` → Service auto-redeploys.
+
+- [ ] **Configure RapidAPI pricing** (4 tiers, AI Objects): See `docs/ContentForge_Deploy.md` Section 4c for exact field values.
+
+- [ ] **Set up keep-warm cron**: Free at https://cron-job.org — ping `https://contentforge-api-lpp9.onrender.com/health` every 10 minutes. Prevents ~50s cold start delays for API visitors. Takes 2 minutes to set up.
 
 ### Soon
 
@@ -76,7 +86,7 @@
 
 - [ ] **Review bot content templates**: `docs/bot_content_templates.md` has pre-written tweets and a content calendar. Add the suggested topic categories to account configs if they look good.
 
-- [ ] **Push to GitHub**: All changes are local. When ready: `git add -A && git commit -m "Deploy ContentForge + fix profiles + README rewrite" && git push`
+- [ ] **Enable Gemini billing (optional)**: Go to https://aistudio.google.com → API key → Enable billing. Free tier use stays free, you only pay if you exceed 1,500 req/day — which only happens ~30 days in with busy traffic. Eliminates the quota error entirely.
 
 ### Nice to Have
 
