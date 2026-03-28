@@ -156,6 +156,11 @@
                     "description": "Hook style/tone"
                   }
                 }
+              },
+              "example": {
+                "topic": "passive income with APIs",
+                "count": 5,
+                "style": "viral"
               }
             }
           }
@@ -224,6 +229,11 @@
                     "description": "Desired tone of the rewrite"
                   }
                 }
+              },
+              "example": {
+                "text": "I built an API and now it makes me money every month without doing anything.",
+                "platform": "twitter",
+                "tone": "engaging"
               }
             }
           }
@@ -292,6 +302,11 @@
                     "description": "Whether to include hashtag suggestions"
                   }
                 }
+              },
+              "example": {
+                "niche": "indie hacking",
+                "count": 5,
+                "hashtags": true
               }
             }
           }
