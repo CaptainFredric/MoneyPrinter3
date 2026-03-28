@@ -304,7 +304,7 @@ This is the critical security step. After creating the listing:
 1. Go to **My APIs → ContentForge → Settings → Security**
 2. Copy the **X-RapidAPI-Proxy-Secret** value
 3. Go to your Render dashboard → contentforge-api → Environment
-4. Set `RAPIDAPI_PROXY_SECRET` = (the value you just copied)
+4. Set `![alt text](image.png)` = (the value you just copied)
 5. Render will redeploy automatically
 
 What this does: RapidAPI injects this secret into every request it forwards to your backend. Your API (`_verify_rapidapi_request()` in `api_prototype.py`) validates it. Anyone who finds your Render URL and tries to call it directly without going through RapidAPI gets a `403 Forbidden`. This means all traffic — and therefore all billing — must flow through RapidAPI.
