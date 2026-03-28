@@ -1,7 +1,7 @@
 # ContentForge API — Documentation
 
 **ContentForge** is an AI-powered content toolkit for creators, marketers, and developers.
-Use it to score headlines, score tweet drafts, improve weak headlines with AI, generate viral hooks, rewrite for any platform, brainstorm tweet ideas, and build full content calendars — all from a single API.
+Use it to score headlines, score tweet drafts, improve weak headlines with AI, generate viral hooks, rewrite for any platform, brainstorm tweet ideas, build full content calendars, generate viral Twitter thread outlines, and create optimized social media bios — all from a single API.
 
 ---
 
@@ -309,7 +309,84 @@ AI-generates a full content calendar with daily themes and ready-to-post drafts 
 
 ---
 
-### 8. `GET /health` — Health Check
+### 8. `POST /v1/thread_outline` — Generate Twitter Thread Outline ← NEW
+
+Generate a complete, ready-to-post Twitter thread outline for any topic. Returns a scroll-stopping hook tweet, numbered body tweets with real insights, and a CTA closing tweet.
+
+**Request:**
+```json
+{
+  "topic": "how to build a micro-SaaS in a weekend",
+  "tweet_count": 7,
+  "tone": "motivational"
+}
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `topic` | string | ✅ | — | Thread topic (max 300 chars) |
+| `tweet_count` | integer | ❌ | 7 | Total tweets including hook + CTA (3-10) |
+| `tone` | string | ❌ | "informative" | Tone: informative, motivational, casual, bold, etc. |
+
+**Response:**
+```json
+{
+  "topic": "how to build a micro-SaaS in a weekend",
+  "tone": "motivational",
+  "total_tweets": 7,
+  "hook": "Want to build a micro-SaaS in just one weekend? It's possible. Here's exactly how: 🧵",
+  "tweets": [
+    "2/ Pick a pain you've personally lived. Not an imaginary problem — YOUR problem.",
+    "3/ Build the smallest version that solves it. No fancy features. Just the core value.",
+    "4/ Launch on Sunday. Post 'I built this in 48hrs'. Indie Hacker audience loves these.",
+    "5/ Price it at $9/mo. Underpriced feels safe. Get 10 customers first."
+  ],
+  "cta": "Follow me for weekly micro-SaaS breakdowns. Bookmark this 🔖 and come back when you're ready to build.",
+  "full_thread": ["Want to build a micro-SaaS...", "2/ Pick a pain...", "..."]
+}
+```
+
+---
+
+### 9. `POST /v1/generate_bio` — Generate Social Media Bio ← NEW
+
+Generate an optimized social media bio for Twitter (160 chars), LinkedIn (300 chars), or Instagram (150 chars). AI crafts a punchy bio with value proposition and CTA, automatically trimmed to fit the platform.
+
+**Request:**
+```json
+{
+  "name": "Alex Rivera",
+  "niche": "indie developer building micro-SaaS tools",
+  "keywords": ["APIs", "side income", "buildinpublic"],
+  "platform": "twitter",
+  "tone": "casual"
+}
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | ✅ | — | Your name or brand name (max 100 chars) |
+| `niche` | string | ✅ | — | What you do or your niche (max 200 chars) |
+| `keywords` | array | ❌ | [] | Keywords to weave in (up to 10) |
+| `platform` | string | ❌ | "twitter" | `twitter` (160), `linkedin` (300), `instagram` (150) |
+| `tone` | string | ❌ | "professional" | professional, casual, bold, friendly, etc. |
+
+**Response:**
+```json
+{
+  "name": "Alex Rivera",
+  "platform": "twitter",
+  "tone": "casual",
+  "bio": "Indie dev building micro-SaaS tools to help others monetize their APIs & build public products | Side income, simplified.",
+  "char_count": 121,
+  "char_limit": 160,
+  "is_valid_length": true
+}
+```
+
+---
+
+### 10. `GET /health` — Health Check
 
 Returns service status and usage statistics.
 
@@ -365,6 +442,8 @@ Returns service status and usage statistics.
 - **Indie Hackers** — Get ready-to-post `tweet_ideas` for your product niche daily
 - **Copywriters** — Use `rewrite` to instantly adapt any copy for a different platform or tone
 - **Email Marketers** — Score subject lines with `analyze_headline` for higher open rates
+- **Thread Writers** — Build viral Twitter threads with `thread_outline` in seconds, not hours
+- **New Creators** — Generate your first professional social bio with `generate_bio`
 
 ---
 

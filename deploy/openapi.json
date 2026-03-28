@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, and generate full 7-day content calendars.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
@@ -610,6 +610,160 @@
               }
             }
           }
+        }
+      }
+    },
+    "/v1/thread_outline": {
+      "post": {
+        "summary": "Generate Twitter Thread Outline",
+        "description": "Generate a complete Twitter thread outline for any topic. Returns a hook tweet (scroll-stopping opener), numbered body tweets with key insights, and a CTA closing tweet — all ready to post. Configurable tweet count (3-10) and tone.",
+        "operationId": "threadOutline",
+        "tags": ["Content Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["topic"],
+                "properties": {
+                  "topic": {
+                    "type": "string",
+                    "description": "The topic or title of the thread.",
+                    "example": "how to build a micro-SaaS in a weekend"
+                  },
+                  "tweet_count": {
+                    "type": "integer",
+                    "description": "Total number of tweets including hook and CTA (3-10, default 7).",
+                    "default": 7,
+                    "minimum": 3,
+                    "maximum": 10
+                  },
+                  "tone": {
+                    "type": "string",
+                    "description": "Tone of the thread: informative, motivational, casual, bold, etc.",
+                    "default": "informative",
+                    "example": "motivational"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thread outline generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "topic": {"type": "string"},
+                    "tone": {"type": "string"},
+                    "total_tweets": {"type": "integer"},
+                    "hook": {"type": "string"},
+                    "tweets": {"type": "array", "items": {"type": "string"}},
+                    "cta": {"type": "string"},
+                    "full_thread": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "topic": "how to build a micro-SaaS in a weekend",
+                  "tone": "motivational",
+                  "total_tweets": 5,
+                  "hook": "Want to build a micro-SaaS in just one weekend? It's possible. Here's how: 🧵",
+                  "tweets": ["2/ Pick a pain you've lived. Not an imaginary problem — YOUR problem.", "3/ Build the smallest version that solves it. No fancy features. Just the core."],
+                  "cta": "Follow me for weekly micro-SaaS breakdowns. Bookmark this thread 🔖",
+                  "full_thread": ["Want to build a micro-SaaS in just one weekend? ...", "2/ Pick a pain you've lived...", "3/ Build the smallest version...", "Follow me for weekly micro-SaaS breakdowns..."]
+                }
+              }
+            }
+          },
+          "400": {"description": "Missing or invalid parameters"},
+          "429": {"description": "Rate limit exceeded"},
+          "503": {"description": "LLM backend unavailable"}
+        }
+      }
+    },
+    "/v1/generate_bio": {
+      "post": {
+        "summary": "Generate Social Media Bio",
+        "description": "Generate an optimized social media bio for Twitter, LinkedIn, or Instagram. Supply a name, niche, optional keywords, platform, and tone — get back a punchy, professional bio that stays within platform character limits.",
+        "operationId": "generateBio",
+        "tags": ["Content Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "niche"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Your name or brand name.",
+                    "example": "Alex Rivera"
+                  },
+                  "niche": {
+                    "type": "string",
+                    "description": "Your niche, role, or what you do.",
+                    "example": "indie developer building micro-SaaS tools"
+                  },
+                  "keywords": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Keywords or topics to weave into the bio (up to 10).",
+                    "example": ["APIs", "side income", "buildinpublic"]
+                  },
+                  "platform": {
+                    "type": "string",
+                    "description": "Target platform: twitter (160 chars), linkedin (300 chars), instagram (150 chars).",
+                    "default": "twitter",
+                    "enum": ["twitter", "linkedin", "instagram"]
+                  },
+                  "tone": {
+                    "type": "string",
+                    "description": "Tone of the bio: professional, casual, bold, friendly, etc.",
+                    "default": "professional",
+                    "example": "casual"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bio generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {"type": "string"},
+                    "platform": {"type": "string"},
+                    "tone": {"type": "string"},
+                    "bio": {"type": "string"},
+                    "char_count": {"type": "integer"},
+                    "char_limit": {"type": "integer"},
+                    "is_valid_length": {"type": "boolean"}
+                  }
+                },
+                "example": {
+                  "name": "Alex Rivera",
+                  "platform": "twitter",
+                  "tone": "casual",
+                  "bio": "Indie dev building micro-SaaS tools to help others monetize their APIs & build public products | Side income, simplified.",
+                  "char_count": 121,
+                  "char_limit": 160,
+                  "is_valid_length": true
+                }
+              }
+            }
+          },
+          "400": {"description": "Missing or invalid parameters"},
+          "429": {"description": "Rate limit exceeded"},
+          "503": {"description": "LLM backend unavailable"}
         }
       }
     }

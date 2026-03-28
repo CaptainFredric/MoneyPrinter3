@@ -798,6 +798,170 @@ def endpoint_improve_headline():
         "original_suggestions": original_analysis["suggestions"],
         "improved_versions": scored_versions,
     }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 8. Thread Outline (AI-powered)
+# ---------------------------------------------------------------------------
+@app.route("/v1/thread_outline", methods=["POST"])
+def endpoint_thread_outline():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    topic = payload.get("topic", "").strip()
+    try:
+        tweet_count = max(3, min(int(payload.get("tweet_count", 7)), 10))
+    except (ValueError, TypeError):
+        return jsonify({"error": "'tweet_count' must be an integer (3-10)"}), 400
+    tone = payload.get("tone", "informative").strip() or "informative"
+
+    if not topic:
+        return jsonify({"error": "missing 'topic' parameter"}), 400
+    if len(topic) > 300:
+        return jsonify({"error": "topic too long (max 300 chars)"}), 400
+
+    body_count = tweet_count - 2  # subtract hook and CTA tweets
+
+    prompt = (
+        f"Write a Twitter thread outline about: {topic}\n"
+        f"Tone: {tone}\n"
+        f"Structure:\n"
+        f"- 1 hook tweet (scroll-stopping opener, under 280 chars)\n"
+        f"- {body_count} body tweets (one key insight each, under 280 chars)\n"
+        f"- 1 CTA tweet (call to action — follow, bookmark, reply — under 280 chars)\n"
+        f"Rules:\n"
+        f"- Each tweet stands alone and delivers real value\n"
+        f"- Number the body tweets in the content (e.g. '2/ ', '3/ ')\n"
+        f"- Use concrete examples, numbers, or bold claims\n"
+        f"- Return ONLY valid JSON in this exact format:\n"
+        f'{{"hook": "...", "tweets": ["...", "...", ...], "cta": "..."}}\n'
+        f"The 'tweets' array must have exactly {body_count} items."
+    )
+
+    try:
+        raw = _llm_generate(prompt)
+        match = re.search(r'\{.*\}', raw, re.DOTALL)
+        thread_data = None
+        if match:
+            try:
+                thread_data = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                thread_data = None
+
+        if not thread_data or "hook" not in thread_data:
+            # Fallback: split raw text into tweet-sized chunks
+            lines = [
+                re.sub(r'^[\d.\-\)\]]+\s*', '', l).strip().strip('"')
+                for l in raw.strip().split("\n")
+                if l.strip() and len(l.strip()) > 10
+            ]
+            hook = lines[0] if lines else f"Thread about {topic}:"
+            cta = lines[-1] if len(lines) > 1 else "Follow for more insights like this 🧵"
+            body = lines[1:-1][:body_count] if len(lines) > 2 else [f"Key insight about {topic}."] * body_count
+            thread_data = {"hook": hook, "tweets": body, "cta": cta}
+
+        hook = str(thread_data.get("hook", f"Thread: {topic}")).strip()
+        tweets = [str(t).strip() for t in thread_data.get("tweets", []) if str(t).strip()][:body_count]
+        # Pad if LLM returned fewer body tweets than requested
+        while len(tweets) < body_count:
+            tweets.append(f"{len(tweets) + 2}/ Key insight about {topic}.")
+        cta = str(thread_data.get("cta", "Follow for more threads like this 🧵")).strip()
+
+        all_tweets = [hook] + tweets + [cta]
+
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    _log_usage("thread_outline", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "topic": topic,
+        "tone": tone,
+        "total_tweets": len(all_tweets),
+        "hook": hook,
+        "tweets": tweets,
+        "cta": cta,
+        "full_thread": all_tweets,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 9. Generate Bio (AI-powered)
+# ---------------------------------------------------------------------------
+@app.route("/v1/generate_bio", methods=["POST"])
+def endpoint_generate_bio():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    name = payload.get("name", "").strip()
+    niche = payload.get("niche", "").strip()
+    keywords = payload.get("keywords", [])
+    platform = payload.get("platform", "twitter").strip().lower() or "twitter"
+    tone = payload.get("tone", "professional").strip() or "professional"
+
+    if not name:
+        return jsonify({"error": "missing 'name' parameter"}), 400
+    if not niche:
+        return jsonify({"error": "missing 'niche' parameter"}), 400
+    if len(name) > 100:
+        return jsonify({"error": "name too long (max 100 chars)"}), 400
+    if len(niche) > 200:
+        return jsonify({"error": "niche too long (max 200 chars)"}), 400
+
+    # Platform-specific char limits
+    char_limits = {"twitter": 160, "linkedin": 300, "instagram": 150}
+    char_limit = char_limits.get(platform, 160)
+
+    if isinstance(keywords, list):
+        keywords_str = ", ".join(str(k) for k in keywords[:10] if k)
+    else:
+        keywords_str = str(keywords)[:200]
+
+    prompt = (
+        f"Write a {platform} bio for {name}.\n"
+        f"Niche: {niche}\n"
+        f"Tone: {tone}\n"
+        f"{'Keywords to include: ' + keywords_str if keywords_str else ''}\n"
+        f"Rules:\n"
+        f"- Maximum {char_limit} characters\n"
+        f"- Opening with what they do, not their name\n"
+        f"- Include a clear value proposition\n"
+        f"- End with a CTA or hook (e.g. 'DM me', 'Follow for daily tips', link placeholder)\n"
+        f"- Friendly, punchy, human-sounding\n"
+        f"- Return ONLY the bio text, no quotes, no explanation"
+    )
+
+    try:
+        bio = _llm_generate(prompt).strip().strip('"').strip("'")
+        # Trim to platform limit if LLM over-generated
+        if len(bio) > char_limit * 1.2:
+            bio = bio[:char_limit].rsplit(" ", 1)[0] + "…"
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    is_valid = len(bio) <= char_limit
+
+    _log_usage("generate_bio", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "name": name,
+        "platform": platform,
+        "tone": tone,
+        "bio": bio,
+        "char_count": len(bio),
+        "char_limit": char_limit,
+        "is_valid_length": is_valid,
+    }), remaining)
+
+
 # ---------------------------------------------------------------------------
 # Health + Root
 # ---------------------------------------------------------------------------
@@ -858,6 +1022,8 @@ def root():
             "POST /v1/rewrite": "Rewrite text for any platform/tone",
             "POST /v1/tweet_ideas": "Generate tweet ideas for any niche",
             "POST /v1/content_calendar": "AI-generated 7-day content calendar",
+            "POST /v1/thread_outline": "AI-generated Twitter thread outline (hook + body + CTA)",
+            "POST /v1/generate_bio": "AI-generated social media bio (Twitter/LinkedIn/Instagram)",
             "GET /health": "Service health check + usage stats",
         },
         "docs": "https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1",
@@ -901,6 +1067,14 @@ def _run_test():
 
         print("\n=== Content Calendar ===")
         rv = c.post("/v1/content_calendar", json={"niche": "indie hacking", "days": 3, "platform": "twitter"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Thread Outline ===")
+        rv = c.post("/v1/thread_outline", json={"topic": "how to build a micro-SaaS in a weekend", "tweet_count": 5, "tone": "motivational"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Generate Bio ===")
+        rv = c.post("/v1/generate_bio", json={"name": "Alex Rivera", "niche": "indie developer building micro-SaaS tools", "platform": "twitter", "tone": "casual", "keywords": ["APIs", "side income", "buildinpublic"]})
         pprint.pprint(rv.get_json())
 
         print("\n=== Health ===")
