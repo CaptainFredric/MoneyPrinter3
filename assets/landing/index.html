@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ContentForge — AI Content Toolkit for Creators & Developers</title>
   <meta name="description" content="Score headlines, score tweet drafts, generate viral hooks, build content calendars, write Twitter threads and social bios — all from one REST API.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <meta property="og:title" content="ContentForge — AI Content Toolkit">
+  <meta property="og:description" content="Score headlines & tweets, generate hooks, build content calendars — one REST API on RapidAPI.">
+  <meta property="og:type" content="website">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -182,6 +186,53 @@
       text-align: center; font-size: 0.84rem; color: #555566;
     }
     footer a { color: #7c6af7; text-decoration: none; }
+
+    /* ── BEFORE/AFTER DEMO ── */
+    .demo { display: flex; gap: 24px; flex-wrap: wrap; align-items: stretch; }
+    .demo-card {
+      flex: 1; min-width: 280px; background: #141418; border: 1px solid #1e1e28;
+      border-radius: 12px; padding: 24px; position: relative;
+    }
+    .demo-card.before { border-color: #e87777; }
+    .demo-card.after { border-color: #5ec8a0; }
+    .demo-label {
+      position: absolute; top: -10px; left: 16px; font-size: 0.72rem;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      padding: 2px 10px; border-radius: 4px;
+    }
+    .demo-label.before { background: #2a1515; color: #e87777; }
+    .demo-label.after { background: #0e2018; color: #5ec8a0; }
+    .demo-text { font-size: 1.05rem; color: #c8c8d8; margin: 16px 0 12px; line-height: 1.5; }
+    .demo-meta { font-size: 0.82rem; color: #9999aa; }
+    .demo-meta strong { color: #f0f0f5; }
+    .demo-arrow {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: #7c6af7; min-width: 40px;
+    }
+
+    /* ── WHO IT'S FOR ── */
+    .audience-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    .audience-card {
+      background: #141418; border: 1px solid #1e1e28; border-radius: 12px;
+      padding: 22px; transition: border-color .2s;
+    }
+    .audience-card:hover { border-color: #7c6af7; }
+    .audience-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .audience-card h3 { font-size: 0.95rem; color: #f0f0f5; margin-bottom: 6px; }
+    .audience-card p { font-size: 0.85rem; color: #9999aa; line-height: 1.5; }
+
+    /* ── HERO GRADIENT ── */
+    .hero::before {
+      content: '';
+      position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,106,247,0.08) 0%, transparent 70%);
+      pointer-events: none; z-index: -1;
+    }
+    .hero { position: relative; }
   </style>
 </head>
 <body>
@@ -222,6 +273,65 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     json={<span class="c-str">"text"</span>: <span class="c-str">"Got 100 signups in 24 hours 🚀 Here's the copy that converted: #buildinpublic"</span>})
 <span class="c-dim"># → score: 91  grade: </span><span class="c-grade-a">A</span><span class="c-dim">  ← post this one</span></code></pre>
 </div>
+
+<!-- BEFORE & AFTER DEMO -->
+<section>
+  <h2>See the Difference</h2>
+  <p class="section-sub">Run a weak headline through <code style="color:#7c6af7">/v1/improve_headline</code> — AI rewrites it, scores each version, and returns the best.</p>
+  <div class="demo">
+    <div class="demo-card before">
+      <span class="demo-label before">Before</span>
+      <div class="demo-text">"How to make money online"</div>
+      <div class="demo-meta">Score: <strong style="color:#e87777">49</strong> &nbsp; Grade: <strong style="color:#e87777">C</strong></div>
+      <div class="demo-meta" style="margin-top:6px;">Generic, no specificity, no hook</div>
+    </div>
+    <div class="demo-arrow">→</div>
+    <div class="demo-card after">
+      <span class="demo-label after">After</span>
+      <div class="demo-text">"Can You Really Earn $5,000 a Month Online? Discover the Secrets"</div>
+      <div class="demo-meta">Score: <strong style="color:#5ec8a0">100</strong> &nbsp; Grade: <strong style="color:#5ec8a0">A</strong></div>
+      <div class="demo-meta" style="margin-top:6px;">Power words: <em>earn, secret, discover</em> · Question hook · Specific number</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO IT'S FOR -->
+<section>
+  <h2>Built For</h2>
+  <p class="section-sub">Whether you're a solo creator or running an agency, ContentForge fits your workflow.</p>
+  <div class="audience-grid">
+    <div class="audience-card">
+      <div class="audience-icon">🐦</div>
+      <h3>Twitter Growth Hackers</h3>
+      <p>Score every tweet before posting. Only publish A-grade content. Use tweet_ideas for an endless pipeline.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">✍️</div>
+      <h3>Bloggers &amp; Newsletter Writers</h3>
+      <p>Test 10 headlines in a loop, pick the highest-scoring one. Open rates go up, guaranteed.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">🚀</div>
+      <h3>Indie Hackers</h3>
+      <p>Build in public content on autopilot. Thread outlines, daily tweet ideas, bio optimization — all via API.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">🏢</div>
+      <h3>Agencies &amp; Teams</h3>
+      <p>Generate content calendars for multiple clients. Score client-submitted copy. Standardize quality at scale.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">🤖</div>
+      <h3>Bot &amp; Automation Builders</h3>
+      <p>Plug ContentForge into your Zapier flows, CMS hooks, or custom bots. Clean JSON, CORS enabled, consistent schemas.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">📧</div>
+      <h3>Email Marketers</h3>
+      <p>Score subject lines with analyze_headline. A/B test 5 versions programmatically before sending.</p>
+    </div>
+  </div>
+</section>
 
 <!-- STATS -->
 <div class="stats">
@@ -342,22 +452,22 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <div class="price-card">
       <div class="price-name">BASIC</div>
       <div class="price-amount">$0<span>/mo</span></div>
-      <div class="price-desc">500,000 requests/mo<br>1,000 req/hr rate limit<br>All instant endpoints<br>AI endpoints included</div>
+      <div class="price-desc">50 AI calls/mo<br>30 req/min rate limit<br>Instant endpoints unlimited<br>No credit card needed</div>
     </div>
     <div class="price-card featured">
       <div class="price-name">PRO</div>
       <div class="price-amount">$9.99<span>/mo</span></div>
-      <div class="price-desc">1,000 AI calls/mo<br>15 req/sec rate limit<br>Priority support<br>Great for solo creators</div>
+      <div class="price-desc">750 AI calls/mo<br>30 req/min rate limit<br>Priority support<br>Great for solo creators</div>
     </div>
     <div class="price-card">
       <div class="price-name">ULTRA</div>
       <div class="price-amount">$29.99<span>/mo</span></div>
-      <div class="price-desc">4,000 AI calls/mo<br>30 req/min rate limit<br>For agencies & teams</div>
+      <div class="price-desc">3,000 AI calls/mo<br>30 req/min rate limit<br>For agencies & teams</div>
     </div>
     <div class="price-card">
       <div class="price-name">MEGA</div>
       <div class="price-amount">$99<span>/mo</span></div>
-      <div class="price-desc">Unlimited usage<br>Custom rate limits<br>For high-volume use</div>
+      <div class="price-desc">18,000 AI calls/mo<br>30 req/min rate limit<br>For high-volume use</div>
     </div>
   </div>
 </section>
@@ -369,12 +479,7 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <p>Free plan, no credit card. Get your API key now and score your first headline.</p>
     <a href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" class="btn-primary" target="_blank" rel="noopener" style="display:inline-block;margin-bottom:24px;">Get Your Free API Key →</a>
     <br>
-    <p style="font-size:0.85rem;color:#555566;margin-top:8px;">Or drop your email and we'll send the Getting Started guide:</p>
-    <form class="email-form" method="post" action="/submit" style="margin-top:14px;">
-      <input type="email" name="email" placeholder="you@example.com" required />
-      <input type="hidden" name="utm" id="utm" value="">
-      <button type="submit">Send It</button>
-    </form>
+    <p style="font-size:0.85rem;color:#555566;margin-top:8px;">Questions? <a href="mailto:captainarmoreddude@gmail.com" style="color:#7c6af7;">captainarmoreddude@gmail.com</a></p>
   </div>
 </div>
 
@@ -393,10 +498,6 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   <p style="margin-top:8px;">API Base URL: <code style="color:#5ec8a0;">https://contentforge-api-lpp9.onrender.com</code></p>
 </footer>
 
-<script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const utm = urlParams.get('utm') || '';
-  document.getElementById('utm').value = utm;
-</script>
+<script>/* UTM tracking placeholder */</script>
 </body>
 </html>

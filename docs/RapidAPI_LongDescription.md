@@ -56,7 +56,6 @@ Response:
   "hashtag_count": 1,
   "emoji_count": 1,
   "power_words_found": ["built"],
-  "readability": "good",
   "suggestions": []
 }
 ```
@@ -66,18 +65,18 @@ Response:
 ## How Scoring Works
 
 ### Headline Scoring (`analyze_headline`)
-- **Length** — Optimal range 50–70 chars
+- **Length** — Optimal range 30–80 chars
 - **Power words** — 60+ tracked (urgency, money, social proof, curiosity, ease)
 - **Numbers** — Specific numbers boost credibility
 - **Emotional triggers** — Questions, exclamations, all-caps emphasis
 - **Structure** — Word count, caps ratio
 
 ### Tweet Scoring (`score_tweet`)
-- **Length** — Optimal 100–240 chars
+- **Length** — Optimal 71–100 chars (best), 50–140 (good)
 - **Hashtag count** — 1-2 optimal; more dilutes engagement
 - **Emoji presence** — Adds visual pop without overdoing it
 - **Power words** — Same 60+ word set
-- **Readability** — Sentence structure and flow
+- **Readability** — Shorter average word length scores higher
 
 ---
 
@@ -96,11 +95,13 @@ Response:
 
 ## Plans
 
-| Plan | Price | Quota | Rate Limit |
+All plans share a server-side rate limit of **30 requests/minute**. Plans are differentiated by AI calls per month. Instant endpoints (`analyze_headline`, `score_tweet`, `health`) do not consume AI calls.
+
+| Plan | Price | AI Calls/Month | Rate Limit |
 |---|---|---|---|
-| BASIC | Free | 500,000 req/mo | 1,000 req/hr |
-| PRO | $9.99/mo | 1,000 req/mo AI | 15 req/sec |
-| ULTRA | $29.99/mo | 4,000 req/mo AI | 30 req/min |
-| MEGA | $99/mo | Unlimited | Custom |
+| BASIC | Free | 50 | 30 req/min |
+| PRO | $9.99/mo | 750 | 30 req/min |
+| ULTRA | $29.99/mo | 3,000 | 30 req/min |
+| MEGA | $99/mo | 18,000 | 30 req/min |
 
 Need something custom? Email captainarmoreddude@gmail.com.

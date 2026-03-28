@@ -82,7 +82,7 @@ Score a tweet draft 0-100 for engagement potential before posting. **Instant, no
 ```
 
 **Scoring factors:**
-- Character count sweet spot (71–140 chars)
+- Character count sweet spot (71–100 chars best, 50–140 good)
 - Hashtags: 1–2 is optimal (4+ gets penalized)
 - Emojis: 1–3 boosts score
 - Power words
@@ -425,12 +425,14 @@ Returns service status and usage statistics.
 
 ## Rate Limits by Plan
 
-| Plan | Requests/Month | Rate Limit | AI Objects/Month |
-|------|---------------|------------|-----------------|
-| BASIC (Free) | 500,000 | 1,000 req/hr | 50 |
-| PRO | 1,000 | 15 req/sec | 750 |
-| ULTRA | 4,000 | 30 req/min | 3,000 |
-| MEGA | Unlimited | Custom | 18,000 |
+All plans share a server-side rate limit of **30 requests/minute**. Plans are differentiated by **AI calls per month** (calls to AI-powered endpoints). Instant endpoints (`analyze_headline`, `score_tweet`, `health`) do not consume AI calls.
+
+| Plan | Price | AI Calls/Month | Rate Limit |
+|------|-------|---------------|------------|
+| BASIC | Free | 50 | 30 req/min |
+| PRO | $9.99/mo | 750 | 30 req/min |
+| ULTRA | $29.99/mo | 3,000 | 30 req/min |
+| MEGA | $99/mo | 18,000 | 30 req/min |
 
 ---
 
