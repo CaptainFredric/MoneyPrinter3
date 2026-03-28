@@ -115,7 +115,7 @@ def main() -> int:
         except Exception as exc:
             warn(f"Could not validate Ollama model list: {exc}")
 
-    # Nano Banana 2 (image generation)
+    # Nano Banana 2 / Gemini (image generation + cloud LLM fallback)
     api_key = cfg.get("nanobanana2_api_key", "") or os.environ.get("GEMINI_API_KEY", "")
     nb2_base = str(
         cfg.get(
@@ -126,8 +126,14 @@ def main() -> int:
     if api_key:
         ok("nanobanana2_api_key is set")
     else:
-        fail("nanobanana2_api_key is empty (and GEMINI_API_KEY is not set)")
-        failures += 1
+        # Not a hard failure — Ollama handles local LLM. Gemini is only needed
+        # for image generation (YouTube Shorts) and cloud API deployment.
+        ollama_ok = check_url(f"{str(cfg.get('ollama_base_url','http://127.0.0.1:11434')).rstrip('/')}/api/tags")[0]
+        if ollama_ok:
+            warn("nanobanana2_api_key is empty — Ollama will handle local LLM. Set key for image generation or cloud deploy.")
+        else:
+            fail("nanobanana2_api_key is empty (and GEMINI_API_KEY is not set) — no AI provider available")
+            failures += 1
 
     reachable, detail = check_url(nb2_base, timeout=8)
     if not reachable:
