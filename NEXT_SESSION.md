@@ -1,5 +1,167 @@
 # Next Session Handoff — ContentForge / MoneyPrinterV2
 
+**Last updated:** March 28, 2026 (session 4)
+**Repo:** https://github.com/CaptainFredric/MoneyPrinter3 (branch: `main`, HEAD: `6921245`)
+**Contact email:** captainarmoreddude@gmail.com
+
+---
+
+## What's Live and Working Right Now
+
+| System | Status | URL / Path |
+|---|---|---|
+| **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
+| **RapidAPI Listing** | ✅ Public | 8 endpoints listed (need re-import to show 10) |
+| **Gemini backend** | ✅ Configured | `gemini-2.0-flash` via env var on Render |
+| **Proxy secret** | ✅ Set | `RAPIDAPI_PROXY_SECRET` in Render env |
+| **Keep-warm cron** | ✅ Active | cron-job.org, every 10 min → `/health` |
+| **Twitter: niche_launch_1** | ✅ Active | health=50, 4 posts today, Firefox Dev profile |
+| **Twitter: EyeCatcher** | ✅ Active | health=100, 3 posts today, Firefox regular profile |
+| **Ollama local** | ✅ Running | `llama3.2:3b` at `http://127.0.0.1:11434` |
+| **Legal docs** | ✅ Done | `docs/TERMS_OF_USE.md`, `docs/TERMS_AND_CONDITIONS.md` |
+
+---
+
+## API Endpoints — All 10 Live
+
+```
+GET  /health                   → service status, LLM backend, usage stats
+POST /v1/analyze_headline      → instant score 0-100 + grade + suggestions (no AI)
+POST /v1/score_tweet           → instant tweet draft scorer 0-100 + grade (no AI)
+POST /v1/improve_headline      → AI rewrites weak headline into N better scored versions
+POST /v1/generate_hooks        → AI viral hooks for any topic
+POST /v1/rewrite               → AI rewrite for twitter/linkedin/email/blog
+POST /v1/tweet_ideas           → AI tweet ideas + hashtags for any niche
+POST /v1/content_calendar      → AI 7-day content calendar
+POST /v1/thread_outline        → AI Twitter thread outline (hook + body + CTA) ← NEW
+POST /v1/generate_bio          → AI social media bio (Twitter/LinkedIn/Instagram) ← NEW
+```
+
+**Key notes:**
+- Base URL: `contentforge-api-lpp9.onrender.com` — **letter L** not digit 1
+- Free tier Render → 50s cold start after 15 min idle (keep-warm cron prevents this)
+- Gemini daily quota: 1,500 req/day. If you see `503 RESOURCE_EXHAUSTED`, wait until midnight Pacific
+- CORS headers added — browser clients (RapidAPI playground, web apps) work directly
+- 3-layer LLM fallback: `llm_provider.generate_text` → direct Ollama → direct Gemini
+
+---
+
+## What Was Done This Session (March 28, 2026 — Session 4)
+
+### New Features Added
+1. **`POST /v1/thread_outline`** — AI generates a complete Twitter thread outline: hook tweet, numbered body tweets (3-8), and CTA tweet. All ready to copy-paste. Configurable `tweet_count` (3-10) and `tone`.
+2. **`POST /v1/generate_bio`** — AI generates an optimized social media bio for Twitter (160 chars), LinkedIn (300 chars), or Instagram (150 chars). Accepts name, niche, keywords, platform, tone. Returns bio text + char count + validation.
+
+### Other Improvements
+3. Confirmed all 8 previous endpoints live on production (Render running commit `fd78f8b`)
+4. Both Twitter accounts posted successfully today (4 posts total)
+5. Updated root endpoint list to show 10 endpoints
+6. Updated smoke test to cover all 10 endpoints
+
+### Docs Updated
+7. `deploy/openapi.json` — Updated description, 2 new endpoint definitions (10 paths total, valid JSON confirmed)
+8. `docs/ContentForge_API_Documentation.md` — Added sections 8 & 9 for new endpoints, updated intro, added Use Cases for thread writers and new creators
+
+### Git
+- Commit `6921245`: "Add thread_outline + generate_bio endpoints (10 total), update openapi + docs"
+- Pushed to main → Render auto-deploying
+
+---
+
+## Twitter Bot State
+
+| Account | Posts Today | Total | Health | State |
+|---|---|---|---|---|
+| niche_launch_1 (NicheNewton) | 4 | 4 | 50 | active |
+| EyeCatcher | 3 | 3 | 100 | active |
+
+Last post URLs:
+- EyeCatcher: https://x.com/EyeCaughtThat2/status/2038007296018543093
+- niche_launch_1: https://x.com/NicheNewton/status/2038007454747771157
+
+Run commands:
+```bash
+source .runtime-venv/bin/activate
+
+# Single smart post (picks best account)
+python3 scripts/smart_post_twitter.py --headless
+
+# ContentForge promo post (scores tweets, picks the best one)
+python3 scripts/promo_contentforge.py --headless
+
+# System dashboard (see all system health at once)
+python3 scripts/system_dashboard.py
+
+# Performance report
+python3 scripts/performance_report.py
+```
+
+---
+
+## What Still Needs Doing (Priority Order)
+
+### 1. Re-import openapi.json to RapidAPI (manual, 5 min) ⚡ IMPORTANT
+- Go to RapidAPI → My APIs → ContentForge → Endpoints
+- Click "Import OpenAPI" → upload `deploy/openapi.json`
+- This will add ALL 10 endpoints to the listing (currently 8 showing, 10 in spec)
+- File is already updated: `deploy/openapi.json` has all 10 paths
+
+### 2. Add API Documentation on RapidAPI (manual, 5 min)
+- Go to RapidAPI → My APIs → ContentForge → Documentation
+- Paste the content from `docs/ContentForge_API_Documentation.md`
+- This fills the "Documentation is not set" warning on the listing
+
+### 3. Post to Indie Hackers + Hacker News
+- Hacker News: "Show HN: ContentForge — free API to score headlines, tweet drafts, and generate thread outlines"
+- Indie Hackers: post in "What did you launch this week?" thread
+- This is the #1 driver of first subscribers
+
+### 4. Tweet actively to grow both accounts
+- Both bots are active and healthy, in cooldown after posting
+- Run `python3 scripts/smart_post_twitter.py --headless` periodically (30 min cooldown between posts)
+- Or use the VS Code task: **Twitter: Smart Post (Headless)**
+
+### 5. Post to your personal account about ContentForge
+- Use options from `docs/promo_posts.md`
+- Highlight the NEW endpoints: `thread_outline` and `generate_bio`
+
+### 6. Upgrade Render when you get first paying subscriber
+- Render Starter = $7/mo → always-on (no cold starts)
+- One PRO subscriber ($9.99) covers it
+
+---
+
+## Key Files Reference
+
+| File | Purpose |
+|---|---|
+| `scripts/api_prototype.py` | ContentForge Flask API (10 endpoints, CORS, rate limiting, proxy validation) |
+| `scripts/system_dashboard.py` | Single-pane health dashboard |
+| `scripts/promo_contentforge.py` | Dogfood promo tweet generator using ContentForge API |
+| `deploy/wsgi.py` | WSGI entry point for Render |
+| `deploy/openapi.json` | OpenAPI 3.0.3 spec — import into RapidAPI (10 endpoints) |
+| `deploy/render.yaml` | Render Blueprint — 1 worker, all env vars defined |
+| `docs/ContentForge_API_Documentation.md` | Full API docs — paste into RapidAPI (10 endpoints) |
+| `docs/promo_posts.md` | Promotional tweet templates |
+| `docs/bot_content_templates.md` | Content templates for the bots |
+
+---
+
+## All 10 Endpoints — Quick Reference
+
+| # | Endpoint | Type | AI? |
+|---|---|---|---|
+| 1 | `POST /v1/analyze_headline` | Content Analysis | No (instant) |
+| 2 | `POST /v1/score_tweet` | Content Analysis | No (instant) |
+| 3 | `POST /v1/improve_headline` | Content Optimization | Yes |
+| 4 | `POST /v1/generate_hooks` | Content Generation | Yes |
+| 5 | `POST /v1/rewrite` | Content Optimization | Yes |
+| 6 | `POST /v1/tweet_ideas` | Content Generation | Yes |
+| 7 | `POST /v1/content_calendar` | Planning | Yes |
+| 8 | `POST /v1/thread_outline` | Content Generation | Yes |
+| 9 | `POST /v1/generate_bio` | Content Generation | Yes |
+| 10 | `GET /health` | Monitoring | No |
+
 **Last updated:** March 28, 2026 (session 3)
 **Repo:** https://github.com/CaptainFredric/MoneyPrinter3 (branch: `main`, HEAD: `30be366`)
 **Contact email:** captainarmoreddude@gmail.com
