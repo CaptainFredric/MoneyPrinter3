@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r deploy/requirements-api.txt
-    startCommand: gunicorn deploy.wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    startCommand: gunicorn deploy.wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
     envVars:
       - key: GEMINI_API_KEY
         sync: false   # set manually in Render dashboard
