@@ -13,7 +13,7 @@ These Terms apply to all use of the API endpoints and services operated by the P
 Subject to these Terms and any applicable marketplace subscription rules, Provider grants you a limited, non-exclusive, non-transferable, revocable license to access and use the Service to build and operate applications for your users.
 
 ## 3. Accounts, Keys, and Security
-If access requires API keys or credentials, you are responsible for keeping them secure. Do not embed secret keys in client-side code or public repositories. Immediately report compromised keys to alt550458@gmail.com.
+If access requires API keys or credentials, you are responsible for keeping them secure. Do not embed secret keys in client-side code or public repositories. Immediately report compromised keys to captainarmoreddude@gmail.com.
 
 Provider may require requests to include a marketplace proxy secret. Attempts to bypass the marketplace or otherwise impersonate marketplace traffic are prohibited.
 
@@ -32,7 +32,7 @@ AI-generated content may be inaccurate, biased, or otherwise unsuitable for some
 Provider retains ownership of the Service, APIs, models, and documentation. You retain ownership of your input data and are granted a license to use AI-generated outputs produced for you, subject to applicable third-party rights.
 
 ## 8. Privacy and Data Use
-Provider may collect logs, telemetry, and aggregated usage data to operate and improve the Service. By using the Service you consent to such collection. For specific data-handling questions, contact alt550458@gmail.com.
+Provider may collect logs, telemetry, and aggregated usage data to operate and improve the Service. By using the Service you consent to such collection. For specific data-handling questions, contact captainarmoreddude@gmail.com.
 
 ## 9. Warranties and Disclaimers
 THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE". PROVIDER DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
@@ -44,7 +44,7 @@ TO THE MAXIMUM EXTENT PERMITTED BY LAW, PROVIDER WILL NOT BE LIABLE FOR INDIRECT
 Provider may suspend or terminate access for breach of these Terms or for operational reasons. Upon termination your right to use the Service ends immediately.
 
 ## 12. DMCA and Complaints
-Copyright complaints should be sent to alt550458@gmail.com with sufficient detail to comply with applicable law. Provider will respond in accordance with legal obligations.
+Copyright complaints should be sent to captainarmoreddude@gmail.com with sufficient detail to comply with applicable law. Provider will respond in accordance with legal obligations.
 
 ## 13. Changes to Terms
 Provider may update these Terms. Material changes will be posted with an updated effective date. Continued use after changes constitutes acceptance.
@@ -53,7 +53,7 @@ Provider may update these Terms. Material changes will be posted with an updated
 These Terms are governed by the laws of the jurisdiction in which the Provider operates. Replace with a specific state or country if required.
 
 ## 15. Contact
-Questions about these Terms or the Service: alt550458@gmail.com
+Questions about these Terms or the Service: captainarmoreddude@gmail.com
 
 ---
 Note: This template is provided for convenience. Please obtain legal review before publishing.

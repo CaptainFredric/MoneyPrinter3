@@ -20,7 +20,7 @@ You agree to use the API only as permitted in the documentation. Provider may mo
 If you access the Service via RapidAPI or another marketplace, billing, subscription management, and payment disputes are handled through that marketplace. Provider may configure pricing tiers, quotas, and rate limits in the marketplace; those limits are binding on your use of the API.
 
 ## 4. API Keys, Secrets, and Security
-You are responsible for safeguarding any API keys, credentials, or other access tokens issued to you (including RapidAPI keys). Do not share your keys publicly. If you become aware of unauthorized use of your API key or a security breach, notify Provider immediately at alt550458@gmail.com.
+You are responsible for safeguarding any API keys, credentials, or other access tokens issued to you (including RapidAPI keys). Do not share your keys publicly. If you become aware of unauthorized use of your API key or a security breach, notify Provider immediately at captainarmoreddude@gmail.com.
 
 Provider uses a RapidAPI proxy secret and may validate inbound requests to ensure traffic is coming from the marketplace. Bypassing the marketplace or attempting to impersonate marketplace traffic is prohibited.
 
@@ -45,7 +45,7 @@ Provider does not claim ownership of content you input. For AI-generated output,
 All intellectual property rights in the Service, API, code, models, and documentation are owned by Provider or its licensors. You retain ownership of your input data and the final outputs you use, subject to the license granted above.
 
 ## 9. Privacy and Data
-Provider may collect usage logs, request metadata, and aggregated telemetry to operate, maintain, and improve the Service. For details on data collection and handling, see our Privacy Policy (if available) or contact alt550458@gmail.com. By using the Service you consent to such collection and use.
+Provider may collect usage logs, request metadata, and aggregated telemetry to operate, maintain, and improve the Service. For details on data collection and handling, see our Privacy Policy (if available) or contact captainarmoreddude@gmail.com. By using the Service you consent to such collection and use.
 
 ## 10. Security
 Provider follows reasonable security practices, but cannot guarantee the Service will be free of vulnerabilities. You must protect your credentials and secure any integrations that store or transmit API keys.
@@ -63,7 +63,7 @@ THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE". PROVIDER DISCLAIMS ALL WARRA
 TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, PROVIDER SHALL NOT BE LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR ANY LOST PROFITS OR REVENUE ARISING FROM YOUR USE OF THE SERVICE.
 
 ## 15. DMCA and Complaints
-If you believe content accessible via the Service infringes your copyright, contact Provider at alt550458@gmail.com with a notice that complies with the Digital Millennium Copyright Act (DMCA) or applicable country-specific procedures. Provider will respond in accordance with applicable law.
+If you believe content accessible via the Service infringes your copyright, contact Provider at captainarmoreddude@gmail.com with a notice that complies with the Digital Millennium Copyright Act (DMCA) or applicable country-specific procedures. Provider will respond in accordance with applicable law.
 
 ## 16. Changes to These Terms
 Provider may modify these Terms at any time. Material changes will be posted with a new effective date. Your continued use of the Service after publication constitutes acceptance of the updated Terms.
@@ -72,7 +72,7 @@ Provider may modify these Terms at any time. Material changes will be posted wit
 These Terms are governed by the laws of the jurisdiction in which the Provider operates. Replace this section with a specific state or country if you require a particular governing law.
 
 ## 18. Contact
-For questions about these Terms, support requests, or legal notices, contact: alt550458@gmail.com
+For questions about these Terms, support requests, or legal notices, contact: captainarmoreddude@gmail.com
 
 ---
 Note: This document is a general template and does not constitute legal advice. Please have these Terms reviewed and adapted by qualified legal counsel before publishing.
