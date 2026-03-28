@@ -1,33 +1,402 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>MPV2 Lead Capture</title>
-    <style>
-      body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;max-width:720px;margin:40px auto;padding:0 16px}
-      .card{border:1px solid #eee;padding:20px;border-radius:8px}
-      input[type=email]{width:100%;padding:8px;margin:8px 0}
-      button{padding:10px 14px}
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h1>Join our list</h1>
-      <p>Leave your email and we'll send a short guide.</p>
-      <form method="post" action="/submit">
-        <input type="email" name="email" placeholder="you@example.com" required />
-        <input type="hidden" name="utm" value="" id="utm">
-        <div>
-          <button type="submit">Subscribe</button>
-        </div>
-      </form>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ContentForge — AI Content Toolkit for Creators & Developers</title>
+  <meta name="description" content="Score headlines, score tweet drafts, generate viral hooks, build content calendars, write Twitter threads and social bios — all from one REST API.">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: #0f0f11;
+      color: #e8e8ec;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 32px; border-bottom: 1px solid #1e1e28;
+      position: sticky; top: 0; background: #0f0f11; z-index: 100;
+    }
+    .logo { font-weight: 800; font-size: 1.2rem; color: #7c6af7; letter-spacing: -0.5px; }
+    .logo span { color: #e8e8ec; }
+    nav a {
+      color: #9999aa; text-decoration: none; font-size: 0.9rem; margin-left: 24px;
+      transition: color .2s;
+    }
+    nav a:hover { color: #e8e8ec; }
+    .nav-cta {
+      background: #7c6af7; color: #fff !important;
+      padding: 8px 18px; border-radius: 8px; font-weight: 600;
+    }
+    .nav-cta:hover { background: #6a57e6 !important; }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 820px; margin: 80px auto 64px; padding: 0 24px; text-align: center;
+    }
+    .badge {
+      display: inline-block; background: #1e1e28; color: #7c6af7;
+      border: 1px solid #2e2e40; border-radius: 100px;
+      padding: 4px 14px; font-size: 0.82rem; font-weight: 600;
+      margin-bottom: 24px; letter-spacing: 0.5px;
+    }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800; line-height: 1.15; letter-spacing: -1px;
+      color: #f0f0f5; margin-bottom: 20px;
+    }
+    h1 em { font-style: normal; color: #7c6af7; }
+    .hero-sub {
+      font-size: 1.15rem; color: #9999aa; max-width: 580px;
+      margin: 0 auto 36px;
+    }
+    .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: #7c6af7; color: #fff; padding: 14px 28px;
+      border-radius: 10px; font-weight: 700; font-size: 1rem;
+      text-decoration: none; transition: background .2s, transform .1s;
+    }
+    .btn-primary:hover { background: #6a57e6; transform: translateY(-1px); }
+    .btn-secondary {
+      background: #1e1e28; color: #c8c8d8; padding: 14px 28px;
+      border-radius: 10px; font-weight: 600; font-size: 1rem;
+      text-decoration: none; border: 1px solid #2e2e40;
+      transition: border-color .2s;
+    }
+    .btn-secondary:hover { border-color: #7c6af7; color: #e8e8ec; }
+
+    /* ── CODE PREVIEW ── */
+    .code-card {
+      max-width: 700px; margin: 0 auto 80px; padding: 0 24px;
+    }
+    pre {
+      background: #141418; border: 1px solid #2e2e40; border-radius: 12px;
+      padding: 24px; overflow-x: auto; font-size: 0.84rem; line-height: 1.7;
+      text-align: left;
+    }
+    .c-dim { color: #555566; }
+    .c-key { color: #7c6af7; }
+    .c-str { color: #5ec8a0; }
+    .c-val { color: #f7c948; }
+    .c-grade-a { color: #5ec8a0; font-weight: 700; }
+    .c-grade-c { color: #e87777; font-weight: 700; }
+
+    /* ── STATS BAR ── */
+    .stats {
+      display: flex; justify-content: center; gap: 48px; flex-wrap: wrap;
+      padding: 32px 24px; border-top: 1px solid #1e1e28; border-bottom: 1px solid #1e1e28;
+      margin-bottom: 80px;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 2rem; font-weight: 800; color: #7c6af7; }
+    .stat-label { font-size: 0.85rem; color: #9999aa; margin-top: 4px; }
+
+    /* ── ENDPOINTS GRID ── */
+    section { max-width: 1100px; margin: 0 auto 80px; padding: 0 24px; }
+    h2 { font-size: 1.9rem; font-weight: 800; color: #f0f0f5; margin-bottom: 8px; }
+    .section-sub { color: #9999aa; margin-bottom: 40px; }
+    .endpoints-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .endpoint-card {
+      background: #141418; border: 1px solid #1e1e28; border-radius: 12px;
+      padding: 22px; transition: border-color .2s, transform .1s;
+    }
+    .endpoint-card:hover { border-color: #7c6af7; transform: translateY(-2px); }
+    .ep-method {
+      display: inline-block; font-size: 0.72rem; font-weight: 700;
+      background: #1e1e28; color: #7c6af7; border-radius: 4px;
+      padding: 2px 8px; margin-bottom: 10px; font-family: monospace;
+    }
+    .ep-method.instant { color: #5ec8a0; }
+    .ep-path { font-family: monospace; font-size: 0.88rem; color: #c8c8d8; margin-bottom: 8px; }
+    .ep-desc { font-size: 0.88rem; color: #9999aa; line-height: 1.5; }
+    .ep-badge {
+      display: inline-block; font-size: 0.7rem; margin-top: 10px;
+      padding: 2px 8px; border-radius: 100px; font-weight: 600;
+    }
+    .ep-badge.ai { background: #1e1532; color: #7c6af7; border: 1px solid #2e2040; }
+    .ep-badge.fast { background: #0e2018; color: #5ec8a0; border: 1px solid #1e3028; }
+
+    /* ── HOW IT WORKS ── */
+    .steps { display: flex; gap: 32px; flex-wrap: wrap; }
+    .step { flex: 1; min-width: 220px; }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%; background: #7c6af7;
+      color: #fff; font-weight: 800; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+    }
+    .step h3 { font-size: 1rem; color: #f0f0f5; margin-bottom: 6px; }
+    .step p { font-size: 0.88rem; color: #9999aa; }
+
+    /* ── PRICING ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .price-card {
+      background: #141418; border: 1px solid #1e1e28; border-radius: 12px;
+      padding: 28px 22px; text-align: center;
+      transition: border-color .2s;
+    }
+    .price-card.featured { border-color: #7c6af7; }
+    .price-name { font-size: 0.85rem; font-weight: 700; color: #7c6af7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .price-amount { font-size: 2.2rem; font-weight: 800; color: #f0f0f5; }
+    .price-amount span { font-size: 1rem; color: #9999aa; }
+    .price-desc { font-size: 0.84rem; color: #9999aa; margin-top: 10px; line-height: 1.5; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      max-width: 680px; margin: 0 auto 80px; padding: 48px 24px;
+      text-align: center; background: #141418; border: 1px solid #1e1e28;
+      border-radius: 16px;
+    }
+    .cta-section h2 { font-size: 2rem; margin-bottom: 12px; }
+    .cta-section p { color: #9999aa; margin-bottom: 28px; }
+
+    /* ── EMAIL CAPTURE ── */
+    .email-form { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .email-form input[type=email] {
+      padding: 12px 16px; border-radius: 8px; border: 1px solid #2e2e40;
+      background: #0f0f11; color: #e8e8ec; font-size: 0.95rem; width: 280px;
+      outline: none;
+    }
+    .email-form input[type=email]:focus { border-color: #7c6af7; }
+    .email-form button {
+      background: #7c6af7; color: #fff; padding: 12px 22px;
+      border: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem;
+      cursor: pointer; transition: background .2s;
+    }
+    .email-form button:hover { background: #6a57e6; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid #1e1e28; padding: 32px 24px;
+      text-align: center; font-size: 0.84rem; color: #555566;
+    }
+    footer a { color: #7c6af7; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Content<span>Forge</span></div>
+  <div>
+    <a href="#endpoints">Endpoints</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" class="nav-cta" target="_blank" rel="noopener">Get API Key →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">⚡ 10 endpoints · Instant + AI</div>
+  <h1>Stop guessing.<br>Start <em>scoring</em> your content.</h1>
+  <p class="hero-sub">
+    ContentForge is a REST API that scores headlines and tweets before you post, rewrites weak content with AI, and generates threads, calendars, and bios on demand.
+  </p>
+  <div class="hero-btns">
+    <a href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" class="btn-primary" target="_blank" rel="noopener">Start Free on RapidAPI →</a>
+    <a href="#endpoints" class="btn-secondary">See All Endpoints</a>
+  </div>
+</div>
+
+<!-- CODE PREVIEW -->
+<div class="code-card">
+  <pre><code><span class="c-dim"># Score a tweet before posting — instant, no AI needed</span>
+<span class="c-key">import</span> requests
+
+r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.com/v1/score_tweet"</span>, headers=HEADERS,
+    json={<span class="c-str">"text"</span>: <span class="c-str">"I'm working on a new project."</span>})
+<span class="c-dim"># → score: 32  grade: C  ← skip this one</span>
+
+r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.com/v1/score_tweet"</span>, headers=HEADERS,
+    json={<span class="c-str">"text"</span>: <span class="c-str">"Got 100 signups in 24 hours 🚀 Here's the copy that converted: #buildinpublic"</span>})
+<span class="c-dim"># → score: 91  grade: </span><span class="c-grade-a">A</span><span class="c-dim">  ← post this one</span></code></pre>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-num">10</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-num">2</div><div class="stat-label">Instant (no AI)</div></div>
+  <div class="stat"><div class="stat-num">8</div><div class="stat-label">AI-powered</div></div>
+  <div class="stat"><div class="stat-num">60+</div><div class="stat-label">Tracked Power Words</div></div>
+  <div class="stat"><div class="stat-num">Free</div><div class="stat-label">BASIC Plan</div></div>
+</div>
+
+<!-- ENDPOINTS -->
+<section id="endpoints">
+  <h2>All 10 Endpoints</h2>
+  <p class="section-sub">Two instant endpoints for zero-latency scoring. Eight AI endpoints for generation and improvement.</p>
+  <div class="endpoints-grid">
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/analyze_headline</div>
+      <div class="ep-desc">Score any headline 0–100 with letter grade, power word detection, and specific improvement suggestions.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
     </div>
-    <script>
-      // populate utm if present in querystring
-      const urlParams = new URLSearchParams(window.location.search);
-      const utm = urlParams.get('utm') || '';
-      document.getElementById('utm').value = utm;
-    </script>
-  </body>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/score_tweet</div>
+      <div class="ep-desc">Score any tweet draft for engagement potential before you post. Checks length, hashtags, emojis, power words, readability.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method">POST</div>
+      <div class="ep-path">/v1/improve_headline</div>
+      <div class="ep-desc">Submit a weak headline, get back N AI-rewritten versions sorted by score. The analyze → improve cycle.</div>
+      <span class="ep-badge ai">✦ AI</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method">POST</div>
+      <div class="ep-path">/v1/generate_hooks</div>
+      <div class="ep-desc">Generate scroll-stopping hook lines for any topic. Choose count and tone (bold, curious, direct, etc.).</div>
+      <span class="ep-badge ai">✦ AI</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method">POST</div>
+      <div class="ep-path">/v1/rewrite</div>
+      <div class="ep-desc">Rewrite any text for a specific platform (Twitter, LinkedIn, email, blog) and tone in one call.</div>
+      <span class="ep-badge ai">✦ AI</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method">POST</div>
+      <div class="ep-path">/v1/tweet_ideas</div>
+      <div class="ep-desc">Generate a batch of tweet ideas with hashtags for any niche. Never run out of content ideas.</div>
+      <span class="ep-badge ai">✦ AI</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method">POST</div>
+      <div class="ep-path">/v1/content_calendar</div>
+      <div class="ep-desc">Build a 7-day content calendar for any niche and platform, with themes and ready-to-post drafts.</div>
+      <span class="ep-badge ai">✦ AI</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method">POST</div>
+      <div class="ep-path">/v1/thread_outline</div>
+      <div class="ep-desc">Generate a complete Twitter thread: scroll-stopping hook, numbered body tweets, and CTA closing tweet.</div>
+      <span class="ep-badge ai">✦ AI</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method">POST</div>
+      <div class="ep-path">/v1/generate_bio</div>
+      <div class="ep-desc">Generate an optimized social bio for Twitter (160 chars), LinkedIn (300), or Instagram (150). Auto-trimmed to fit.</div>
+      <span class="ep-badge ai">✦ AI</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">GET</div>
+      <div class="ep-path">/health</div>
+      <div class="ep-desc">Service health check. Returns status, LLM backend, and per-endpoint usage statistics.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <h2>How It Works</h2>
+  <p class="section-sub">Three steps from zero to publishing better content.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Subscribe on RapidAPI</h3>
+      <p>Get your API key instantly on the free BASIC plan. No credit card required to start.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Score before you post</h3>
+      <p>Run every headline and tweet through the instant scoring endpoints. Only publish A/B grade content.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Generate on demand</h3>
+      <p>Use the AI endpoints to fill your content calendar, build threads, or rewrite underperforming copy in seconds.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <h2>Simple Pricing</h2>
+  <p class="section-sub">Start free. Scale when you need more.</p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-name">BASIC</div>
+      <div class="price-amount">$0<span>/mo</span></div>
+      <div class="price-desc">500,000 requests/mo<br>1,000 req/hr rate limit<br>All instant endpoints<br>AI endpoints included</div>
+    </div>
+    <div class="price-card featured">
+      <div class="price-name">PRO</div>
+      <div class="price-amount">$9.99<span>/mo</span></div>
+      <div class="price-desc">1,000 AI calls/mo<br>15 req/sec rate limit<br>Priority support<br>Great for solo creators</div>
+    </div>
+    <div class="price-card">
+      <div class="price-name">ULTRA</div>
+      <div class="price-amount">$29.99<span>/mo</span></div>
+      <div class="price-desc">4,000 AI calls/mo<br>30 req/min rate limit<br>For agencies & teams</div>
+    </div>
+    <div class="price-card">
+      <div class="price-name">MEGA</div>
+      <div class="price-amount">$99<span>/mo</span></div>
+      <div class="price-desc">Unlimited usage<br>Custom rate limits<br>For high-volume use</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div style="max-width:1100px;margin:0 auto 80px;padding:0 24px;">
+  <div class="cta-section">
+    <h2>Start in 30 seconds</h2>
+    <p>Free plan, no credit card. Get your API key now and score your first headline.</p>
+    <a href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" class="btn-primary" target="_blank" rel="noopener" style="display:inline-block;margin-bottom:24px;">Get Your Free API Key →</a>
+    <br>
+    <p style="font-size:0.85rem;color:#555566;margin-top:8px;">Or drop your email and we'll send the Getting Started guide:</p>
+    <form class="email-form" method="post" action="/submit" style="margin-top:14px;">
+      <input type="email" name="email" placeholder="you@example.com" required />
+      <input type="hidden" name="utm" id="utm" value="">
+      <button type="submit">Send It</button>
+    </form>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    <strong style="color:#7c6af7;">ContentForge</strong> — Built by
+    <a href="https://github.com/CaptainFredric" target="_blank" rel="noopener">Aden Cisneros</a>
+    &nbsp;·&nbsp;
+    <a href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">RapidAPI Listing</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/CaptainFredric/MoneyPrinter3" target="_blank" rel="noopener">GitHub</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:captainarmoreddude@gmail.com">Contact</a>
+  </p>
+  <p style="margin-top:8px;">API Base URL: <code style="color:#5ec8a0;">https://contentforge-api-lpp9.onrender.com</code></p>
+</footer>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const utm = urlParams.get('utm') || '';
+  document.getElementById('utm').value = utm;
+</script>
+</body>
 </html>
