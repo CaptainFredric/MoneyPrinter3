@@ -16,14 +16,6 @@
     }
   ],
   "components": {
-    "securitySchemes": {
-      "RapidApiKey": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-RapidAPI-Key",
-        "description": "Your RapidAPI subscription key. Provided automatically by RapidAPI when you subscribe to ContentForge."
-      }
-    },
     "headers": {
       "X-RateLimit-Limit": {
         "description": "Maximum requests per minute for your plan.",
@@ -39,7 +31,6 @@
       }
     }
   },
-  "security": [{"RapidApiKey": []}],
   "paths": {
     "/v1/analyze_headline": {
       "post": {
