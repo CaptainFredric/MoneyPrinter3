@@ -279,13 +279,19 @@
     }
     .endpoint-card {
       background: #141418; border: 1px solid #1e1e28; border-radius: 12px;
-      padding: 22px;
+      padding: 22px; cursor: pointer;
       transition: border-color .3s, transform .3s, box-shadow .3s;
+      position: relative;
     }
     .endpoint-card:hover {
       border-color: #7c6af7;
       transform: translateY(-4px);
       box-shadow: 0 8px 25px rgba(124,106,247,0.1);
+    }
+    .endpoint-card.open {
+      border-color: #7c6af7;
+      transform: none;
+      box-shadow: 0 0 0 2px rgba(124,106,247,0.25);
     }
     .ep-method {
       display: inline-block; font-size: 0.72rem; font-weight: 700;
@@ -293,14 +299,65 @@
       padding: 2px 8px; margin-bottom: 10px; font-family: monospace;
     }
     .ep-method.instant { color: #5ec8a0; }
-    .ep-path { font-family: monospace; font-size: 0.88rem; color: #c8c8d8; margin-bottom: 8px; }
-    .ep-desc { font-size: 0.88rem; color: #9999aa; line-height: 1.5; }
+    .ep-path {
+      font-family: monospace; font-size: 0.88rem; color: #c8c8d8; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ep-path-text { flex: 1; }
+    .ep-copy {
+      font-size: 0.7rem; color: #555566; cursor: pointer; padding: 2px 6px;
+      border: 1px solid #2e2e40; border-radius: 4px; background: #1e1e28;
+      transition: color .2s, border-color .2s;
+      white-space: nowrap;
+    }
+    .ep-copy:hover { color: #7c6af7; border-color: #7c6af7; }
+    .ep-copy.copied { color: #5ec8a0; border-color: #5ec8a0; }
+    .ep-desc { font-size: 0.88rem; color: #9999aa; line-height: 1.5; margin-bottom: 10px; }
     .ep-badge {
-      display: inline-block; font-size: 0.7rem; margin-top: 10px;
+      display: inline-block; font-size: 0.7rem; margin-top: 0;
       padding: 2px 8px; border-radius: 100px; font-weight: 600;
     }
     .ep-badge.ai { background: #1e1532; color: #7c6af7; border: 1px solid #2e2040; }
     .ep-badge.fast { background: #0e2018; color: #5ec8a0; border: 1px solid #1e3028; }
+    .ep-click-hint {
+      font-size: 0.72rem; color: #444455; margin-top: 10px;
+      transition: color .2s;
+    }
+    .endpoint-card:hover .ep-click-hint { color: #7c6af7; }
+    .endpoint-card.open .ep-click-hint { display: none; }
+    /* Expand panel */
+    .ep-expand {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    .endpoint-card.open .ep-expand {
+      max-height: 500px; opacity: 1;
+    }
+    .ep-expand-inner {
+      border-top: 1px solid #2e2e40; margin-top: 14px; padding-top: 14px;
+    }
+    .ep-example-label {
+      font-size: 0.72rem; color: #555566; text-transform: uppercase;
+      letter-spacing: 1px; font-weight: 600; margin-bottom: 8px;
+    }
+    .ep-example-code {
+      background: #0f0f11; border: 1px solid #2e2e40; border-radius: 8px;
+      padding: 12px; font-family: monospace; font-size: 0.78rem;
+      color: #c8c8d8; line-height: 1.5; overflow-x: auto; white-space: pre;
+      margin-bottom: 12px;
+    }
+    .ep-rapid-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: linear-gradient(135deg, #7c6af7, #6a57e6);
+      color: #fff; text-decoration: none; font-size: 0.8rem; font-weight: 700;
+      padding: 7px 14px; border-radius: 8px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .ep-rapid-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(124,106,247,0.35);
+    }
 
     /* ── HOW IT WORKS ── */
     .steps { display: flex; gap: 32px; flex-wrap: wrap; }
@@ -326,19 +383,28 @@
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 16px;
     }
+    a.price-card { text-decoration: none; display: block; }
     .price-card {
       background: #141418; border: 1px solid #1e1e28; border-radius: 12px;
       padding: 28px 22px; text-align: center;
       transition: border-color .3s, transform .3s, box-shadow .3s;
     }
+    a.price-card:hover .price-card,
     .price-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     }
+    a.price-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
     .price-card.featured {
       border-color: #7c6af7;
       position: relative;
     }
+    a.price-card.featured {
+      border-color: #7c6af7;
+      border-radius: 12px;
+      position: relative;
+    }
+    a.price-card.featured::before,
     .price-card.featured::before {
       content: 'POPULAR';
       position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
@@ -349,7 +415,25 @@
     .price-name { font-size: 0.85rem; font-weight: 700; color: #7c6af7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
     .price-amount { font-size: 2.2rem; font-weight: 800; color: #f0f0f5; }
     .price-amount span { font-size: 1rem; color: #9999aa; }
-    .price-desc { font-size: 0.84rem; color: #9999aa; margin-top: 10px; line-height: 1.5; }
+    .price-desc { font-size: 0.84rem; color: #9999aa; margin-top: 10px; line-height: 1.5; margin-bottom: 16px; }
+    .price-btn {
+      display: block; width: 100%;
+      padding: 10px 0; border-radius: 8px; font-weight: 700; font-size: 0.85rem;
+      text-decoration: none; transition: background .2s, transform .1s;
+      background: #1e1e28; color: #7c6af7; border: 1px solid #2e2e40;
+    }
+    .price-card.featured .price-btn,
+    a.price-card.featured .price-btn {
+      background: linear-gradient(135deg, #7c6af7, #6a57e6);
+      border-color: transparent; color: #fff;
+    }
+    a.price-card:hover .price-btn,
+    .price-card:hover .price-btn {
+      background: #2e2e40;
+    }
+    a.price-card.featured:hover .price-btn {
+      background: linear-gradient(135deg, #6a57e6, #5a47d6);
+    }
 
     /* ── LIVE DEMO ── */
     .try-it {
@@ -543,74 +627,164 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   <p class="section-sub">Two instant endpoints for zero-latency scoring. Eight AI endpoints for generation and improvement.</p>
   <div class="endpoints-grid">
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="analyze_headline">
       <div class="ep-method instant">POST</div>
-      <div class="ep-path">/v1/analyze_headline</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/analyze_headline</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/analyze_headline')">copy</span>
+      </div>
       <div class="ep-desc">Score any headline 0–100 with letter grade, power word detection, and specific improvement suggestions.</div>
       <span class="ep-badge fast">⚡ Instant</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"text": "5 AI Tools That Print Money While You Sleep"}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="score_tweet">
       <div class="ep-method instant">POST</div>
-      <div class="ep-path">/v1/score_tweet</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/score_tweet</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/score_tweet')">copy</span>
+      </div>
       <div class="ep-desc">Score any tweet draft for engagement potential before you post. Checks length, hashtags, emojis, power words.</div>
       <span class="ep-badge fast">⚡ Instant</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"text": "Built an API in 48hr. $500 last month 💸 #buildinpublic"}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="improve_headline">
       <div class="ep-method">POST</div>
-      <div class="ep-path">/v1/improve_headline</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/improve_headline</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/improve_headline')">copy</span>
+      </div>
       <div class="ep-desc">Submit a weak headline, get back N AI-rewritten versions sorted by score. The analyze → improve cycle.</div>
       <span class="ep-badge ai">✦ AI</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"text": "How to make money online", "count": 3}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="generate_hooks">
       <div class="ep-method">POST</div>
-      <div class="ep-path">/v1/generate_hooks</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/generate_hooks</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/generate_hooks')">copy</span>
+      </div>
       <div class="ep-desc">Generate scroll-stopping hook lines for any topic. Choose count and tone (bold, curious, direct, etc.).</div>
       <span class="ep-badge ai">✦ AI</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"topic": "passive income with APIs", "count": 5, "style": "viral"}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="rewrite">
       <div class="ep-method">POST</div>
-      <div class="ep-path">/v1/rewrite</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/rewrite</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/rewrite')">copy</span>
+      </div>
       <div class="ep-desc">Rewrite any text for a specific platform (Twitter, LinkedIn, email, blog) and tone in one call.</div>
       <span class="ep-badge ai">✦ AI</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"text": "I built an API.", "platform": "twitter", "tone": "engaging"}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="tweet_ideas">
       <div class="ep-method">POST</div>
-      <div class="ep-path">/v1/tweet_ideas</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/tweet_ideas</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/tweet_ideas')">copy</span>
+      </div>
       <div class="ep-desc">Generate a batch of tweet ideas with hashtags for any niche. Never run out of content ideas.</div>
       <span class="ep-badge ai">✦ AI</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"niche": "indie hacking", "count": 5, "hashtags": true}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="content_calendar">
       <div class="ep-method">POST</div>
-      <div class="ep-path">/v1/content_calendar</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/content_calendar</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/content_calendar')">copy</span>
+      </div>
       <div class="ep-desc">Build a 7-day content calendar for any niche and platform, with themes and ready-to-post drafts.</div>
       <span class="ep-badge ai">✦ AI</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"niche": "indie hacking", "days": 7, "platform": "twitter"}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="thread_outline">
       <div class="ep-method">POST</div>
-      <div class="ep-path">/v1/thread_outline</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/thread_outline</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/thread_outline')">copy</span>
+      </div>
       <div class="ep-desc">Generate a complete Twitter thread: scroll-stopping hook, numbered body tweets, and CTA closing tweet.</div>
       <span class="ep-badge ai">✦ AI</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"topic": "build a micro-SaaS in a weekend", "tweet_count": 7}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="generate_bio">
       <div class="ep-method">POST</div>
-      <div class="ep-path">/v1/generate_bio</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/generate_bio</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/generate_bio')">copy</span>
+      </div>
       <div class="ep-desc">Generate an optimized social bio for Twitter (160 chars), LinkedIn (300), or Instagram (150). Auto-trimmed.</div>
       <span class="ep-badge ai">✦ AI</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"name": "Aden", "niche": "indie dev building APIs", "platform": "twitter"}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
-    <div class="endpoint-card">
+    <div class="endpoint-card" data-ep="health">
       <div class="ep-method instant">GET</div>
-      <div class="ep-path">/health</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/health</span>
+        <span class="ep-copy" onclick="copyPath(event,'/health')">copy</span>
+      </div>
       <div class="ep-desc">Service health check. Returns status, LLM backend, and per-endpoint usage statistics.</div>
       <span class="ep-badge fast">⚡ Instant</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request</div>
+        <div class="ep-example-code">GET /health — no body required</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
     </div>
 
   </div>
@@ -656,26 +830,30 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   <h2>Simple Pricing</h2>
   <p class="section-sub">Start free. Scale when you need more. All plans include every endpoint.</p>
   <div class="pricing-grid">
-    <div class="price-card">
+    <a class="price-card" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1/pricing" target="_blank" rel="noopener">
       <div class="price-name">BASIC</div>
       <div class="price-amount">$0<span>/mo</span></div>
       <div class="price-desc">50 AI calls/mo<br>300 requests/mo<br>30 req/min rate limit<br>No credit card needed</div>
-    </div>
-    <div class="price-card featured">
+      <span class="price-btn">Get Started Free →</span>
+    </a>
+    <a class="price-card featured" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1/pricing" target="_blank" rel="noopener">
       <div class="price-name">PRO</div>
       <div class="price-amount">$9.99<span>/mo</span></div>
       <div class="price-desc">750 AI calls/mo<br>1,000 requests/mo<br>30 req/min rate limit<br>Great for solo creators</div>
-    </div>
-    <div class="price-card">
+      <span class="price-btn">Subscribe →</span>
+    </a>
+    <a class="price-card" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1/pricing" target="_blank" rel="noopener">
       <div class="price-name">ULTRA</div>
       <div class="price-amount">$29.99<span>/mo</span></div>
       <div class="price-desc">3,000 AI calls/mo<br>4,000 requests/mo<br>30 req/min rate limit<br>For agencies &amp; teams</div>
-    </div>
-    <div class="price-card">
+      <span class="price-btn">Subscribe →</span>
+    </a>
+    <a class="price-card" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1/pricing" target="_blank" rel="noopener">
       <div class="price-name">MEGA</div>
       <div class="price-amount">$99<span>/mo</span></div>
       <div class="price-desc">18,000 AI calls/mo<br>20,000 requests/mo<br>30 req/min rate limit<br>For high-volume use</div>
-    </div>
+      <span class="price-btn">Subscribe →</span>
+    </a>
   </div>
 </section>
 
@@ -814,6 +992,29 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
       btn.disabled = false;
       btn.textContent = 'Score It →';
     }, 600);
+  }
+
+  // ── Endpoint Card Click-Expand ──
+  document.querySelectorAll('.endpoint-card[data-ep]').forEach(card => {
+    card.addEventListener('click', (e) => {
+      // Don't toggle when clicking the "Test on RapidAPI" link
+      if (e.target.classList.contains('ep-rapid-link') || e.target.closest('.ep-rapid-link')) return;
+      const isOpen = card.classList.contains('open');
+      // Close all others
+      document.querySelectorAll('.endpoint-card.open').forEach(c => c.classList.remove('open'));
+      if (!isOpen) card.classList.add('open');
+    });
+  });
+
+  // ── Copy Path ──
+  function copyPath(e, path) {
+    e.stopPropagation();
+    navigator.clipboard.writeText(path).then(() => {
+      const btn = e.target;
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
   }
 
   // Allow Enter key to trigger scoring
