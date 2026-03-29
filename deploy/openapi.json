@@ -1798,6 +1798,336 @@
           "503": {"description": "LLM backend unavailable"}
         }
       }
+    },
+    "/v1/score_pinterest": {
+      "post": {
+        "summary": "Score a Pinterest Pin Description",
+        "description": "Score a Pinterest pin description 0-100 for reach and saves. Pinterest is a search engine — keyword density, description length (150-500 chars), CTA, and avoiding promotional language are the key signals. Instant heuristic, no AI.",
+        "operationId": "scorePinterest",
+        "tags": ["Instant Content Scoring"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 5000,
+                    "description": "Pinterest pin description to score",
+                    "example": "I batch-cooked every Sunday for 30 days and it changed my week! Here are the 5 easiest make-ahead meals for busy families. Save this for your next meal prep day! #mealprep #healthyeating #busyfamilies"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pinterest pin score and analysis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "char_count": {"type": "integer"},
+                    "hashtag_count": {"type": "integer"},
+                    "has_cta": {"type": "boolean"},
+                    "has_personal_pronoun": {"type": "boolean"},
+                    "spam_language_found": {"type": "array", "items": {"type": "string"}},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Missing or invalid parameters"},
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/score_youtube_description": {
+      "post": {
+        "summary": "Score a YouTube Video Description",
+        "description": "Score a YouTube video description 0-100 for SEO and viewer value. Checks description length (200-1000 chars ideal), first-125-char search hook, timestamps/chapters, CTA, links, hashtag count (3-5 at end), and keyword density. Instant heuristic, no AI.",
+        "operationId": "scoreYouTubeDescription",
+        "tags": ["Instant Content Scoring"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 10000,
+                    "description": "YouTube video description to score",
+                    "example": "Learn the 5 passive income strategies I used to hit $5K/mo in 2026. Subscribe!\n\n0:00 Intro\n1:30 Strategy 1\n5:00 Strategy 2\n\nhttps://example.com\n\n#passiveincome #sidehustle #money"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "YouTube description score and analysis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "char_count": {"type": "integer"},
+                    "has_timestamps": {"type": "boolean"},
+                    "has_cta": {"type": "boolean"},
+                    "has_links": {"type": "boolean"},
+                    "hashtag_count": {"type": "integer"},
+                    "hook_preview": {"type": "string"},
+                    "keyword_density_hint": {"type": "boolean"},
+                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Missing or invalid parameters"},
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/score_ad_copy": {
+      "post": {
+        "summary": "Score Ad Copy (Google or Meta)",
+        "description": "Score ad copy (headline + description) 0-100 for Google Ads or Meta Ads. Checks character limits (Google: 30-char headline, 90-char description; Meta: 27/125), CTA presence, number/stat usage, you-language, urgency words, and power words. Instant heuristic, no AI.",
+        "operationId": "scoreAdCopy",
+        "tags": ["Instant Content Scoring"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["headline"],
+                "properties": {
+                  "headline": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Ad headline to score",
+                    "example": "Score Your Content in 5 Seconds"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "Ad description or primary text (optional)",
+                    "example": "Try ContentForge free — instant scores for tweets, LinkedIn, TikTok and more."
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": ["google", "meta", "facebook", "instagram"],
+                    "default": "google",
+                    "description": "Ad platform (affects character limit checking)"
+                  }
+                }
+              },
+              "example": {
+                "headline": "Score Your Content in 5 Seconds",
+                "description": "Try ContentForge free — instant scores for 9 platforms.",
+                "platform": "google"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ad copy score and analysis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "headline_char_count": {"type": "integer"},
+                    "headline_within_limit": {"type": "boolean"},
+                    "description_char_count": {"type": "integer"},
+                    "description_within_limit": {"type": "boolean"},
+                    "has_cta": {"type": "boolean"},
+                    "has_number": {"type": "boolean"},
+                    "has_you_language": {"type": "boolean"},
+                    "urgency_words_found": {"type": "array", "items": {"type": "string"}},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Missing or invalid parameters"},
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/generate_email_sequence": {
+      "post": {
+        "summary": "Generate a 3-Email Drip Sequence",
+        "description": "Generate a 3-email drip sequence for any niche or offer. Returns a hook/welcome email (Day 0), a value email (Day 3), and a CTA/close email (Day 6). Each email includes subject line, preview/preheader text, and body copy. AI-powered (Gemini 2.0 Flash).",
+        "operationId": "generateEmailSequence",
+        "tags": ["AI Content Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["niche"],
+                "properties": {
+                  "niche": {
+                    "type": "string",
+                    "maxLength": 300,
+                    "description": "Target audience or niche for the email sequence",
+                    "example": "indie developers building SaaS tools"
+                  },
+                  "offer": {
+                    "type": "string",
+                    "maxLength": 300,
+                    "description": "What you are promoting (optional)",
+                    "example": "ContentForge API free tier"
+                  },
+                  "tone": {
+                    "type": "string",
+                    "enum": ["friendly", "professional", "urgency"],
+                    "default": "friendly",
+                    "description": "Tone of the email sequence"
+                  }
+                }
+              },
+              "example": {
+                "niche": "indie developers building SaaS tools",
+                "offer": "ContentForge API free tier",
+                "tone": "friendly"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "3-email drip sequence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "niche": {"type": "string"},
+                    "offer": {"type": "string"},
+                    "tone": {"type": "string"},
+                    "email_count": {"type": "integer"},
+                    "emails": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "email_number": {"type": "integer"},
+                          "send_day": {"type": "string"},
+                          "subject": {"type": "string"},
+                          "preview": {"type": "string"},
+                          "body": {"type": "string"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Missing or invalid parameters"},
+          "429": {"description": "Rate limit exceeded"},
+          "503": {"description": "LLM backend unavailable"}
+        }
+      }
+    },
+    "/v1/generate_content_brief": {
+      "post": {
+        "summary": "Generate a Content Brief",
+        "description": "Generate a full content brief for any topic. Returns target audience description, unique angle, content outline (4-6 sections), 5 SEO keywords, 5 hook ideas, and estimated word count. Useful for blog posts, YouTube scripts, LinkedIn articles, and social campaigns. AI-powered (Gemini 2.0 Flash).",
+        "operationId": "generateContentBrief",
+        "tags": ["AI Content Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["topic"],
+                "properties": {
+                  "topic": {
+                    "type": "string",
+                    "maxLength": 400,
+                    "description": "Topic to generate a content brief for",
+                    "example": "how indie developers build passive income with APIs"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": ["blog", "youtube", "linkedin", "twitter", "instagram", "tiktok"],
+                    "default": "blog",
+                    "description": "Target platform for the content"
+                  },
+                  "tone": {
+                    "type": "string",
+                    "enum": ["informative", "conversational", "authoritative"],
+                    "default": "informative",
+                    "description": "Tone of the content"
+                  }
+                }
+              },
+              "example": {
+                "topic": "how indie developers build passive income with APIs",
+                "platform": "blog",
+                "tone": "conversational"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Content brief with outline, keywords, and hooks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "topic": {"type": "string"},
+                    "platform": {"type": "string"},
+                    "tone": {"type": "string"},
+                    "brief": {
+                      "type": "object",
+                      "properties": {
+                        "target_audience": {"type": "string"},
+                        "angle": {"type": "string"},
+                        "outline": {"type": "array", "items": {"type": "string"}},
+                        "seo_keywords": {"type": "array", "items": {"type": "string"}},
+                        "hooks": {"type": "array", "items": {"type": "string"}},
+                        "estimated_word_count": {"type": "integer"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Missing or invalid parameters"},
+          "429": {"description": "Rate limit exceeded"},
+          "503": {"description": "LLM backend unavailable"}
+        }
+      }
     }
   }
 }

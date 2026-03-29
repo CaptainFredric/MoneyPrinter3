@@ -2606,14 +2606,18 @@ def endpoint_score_facebook():
                        "power_words_found": "array", "caps_abuse": "bool"},
             "example": {"text": "We just hit 10,000 customers \ud83c\udf89 — and it's all because of you. What's one thing you'd like us to build next? Drop a comment below!"},
         })
-    remaining, err = _check_rate_limit()
-    if err:
-        return err
-    body = _get_body()
-    text = body.get("text", "")
-    if not text:
-        return jsonify({"error": "missing 'text' parameter"}), 400
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
     start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or payload.get("post") or payload.get("content") or "").strip()
+    if not text:
+        return jsonify({"error": "missing 'text' parameter. Send JSON body: {\"text\": \"your Facebook post\"}"}), 400
+    if len(text) > 5000:
+        return jsonify({"error": "text too long (max 5000 chars)"}), 400
     result = score_facebook_post(text)
     _log_usage("score_facebook", int((time.time() - start) * 1000))
     return _add_rate_headers(jsonify(result), remaining)
@@ -3100,6 +3104,802 @@ def endpoint_analyze_hashtags():
 
 
 # ---------------------------------------------------------------------------
+# 5j. Pinterest Pin Description Scorer (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_pinterest_pin(text: str) -> dict:
+    """Score a Pinterest pin description 0-100 for reach and saves.
+
+    Pinterest-specific signals (2024-2026):
+    - Length: 150-500 chars is the sweet spot (more keyword surface area).
+      Under 50 = weak SEO; over 500 chars OK but diminishing returns.
+    - Pinterest is a search engine — keyword phrases drive discovery.
+    - Hashtags: 2-5 at the end. More than 20 triggers spam flags.
+    - No promotional language ('buy now', 'click here') — Pinterest
+      deprioritises posts with hard-sell phrases.
+    - Story/first-person format earns more saves.
+    - CTA: 'save', 'pin', 'try', 'read', 'visit', 'find out', 'get the recipe'
+    - Emojis: 0-3 is fine (Pinterest is less emoji-driven than Instagram).
+    - Links: neutral — Pinterest is inherently link-driven.
+    - ALL CAPS word abuse signals spam.
+    """
+    text = (text or "").strip()
+    if not text:
+        return {
+            "text": text, "platform": "pinterest", "score": 0, "grade": "F",
+            "char_count": 0, "word_count": 0, "hashtag_count": 0,
+            "emoji_count": 0, "has_cta": False, "has_personal_pronoun": False,
+            "has_number": False, "has_link": False,
+            "spam_language_found": [], "power_words_found": [],
+            "caps_abuse": False, "hashtags": [], "suggestions": [],
+        }
+
+    char_count = len(text)
+    words = text.split()
+    word_count = len(words)
+    hashtags = re.findall(r'#\w+', text)
+    hashtag_count = len(hashtags)
+    emoji_count = sum(1 for c in text if ord(c) > 0x1F300)
+    has_number = bool(re.search(r'\d', text))
+    has_link = bool(re.search(r'https?://', text, re.IGNORECASE))
+
+    text_lower = text.lower()
+    has_personal_pronoun = bool(re.search(r'\b(i|me|my|we|our)\b', text_lower))
+
+    _SPAM_PHRASES = {
+        "buy now", "click here", "order now", "act now", "limited time",
+        "free gift", "discount code", "promo code", "coupon", "sale ends",
+        "don't miss out", "spam", "ad:", "sponsored", "affiliate",
+    }
+    spam_found = [p for p in _SPAM_PHRASES if p in text_lower]
+
+    _CTA_PHRASES = {
+        "save", "pin", "try", "read", "visit", "find out", "get the recipe",
+        "learn how", "see how", "discover", "click to", "tap to",
+        "download", "grab", "sign up", "follow for",
+    }
+    has_cta = any(p in text_lower for p in _CTA_PHRASES)
+
+    _POWER_WORDS = {
+        "easy", "simple", "quick", "best", "ultimate", "guide", "tutorial",
+        "hack", "tip", "secret", "proven", "natural", "diy", "how to",
+        "recipe", "idea", "inspiration", "beautiful", "stunning", "perfect",
+        "essential", "must", "love", "amazing", "free", "fast", "step by step",
+        "beginner", "complete", "creative",
+    }
+    power_words_found = sorted({w for w in _POWER_WORDS if w in text_lower})
+
+    caps_words = [w for w in words if w.isupper() and len(w) > 2 and w.lstrip("#@").isalpha()]
+    caps_abuse = len(caps_words) >= 3
+
+    # --- Score ---
+    score = 40
+
+    # Length
+    if char_count < 30:
+        score -= 10
+    elif 30 <= char_count < 100:
+        score += 5
+    elif 100 <= char_count < 150:
+        score += 10
+    elif 150 <= char_count <= 500:
+        score += 18  # sweet spot
+    elif 500 < char_count <= 800:
+        score += 12
+    else:
+        score += 6  # long but not penalised — more keyword surface
+
+    # Hashtags (2-5 optimal)
+    if hashtag_count == 0:
+        pass  # neutral — Pinterest doesn't require them
+    elif 2 <= hashtag_count <= 5:
+        score += 10
+    elif hashtag_count == 1:
+        score += 5
+    elif 6 <= hashtag_count <= 10:
+        score += 4
+    elif 11 <= hashtag_count <= 20:
+        score += 0  # no benefit
+    else:
+        score -= 8  # spam risk
+
+    # Promotional spam
+    score -= min(20, len(spam_found) * 7)
+
+    # Personal story
+    if has_personal_pronoun:
+        score += 6
+
+    # CTA
+    if has_cta:
+        score += 7
+
+    # Number (specificity)
+    if has_number:
+        score += 4
+
+    # Power words (max +12)
+    score += min(12, len(power_words_found) * 3)
+
+    # Emojis: mild boost for 1-3
+    if 1 <= emoji_count <= 3:
+        score += 4
+    elif emoji_count > 6:
+        score -= 3
+
+    # ALL CAPS abuse
+    if caps_abuse:
+        score -= 6
+
+    score = max(0, min(100, score))
+    grade_map = [(90, "A"), (75, "B"), (60, "C"), (45, "D")]
+    grade = next((g for t, g in grade_map if score >= t), "F")
+
+    # Suggestions
+    suggestions = []
+    if char_count < 100:
+        suggestions.append(
+            "Description is very short. Add 150-500 characters with relevant "
+            "keyword phrases — Pinterest is a search engine."
+        )
+    if hashtag_count == 0:
+        suggestions.append(
+            "Add 2-5 relevant hashtags at the end of the description to improve "
+            "topic discovery on Pinterest."
+        )
+    elif hashtag_count > 10:
+        suggestions.append(
+            f"{hashtag_count} hashtags is too many. Stick to 2-5 targeted tags."
+        )
+    if spam_found:
+        suggestions.append(
+            f"Promotional language detected: {', '.join(spam_found)}. Pinterest "
+            "deprioritises hard-sell posts — describe the value instead."
+        )
+    if not has_personal_pronoun:
+        suggestions.append(
+            "Add a personal story angle ('I tried...', 'We love...'). "
+            "First-person posts earn more saves on Pinterest."
+        )
+    if not has_cta:
+        suggestions.append(
+            "Add a soft CTA like 'Save this for later', 'Try this recipe', "
+            "or 'Visit the link for the full tutorial'."
+        )
+    if not power_words_found:
+        suggestions.append(
+            "Add a power word (e.g. 'easy', 'ultimate', 'how to', 'beginner') "
+            "to improve keyword relevance and click appeal."
+        )
+    if caps_abuse:
+        suggestions.append(
+            "Avoid ALL CAPS words — they signal spam on Pinterest."
+        )
+    if not suggestions:
+        suggestions.append("Well-optimised Pinterest description. Strong keywords, CTA, and story format detected.")
+
+    return {
+        "text": text[:500] + ("..." if char_count > 500 else ""),
+        "platform": "pinterest",
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "hashtag_count": hashtag_count,
+        "hashtags": hashtags,
+        "emoji_count": emoji_count,
+        "has_cta": has_cta,
+        "has_personal_pronoun": has_personal_pronoun,
+        "has_number": has_number,
+        "has_link": has_link,
+        "spam_language_found": spam_found,
+        "power_words_found": power_words_found,
+        "caps_abuse": caps_abuse,
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/score_pinterest", methods=["GET", "POST"])
+@app.route("/score-pinterest", methods=["GET", "POST"])
+@app.route("/score_pinterest", methods=["GET", "POST"])
+def endpoint_score_pinterest():
+    """Score a Pinterest pin description for reach, saves, and SEO."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-pinterest",
+            "method": "POST",
+            "description": (
+                "Score a Pinterest pin description 0-100 for reach and saves. "
+                "Pinterest functions as a search engine — keyword density, "
+                "description length (150-500 chars), CTA, and avoiding "
+                "promotional language are the key signals. Instant, no AI."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-pinterest",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {"text": "your Pinterest pin description here"},
+            },
+            "scoring_factors": [
+                "Description length (sweet spot: 150-500 chars)",
+                "Hashtag count (2-5 optimal at end)",
+                "Spam/promotional language penalty (buy now, click here, etc.)",
+                "Personal story angle (I/we boosts saves)",
+                "CTA presence (save, try, read, visit)",
+                "Power words (easy, ultimate, how to, beginner, etc.)",
+                "Emoji usage (0-3 is fine, 7+ is risky)",
+                "ALL CAPS abuse penalty",
+            ],
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-pinterest '
+                '-H "Content-Type: application/json" '
+                "-d '{\"text\": \"I tried batch-cooking every Sunday for 30 days and it completely changed my week. "
+                "Here are the 5 easiest make-ahead meals for busy families. Save this for your next meal prep day! "
+                "#mealprep #healthyeating #busyfamilies #dinnerideas\"}'"
+            ),
+            "note": "No API key needed for direct access. Free tier on RapidAPI: 50 calls/month.",
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (
+        payload.get("text") or payload.get("description")
+        or payload.get("pin") or payload.get("content") or ""
+    ).strip()
+
+    if not text:
+        return jsonify({
+            "error": "missing 'text' parameter. Send JSON body: {\"text\": \"your pin description\"}"
+        }), 400
+    if len(text) > 5000:
+        return jsonify({"error": "text too long (max 5000 chars)"}), 400
+
+    result = score_pinterest_pin(text)
+    _log_usage("score_pinterest", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 5k. YouTube Video Description Scorer (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_youtube_description(text: str) -> dict:
+    """Score a YouTube video description 0-100 for SEO and viewer value.
+
+    YouTube description signals:
+    - Length: 200-1000 chars is optimal (provides keyword surface without bloat).
+      Under 100 = SEO opportunity missed. Over 2000 = fine but may dilute.
+    - First 125 chars are the search-snippet hook (visible before 'Show more').
+      Should contain the primary keyword and a compelling line.
+    - Timestamps/chapters ([00:00] format) improve watch-time and search rankings.
+    - CTA near the top: subscribe, like, comment, or link-to-resource.
+    - 3-5 hashtags at the end boost topic discovery (YouTube shows them above title).
+    - Link section: channel links, social, merch — presence signals professionalism.
+    - Keyword repetition: target keyword appearing 2-3x naturally is a positive signal.
+    """
+    text = (text or "").strip()
+    if not text:
+        return {
+            "text": text, "platform": "youtube_description", "score": 0, "grade": "F",
+            "char_count": 0, "word_count": 0, "hashtag_count": 0, "emoji_count": 0,
+            "has_timestamps": False, "has_cta": False, "has_links": False,
+            "hook_length": 0, "hook_preview": "", "keyword_density_hint": False,
+            "power_words_found": [], "suggestions": [],
+        }
+
+    char_count = len(text)
+    words = text.split()
+    word_count = len(words)
+    hashtags = re.findall(r'#\w+', text)
+    hashtag_count = len(hashtags)
+    emoji_count = sum(1 for c in text if ord(c) > 0x1F300)
+
+    # First 125 chars (search snippet)
+    first_line = text.split('\n')[0].strip()
+    hook = first_line[:125]
+    hook_length = len(first_line)
+
+    # Timestamps detection (e.g. 0:00 or 00:00 or 1:23:45)
+    has_timestamps = bool(re.search(r'\b\d{1,2}:\d{2}(?::\d{2})?\b', text))
+
+    # Links
+    has_links = bool(re.search(r'https?://', text, re.IGNORECASE))
+
+    # CTA
+    text_lower = text.lower()
+    _CTA_PHRASES = {
+        "subscribe", "hit the bell", "ring the bell", "like this video",
+        "leave a comment", "comment below", "join", "follow", "patreon",
+        "link in description", "check out", "visit", "download",
+    }
+    has_cta = any(p in text_lower for p in _CTA_PHRASES)
+
+    # Keyword density hint: any word appearing 3+ times (excluding stopwords)
+    _STOPWORDS = {"the", "a", "an", "is", "to", "for", "and", "of", "in", "on",
+                  "at", "by", "as", "be", "or", "my", "me", "we", "i", "this",
+                  "that", "it", "with", "your", "you", "from", "how", "what",
+                  "why", "who", "all", "not", "but", "so", "if", "its", "our"}
+    clean_words = [re.sub(r'[^a-z]', '', w.lower()) for w in words if len(w) > 3]
+    clean_words = [w for w in clean_words if w not in _STOPWORDS]
+    word_freq = {}
+    for w in clean_words:
+        word_freq[w] = word_freq.get(w, 0) + 1
+    keyword_density_hint = any(v >= 3 for v in word_freq.values())
+
+    _POWER_WORDS = {
+        "best", "ultimate", "complete", "guide", "tutorial", "how to", "review",
+        "honest", "top", "new", "updated", "secret", "proven", "step by step",
+        "beginners", "advanced", "free", "easy", "fast", "results", "tips",
+    }
+    power_words_found = sorted({w for w in _POWER_WORDS if w in text_lower})
+
+    # --- Score ---
+    score = 40
+
+    # Length
+    if char_count < 50:
+        score -= 10
+    elif 50 <= char_count < 100:
+        score += 3
+    elif 100 <= char_count < 200:
+        score += 8
+    elif 200 <= char_count <= 1000:
+        score += 18  # sweet spot
+    elif 1000 < char_count <= 2000:
+        score += 12
+    else:
+        score += 6
+
+    # Hook (first 125 chars)
+    if hook_length <= 125:
+        score += 5  # full hook visible in search snippet
+    if hook and hook[0:1].isdigit():
+        score += 3  # number hook
+
+    # Timestamps/chapters
+    if has_timestamps:
+        score += 12  # strong SEO + UX signal
+
+    # CTA
+    if has_cta:
+        score += 7
+
+    # Links
+    if has_links:
+        score += 5  # links = professional, expected in YT descriptions
+
+    # Hashtags (3-5 at end is ideal)
+    if 3 <= hashtag_count <= 5:
+        score += 8
+    elif 1 <= hashtag_count <= 7:
+        score += 4
+    elif hashtag_count > 15:
+        score -= 5
+
+    # Keyword density signal
+    if keyword_density_hint:
+        score += 5
+
+    # Power words
+    score += min(10, len(power_words_found) * 3)
+
+    # Emoji (tasteful use in YT descriptions is fine, excessive is not)
+    if 1 <= emoji_count <= 5:
+        score += 3
+    elif emoji_count > 10:
+        score -= 3
+
+    score = max(0, min(100, score))
+    grade_map = [(90, "A"), (75, "B"), (60, "C"), (45, "D")]
+    grade = next((g for t, g in grade_map if score >= t), "F")
+
+    # Suggestions
+    suggestions = []
+    if char_count < 100:
+        suggestions.append(
+            "Description is very short. Aim for 200-1000 characters with "
+            "relevant keywords and a CTA."
+        )
+    if hook_length > 125:
+        suggestions.append(
+            "The first line is longer than 125 characters — only the first "
+            "~125 chars show in YouTube search results. Put your hook there."
+        )
+    if not has_timestamps:
+        suggestions.append(
+            "Add timestamps/chapters (e.g. '0:00 Intro'). They improve watch "
+            "time, help viewers navigate, and boost search rankings."
+        )
+    if not has_cta:
+        suggestions.append(
+            "Add a CTA near the top: 'Subscribe for more', 'Leave a comment', "
+            "or a link to a related resource."
+        )
+    if hashtag_count == 0:
+        suggestions.append(
+            "Add 3-5 relevant hashtags at the very end of the description. "
+            "YouTube displays them above the title in the feed."
+        )
+    elif hashtag_count > 10:
+        suggestions.append(
+            f"{hashtag_count} hashtags is too many. Stick to 3-5 focused tags."
+        )
+    if not has_links:
+        suggestions.append(
+            "Add relevant links (channel, social, resources) in the description. "
+            "Viewers and YouTube's algorithm expect them."
+        )
+    if not keyword_density_hint:
+        suggestions.append(
+            "Repeat your main keyword 2-3 times naturally. "
+            "YouTube uses description text as an SEO signal."
+        )
+    if not suggestions:
+        suggestions.append(
+            "Well-optimised YouTube description! Timestamps, CTA, links, "
+            "and keywords all detected."
+        )
+
+    return {
+        "text": text[:500] + ("..." if char_count > 500 else ""),
+        "platform": "youtube_description",
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "hashtag_count": hashtag_count,
+        "hashtags": hashtags[:10],
+        "emoji_count": emoji_count,
+        "hook_length": hook_length,
+        "hook_preview": hook + ("..." if hook_length > 125 else ""),
+        "has_timestamps": has_timestamps,
+        "has_cta": has_cta,
+        "has_links": has_links,
+        "keyword_density_hint": keyword_density_hint,
+        "power_words_found": power_words_found,
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/score_youtube_description", methods=["GET", "POST"])
+@app.route("/score-youtube-description", methods=["GET", "POST"])
+@app.route("/score_youtube_description", methods=["GET", "POST"])
+def endpoint_score_youtube_description():
+    """Score a YouTube video description for SEO and viewer value."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-youtube-description",
+            "method": "POST",
+            "description": (
+                "Score a YouTube video description 0-100 for SEO and viewer value. "
+                "Checks description length (200-1000 ideal), first-125-char search "
+                "hook, timestamps/chapters, CTA, links, hashtag count, and keyword "
+                "density. Instant, no AI."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-youtube-description",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {"text": "your YouTube description here"},
+            },
+            "scoring_factors": [
+                "Description length (sweet spot: 200-1000 chars)",
+                "First 125 chars visible in search snippet (hook strength)",
+                "Timestamps/chapters (major watch-time + SEO signal)",
+                "CTA near the top",
+                "Links (social, resources, channel)",
+                "Hashtags at end (3-5 optimal)",
+                "Keyword density (2-3x repetition is positive)",
+                "Power words",
+            ],
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-youtube-description '
+                '-H "Content-Type: application/json" '
+                '-d \'{"text": "Learn the 5 passive income strategies I used to hit $5K/mo in 2026. '
+                'Subscribe for weekly income reports!\\n\\n0:00 Intro\\n1:30 Strategy 1\\n5:00 Strategy 2\\n\\n'
+                'Free download: https://example.com\\n\\n#passiveincome #sidehustle #money"}\''
+            ),
+            "note": "No API key needed for direct access. Free tier on RapidAPI: 50 calls/month.",
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (
+        payload.get("text") or payload.get("description") or payload.get("content") or ""
+    ).strip()
+
+    if not text:
+        return jsonify({
+            "error": "missing 'text' parameter. Send JSON body: {\"text\": \"your YouTube description\"}"
+        }), 400
+    if len(text) > 10000:
+        return jsonify({"error": "text too long (max 10000 chars — YouTube description limit)"}), 400
+
+    result = score_youtube_description(text)
+    _log_usage("score_youtube_description", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 5l. Ad Copy Scorer (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_ad_copy(headline: str, description: str = "", platform: str = "google") -> dict:
+    """Score ad copy 0-100 for Google Ads or Meta (Facebook/Instagram) Ads.
+
+    Ad copy rules:
+    Google Ads:
+      - Headline: ideal ≤30 chars (hard limit). Score penalises over 30.
+      - Description: ideal ≤90 chars.
+    Meta Ads (facebook/instagram):
+      - Headline: ≤27 chars ideal.
+      - Primary text: 125 chars visible before 'See more'; ≤90 chars ideal.
+
+    Quality signals:
+    - CTA: 'buy', 'get', 'start', 'try', 'sign up', 'learn more', etc.
+    - Benefit-first framing (what the customer gains)
+    - Number/stat presence ('save 50%', '$0 setup', '3-minute')
+    - You-language ('you', 'your') for second-person connection
+    - Urgency/scarcity ('limited', 'today only', 'expires')
+    - Power words
+    - Headline + description are scored independently and combined.
+    """
+    _PLATFORM_LIMITS = {
+        "google": {"headline": 30, "description": 90},
+        "meta": {"headline": 27, "description": 125},
+        "facebook": {"headline": 27, "description": 125},
+        "instagram": {"headline": 27, "description": 125},
+    }
+    limits = _PLATFORM_LIMITS.get(platform.lower(), _PLATFORM_LIMITS["google"])
+    hl_limit = limits["headline"]
+    desc_limit = limits["description"]
+
+    headline = (headline or "").strip()
+    description = (description or "").strip()
+
+    if not headline:
+        return {
+            "headline": headline, "description": description,
+            "platform": platform, "score": 0, "grade": "F",
+            "headline_char_count": 0, "headline_within_limit": False,
+            "description_char_count": 0, "description_within_limit": False,
+            "has_cta": False, "has_number": False, "has_you_language": False,
+            "urgency_words_found": [], "power_words_found": [],
+            "suggestions": ["Headline is required."],
+        }
+
+    hl_len = len(headline)
+    desc_len = len(description)
+    hl_within = hl_len <= hl_limit
+    desc_within = desc_len <= desc_limit or not description
+
+    combined = (headline + " " + description).lower()
+    words = combined.split()
+
+    has_number = bool(re.search(r'\d', combined))
+    has_you = bool(re.search(r'\byou\b|\byour\b', combined))
+
+    _CTA_WORDS = {
+        "buy", "get", "start", "try", "sign up", "signup", "register",
+        "learn more", "discover", "shop", "order", "book", "claim",
+        "download", "grab", "join", "see", "watch", "read", "access",
+        "unlock", "save", "find", "explore",
+    }
+    has_cta = any(cta in combined for cta in _CTA_WORDS)
+
+    _URGENCY_WORDS = {
+        "limited", "today only", "expires", "deadline", "last chance",
+        "hurry", "now", "ending", "don't miss", "only", "act now",
+        "sale ends", "for a limited time", "while supplies last",
+    }
+    urgency_found = sorted({w for w in _URGENCY_WORDS if w in combined})
+
+    _POWER_WORDS = {
+        "free", "new", "exclusive", "proven", "guaranteed", "instant",
+        "simple", "easy", "fast", "best", "top", "ultimate", "save",
+        "bonus", "secret", "powerful", "amazing", "results", "boost",
+        "without", "no risk", "trusted",
+    }
+    power_words_found = sorted({w for w in _POWER_WORDS if w in combined})
+
+    # --- Headline sub-score (0-50) ---
+    hl_score = 0
+    if hl_within:
+        hl_score += 15  # meets platform limit
+    else:
+        hl_score -= 5   # over limit is a hard fail in real ad platforms
+
+    if 10 <= hl_len <= hl_limit:
+        hl_score += 10  # good length
+    elif hl_len < 10:
+        hl_score += 3   # too short
+
+    hl_lower = headline.lower()
+    if any(cta in hl_lower for cta in _CTA_WORDS):
+        hl_score += 8
+    if bool(re.search(r'\d', headline)):
+        hl_score += 6  # stat/number in headline = stronger click
+    if bool(re.search(r'\byou\b|\byour\b', hl_lower)):
+        hl_score += 5
+    if any(w in hl_lower for w in _POWER_WORDS):
+        hl_score += 6
+    hl_score = max(0, min(50, hl_score))
+
+    # --- Description sub-score (0-40) ---
+    desc_score = 0
+    if description:
+        if desc_within:
+            desc_score += 10
+        if 20 <= desc_len <= desc_limit:
+            desc_score += 8
+        if has_cta:
+            desc_score += 7
+        if has_number:
+            desc_score += 5
+        if has_you:
+            desc_score += 5
+        if urgency_found:
+            desc_score += 5
+        desc_score = max(0, min(40, desc_score))
+    else:
+        desc_score = 5  # description is optional but helpful
+
+    score = 10 + hl_score + desc_score
+    score = max(0, min(100, score))
+    grade_map = [(90, "A"), (75, "B"), (60, "C"), (45, "D")]
+    grade = next((g for t, g in grade_map if score >= t), "F")
+
+    # Suggestions
+    suggestions = []
+    if not hl_within:
+        suggestions.append(
+            f"Headline is {hl_len} chars but the {platform} limit is {hl_limit}. "
+            f"Trim to ≤{hl_limit} chars or it will be cut off."
+        )
+    if hl_len < 15:
+        suggestions.append(
+            "Headline is very short. Use the full character allowance to convey "
+            "maximum value in the limited space."
+        )
+    if not has_cta:
+        suggestions.append(
+            "Add a clear CTA — 'Get Started', 'Try Free', 'Learn More', 'Shop Now'. "
+            "Ads without CTAs underperform consistently."
+        )
+    if not has_number:
+        suggestions.append(
+            "Include a number or stat (e.g. 'Save 50%', '$0 to start', 'In 5 minutes'). "
+            "Specific numbers boost CTR in ad copy."
+        )
+    if not has_you:
+        suggestions.append(
+            "Use 'you' or 'your' to speak directly to the reader. "
+            "Second-person framing makes ads feel personal and relevant."
+        )
+    if not urgency_found and not description:
+        suggestions.append(
+            "Add a description with urgency ('Limited time', 'Today only') or a benefit "
+            "statement to give reasons to click beyond the headline."
+        )
+    if description and not desc_within:
+        suggestions.append(
+            f"Description is {desc_len} chars but the visible preview is ~{desc_limit} chars on {platform}. "
+            "Put your strongest message in the first part."
+        )
+    if not suggestions:
+        suggestions.append(
+            "Solid ad copy! CTA, number, you-language, and character limits all look good."
+        )
+
+    return {
+        "headline": headline,
+        "description": description,
+        "platform": platform,
+        "score": score,
+        "grade": grade,
+        "headline_char_count": hl_len,
+        "headline_limit": hl_limit,
+        "headline_within_limit": hl_within,
+        "description_char_count": desc_len,
+        "description_limit": desc_limit,
+        "description_within_limit": desc_within,
+        "has_cta": has_cta,
+        "has_number": has_number,
+        "has_you_language": has_you,
+        "urgency_words_found": urgency_found,
+        "power_words_found": power_words_found,
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/score_ad_copy", methods=["GET", "POST"])
+@app.route("/score-ad-copy", methods=["GET", "POST"])
+@app.route("/score_ad_copy", methods=["GET", "POST"])
+def endpoint_score_ad_copy():
+    """Score Google Ads or Meta ad copy for CTR potential."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-ad-copy",
+            "method": "POST",
+            "description": (
+                "Score ad copy (headline + description) 0-100 for Google Ads or "
+                "Meta Ads. Checks character limits, CTA presence, number/stat usage, "
+                "you-language, urgency words, and power words. Instant, no AI."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-ad-copy",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "headline": "your ad headline (required)",
+                    "description": "your ad description (optional)",
+                    "platform": "google or meta (default: google)",
+                },
+            },
+            "character_limits": {
+                "google": {"headline": "30 chars", "description": "90 chars"},
+                "meta": {"headline": "27 chars", "description": "125 chars visible"},
+            },
+            "scoring_factors": [
+                "Headline length vs platform limit",
+                "CTA presence (Buy, Get, Start, Try, etc.)",
+                "Number/stat (Save 50%, in 3 minutes, $0 setup)",
+                "You-language (you/your for personal relevance)",
+                "Urgency/scarcity (limited, today only, expires)",
+                "Power words (free, proven, instant, results, etc.)",
+                "Description completeness and length",
+            ],
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-ad-copy '
+                '-H "Content-Type: application/json" '
+                '-d \'{"headline": "Score Your Content in 5 Seconds", '
+                '"description": "Try ContentForge free — instant scores for tweets, LinkedIn, TikTok and more.", '
+                '"platform": "google"}\''
+            ),
+            "note": "No API key needed for direct access. Free tier on RapidAPI: 50 calls/month.",
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    headline = (
+        payload.get("headline") or payload.get("title") or payload.get("text") or ""
+    ).strip()
+    description = (payload.get("description") or payload.get("body") or "").strip()
+    platform_param = (payload.get("platform") or "google").strip().lower()
+
+    if platform_param not in ("google", "meta", "facebook", "instagram"):
+        platform_param = "google"
+
+    if not headline:
+        return jsonify({
+            "error": "missing 'headline' parameter. Send JSON body: {\"headline\": \"your ad headline\"}"
+        }), 400
+    if len(headline) > 200:
+        return jsonify({"error": "headline too long (max 200 chars for scoring)"}), 400
+    if len(description) > 500:
+        return jsonify({"error": "description too long (max 500 chars for scoring)"}), 400
+
+    result = score_ad_copy(headline, description, platform_param)
+    _log_usage("score_ad_copy", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 5g. Multi-Platform Score (heuristic — instant, no LLM)
 # ---------------------------------------------------------------------------
 _PLATFORM_SCORERS = {
@@ -3110,9 +3910,11 @@ _PLATFORM_SCORERS = {
     "tiktok": lambda text, _opts: score_tiktok_caption(text),
     "threads": lambda text, _opts: score_threads_post(text),
     "facebook": lambda text, _opts: score_facebook_post(text),
+    "pinterest": lambda text, _opts: score_pinterest_pin(text),
     "youtube": lambda text, opts: score_youtube_title(
         text, opts.get("thumbnail_text", "")
     ),
+    "youtube_description": lambda text, _opts: score_youtube_description(text),
     "email": lambda text, opts: score_email_subject(
         text, opts.get("preview_text", "")
     ),
@@ -3756,6 +4558,256 @@ def endpoint_generate_linkedin_post():
 
 
 # ---------------------------------------------------------------------------
+# 10. Generate Email Sequence (AI-powered)
+# ---------------------------------------------------------------------------
+@app.route("/v1/generate_email_sequence", methods=["GET", "POST"])
+@app.route("/generate-email-sequence", methods=["GET", "POST"])
+@app.route("/generate_email_sequence", methods=["GET", "POST"])
+def endpoint_generate_email_sequence():
+    """Generate a 3-email drip sequence: hook → value → CTA."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "generate-email-sequence",
+            "method": "POST",
+            "description": (
+                "Generate a 3-email drip sequence for any niche or offer. "
+                "Returns a hook email (day 0), a value email (day 2-3), "
+                "and a CTA/close email (day 5-7). Each email includes "
+                "subject line, preview text, and body copy. AI-powered."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/generate-email-sequence",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "niche": "your niche or audience (required)",
+                    "offer": "what you're promoting (optional)",
+                    "tone": "friendly, professional, or urgency (default: friendly)",
+                },
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/generate-email-sequence '
+                '-H "Content-Type: application/json" '
+                '-d \'{"niche": "indie developers building SaaS", "offer": "ContentForge API free tier", "tone": "friendly"}\''
+            ),
+            "note": "Uses AI (Gemini 2.0 Flash). Free tier on RapidAPI: 50 calls/month.",
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    niche = (payload.get("niche") or payload.get("audience") or "").strip()
+    offer = (payload.get("offer") or payload.get("product") or "").strip()
+    tone = (payload.get("tone") or "friendly").strip().lower()
+
+    if not niche:
+        return jsonify({
+            "error": "missing 'niche' parameter. Send JSON body: {\"niche\": \"your audience/niche\"}"
+        }), 400
+    if len(niche) > 300:
+        return jsonify({"error": "niche too long (max 300 chars)"}), 400
+    if tone not in ("friendly", "professional", "urgency"):
+        tone = "friendly"
+
+    offer_line = f"Offer/product: {offer}" if offer else ""
+
+    prompt = (
+        f"Write a 3-email drip sequence for this audience: {niche}\n"
+        f"{offer_line}\n"
+        f"Tone: {tone}\n\n"
+        "Email structure:\n"
+        "- Email 1 (Day 0): Hook/welcome — introduce the value, build curiosity, no hard sell\n"
+        "- Email 2 (Day 3): Value — give a concrete tip, insight, or result they can use now\n"
+        "- Email 3 (Day 6): CTA/close — clear call to action, urgency or reason to act today\n\n"
+        "For each email write:\n"
+        "- subject: a compelling subject line (30-50 chars)\n"
+        "- preview: preheader text (40-80 chars, complements subject)\n"
+        "- body: 100-200 words max, conversational, short paragraphs\n\n"
+        "Return ONLY valid JSON in this exact format:\n"
+        '{"emails": ['
+        '{"email_number": 1, "send_day": "Day 0", "subject": "...", "preview": "...", "body": "..."},'
+        '{"email_number": 2, "send_day": "Day 3", "subject": "...", "preview": "...", "body": "..."},'
+        '{"email_number": 3, "send_day": "Day 6", "subject": "...", "preview": "...", "body": "..."}'
+        ']}'
+    )
+
+    try:
+        raw = _llm_generate(prompt)
+        match = re.search(r'\{.*\}', raw, re.DOTALL)
+        seq_data = None
+        if match:
+            try:
+                seq_data = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                seq_data = None
+
+        if not seq_data or "emails" not in seq_data or not seq_data["emails"]:
+            # Fallback: build minimal structure
+            lines = [l.strip() for l in raw.strip().split("\n") if l.strip() and len(l.strip()) > 15]
+            chunk = max(1, len(lines) // 3)
+            seq_data = {"emails": [
+                {"email_number": 1, "send_day": "Day 0",
+                 "subject": f"A quick note about {niche}",
+                 "preview": "Something I think you'll find useful",
+                 "body": "\n".join(lines[:chunk])},
+                {"email_number": 2, "send_day": "Day 3",
+                 "subject": f"The #1 thing I learned about {niche}",
+                 "preview": "Here's the insight I wish I had sooner",
+                 "body": "\n".join(lines[chunk:chunk * 2])},
+                {"email_number": 3, "send_day": "Day 6",
+                 "subject": "Last chance — don't miss this",
+                 "preview": "One final thing before I let you go",
+                 "body": "\n".join(lines[chunk * 2:]) or f"Ready to take action? Try {offer or niche} today."},
+            ]}
+
+        emails = seq_data["emails"][:3]
+
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    _log_usage("generate_email_sequence", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "niche": niche,
+        "offer": offer,
+        "tone": tone,
+        "email_count": len(emails),
+        "emails": emails,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 11. Generate Content Brief (AI-powered)
+# ---------------------------------------------------------------------------
+@app.route("/v1/generate_content_brief", methods=["GET", "POST"])
+@app.route("/generate-content-brief", methods=["GET", "POST"])
+@app.route("/generate_content_brief", methods=["GET", "POST"])
+def endpoint_generate_content_brief():
+    """Generate an AI research and content brief for any topic."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "generate-content-brief",
+            "method": "POST",
+            "description": (
+                "Generate a full content brief for any topic. Returns target "
+                "audience, suggested angle, content outline, SEO keywords, "
+                "and 5 hook ideas. Useful for blog posts, YouTube scripts, "
+                "LinkedIn articles, and social campaigns. AI-powered."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/generate-content-brief",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "topic": "your content topic (required)",
+                    "platform": "blog, youtube, linkedin, twitter (default: blog)",
+                    "tone": "informative, conversational, authoritative (default: informative)",
+                },
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/generate-content-brief '
+                '-H "Content-Type: application/json" '
+                '-d \'{"topic": "how indie developers build passive income with APIs", "platform": "blog"}\''
+            ),
+            "note": "Uses AI (Gemini 2.0 Flash). Free tier on RapidAPI: 50 calls/month.",
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    topic = (payload.get("topic") or payload.get("subject") or "").strip()
+    platform = (payload.get("platform") or "blog").strip().lower()
+    tone = (payload.get("tone") or "informative").strip().lower()
+
+    if not topic:
+        return jsonify({
+            "error": "missing 'topic' parameter. Send JSON body: {\"topic\": \"your content topic\"}"
+        }), 400
+    if len(topic) > 400:
+        return jsonify({"error": "topic too long (max 400 chars)"}), 400
+
+    if platform not in ("blog", "youtube", "linkedin", "twitter", "instagram", "tiktok"):
+        platform = "blog"
+    if tone not in ("informative", "conversational", "authoritative"):
+        tone = "informative"
+
+    prompt = (
+        f"Create a content brief for this topic: {topic}\n"
+        f"Platform: {platform}\n"
+        f"Tone: {tone}\n\n"
+        "Return ONLY valid JSON with this exact structure:\n"
+        "{\n"
+        '  "target_audience": "1-2 sentence description of the ideal reader",\n'
+        '  "angle": "the unique angle or spin that makes this content stand out",\n'
+        '  "outline": ["Section 1 title", "Section 2 title", "Section 3 title", "Section 4 title", "Section 5 title"],\n'
+        '  "seo_keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],\n'
+        '  "hooks": ["Hook idea 1", "Hook idea 2", "Hook idea 3", "Hook idea 4", "Hook idea 5"],\n'
+        '  "estimated_word_count": 800\n'
+        "}\n"
+        "The outline array must have 4-6 items. The seo_keywords and hooks arrays must have exactly 5 items each."
+    )
+
+    try:
+        raw = _llm_generate(prompt)
+        match = re.search(r'\{.*\}', raw, re.DOTALL)
+        brief = None
+        if match:
+            try:
+                brief = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                brief = None
+
+        if not brief or "target_audience" not in brief:
+            # Fallback structure
+            brief = {
+                "target_audience": f"People interested in {topic}.",
+                "angle": f"A practical, actionable guide to {topic}.",
+                "outline": [
+                    f"What is {topic}?",
+                    "Why it matters",
+                    "Step-by-step guide",
+                    "Common mistakes to avoid",
+                    "Next steps",
+                ],
+                "seo_keywords": [
+                    topic[:30],
+                    f"how to {topic[:20]}",
+                    f"{topic[:20]} guide",
+                    f"{topic[:20]} tips",
+                    f"best {topic[:20]}",
+                ],
+                "hooks": [
+                    f"Everything you need to know about {topic}",
+                    f"The truth about {topic} nobody tells you",
+                    f"I wish I knew this about {topic} sooner",
+                    f"{topic}: what actually works in 2026",
+                    f"Stop guessing — here's the real guide to {topic}",
+                ],
+                "estimated_word_count": 800,
+            }
+
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    _log_usage("generate_content_brief", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "topic": topic,
+        "platform": platform,
+        "tone": tone,
+        "brief": brief,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
 # Health + Root
 # ---------------------------------------------------------------------------
 @app.route("/health", methods=["GET"])
@@ -3819,6 +4871,9 @@ def root():
             "POST /v1/score_tiktok": "Score a TikTok caption for engagement and reach (instant, no AI)",
             "POST /v1/score_threads": "Score a Meta Threads post for reach and engagement (instant, no AI)",
             "POST /v1/score_facebook": "Score a Facebook organic post for reach and engagement (instant, no AI)",
+            "POST /v1/score_pinterest": "Score a Pinterest pin description for reach and saves (instant, no AI)",
+            "POST /v1/score_youtube_description": "Score a YouTube video description for SEO and viewer value (instant, no AI)",
+            "POST /v1/score_ad_copy": "Score Google or Meta ad copy for CTR potential (instant, no AI)",
             "POST /v1/analyze_hashtags": "Analyze hashtags for quality, diversity, and platform fit (instant, no AI)",
             "POST /v1/improve_headline": "AI-rewrite a headline into N better scored versions",
             "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
@@ -3829,6 +4884,8 @@ def root():
             "POST /v1/generate_bio": "AI-generated social media bio (Twitter/LinkedIn/Instagram)",
             "POST /v1/generate_caption": "AI-generated Instagram or TikTok caption (with hashtags + CTA)",
             "POST /v1/generate_linkedin_post": "AI-generated LinkedIn post (storytelling, professional, or motivational)",
+            "POST /v1/generate_email_sequence": "AI-generated 3-email drip sequence (hook → value → CTA)",
+            "POST /v1/generate_content_brief": "AI-generated content brief with outline, keywords, and hooks",
             "GET /health": "Service health check + usage stats",
         },
         "docs": "https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1",
@@ -3886,6 +4943,18 @@ def _run_test():
         rv = c.post("/v1/score_facebook", json={"text": "We just hit 10,000 customers 🎉 and it is all because of you!\n\nWhat is one thing you want us to build next? Drop a comment below!"})
         pprint.pprint(rv.get_json())
 
+        print("\n=== Pinterest Pin Scorer ===")
+        rv = c.post("/v1/score_pinterest", json={"text": "I batch-cooked every Sunday for 30 days and it changed my week completely! Here are the 5 easiest make-ahead meals for busy families. Save this for your next meal prep day! #mealprep #healthyeating #busyfamilies #dinnerideas"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== YouTube Description Scorer ===")
+        rv = c.post("/v1/score_youtube_description", json={"text": "Learn the 5 passive income strategies I used to hit $5K/mo in 2026. Subscribe for weekly income reports!\n\n0:00 Intro\n1:30 Strategy 1 — APIs\n5:00 Strategy 2 — Content\n\nFree download: https://example.com/guide\n\n#passiveincome #sidehustle #money"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Ad Copy Scorer ===")
+        rv = c.post("/v1/score_ad_copy", json={"headline": "Score Your Content in 5 Seconds", "description": "Try ContentForge free — instant scores for tweets, LinkedIn, TikTok and more.", "platform": "google"})
+        pprint.pprint(rv.get_json())
+
         print("\n=== Multi-Platform Scorer ===")
         rv = c.post("/v1/score_multi", json={"text": "Just shipped v2 of my SaaS. Revenue hit $5K MRR in 90 days #buildinpublic"})
         pprint.pprint(rv.get_json())
@@ -3928,6 +4997,14 @@ def _run_test():
 
         print("\n=== Generate LinkedIn Post ===")
         rv = c.post("/v1/generate_linkedin_post", json={"topic": "lessons from launching my first SaaS", "tone": "storytelling"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Generate Email Sequence ===")
+        rv = c.post("/v1/generate_email_sequence", json={"niche": "indie developers building SaaS", "offer": "ContentForge API free tier", "tone": "friendly"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Generate Content Brief ===")
+        rv = c.post("/v1/generate_content_brief", json={"topic": "how to build passive income with APIs", "platform": "blog"})
         pprint.pprint(rv.get_json())
 
         print("\n=== Health ===")
