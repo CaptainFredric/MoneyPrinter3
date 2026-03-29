@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score YouTube titles for CTR, score email subject lines for open rates, score text across all platforms in one call, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score YouTube titles for CTR, score email subject lines for open rates, score text across all platforms in one call, analyze readability with Flesch-Kincaid metrics, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
@@ -572,6 +572,82 @@
               "application/json": {
                 "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
                 "example": {"error": "missing 'text' parameter. Send JSON body: {\"text\": \"your content\"}"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/score_readability": {
+      "post": {
+        "summary": "Score Text Readability",
+        "description": "Score any text for readability 0-100 using Flesch-Kincaid metrics. Returns Flesch Reading Ease, Flesch-Kincaid Grade Level, reading level label (elementary through graduate), sentence and word statistics, and actionable improvement suggestions. Heuristic analysis, instant, no AI needed.",
+        "operationId": "scoreReadability",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "The text to analyze for readability",
+                    "example": "Short sentences work best. They keep the reader engaged. Use simple words too."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Readability score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "flesch_reading_ease": {"type": "number"},
+                    "flesch_kincaid_grade": {"type": "number"},
+                    "reading_level": {"type": "string", "enum": ["elementary", "middle school", "high school", "college", "graduate"]},
+                    "avg_sentence_length": {"type": "number"},
+                    "avg_syllables_per_word": {"type": "number"},
+                    "sentence_count": {"type": "integer"},
+                    "word_count": {"type": "integer"},
+                    "char_count": {"type": "integer"},
+                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "text": "Short sentences work best. They keep the reader engaged. Use simple words too.",
+                  "score": 68,
+                  "grade": "B",
+                  "flesch_reading_ease": 85.7,
+                  "flesch_kincaid_grade": 2.4,
+                  "reading_level": "elementary",
+                  "avg_sentence_length": 4.3,
+                  "avg_syllables_per_word": 1.15,
+                  "sentence_count": 3,
+                  "word_count": 13,
+                  "char_count": 77,
+                  "suggestions": ["Readability is acceptable. Minor simplification could improve clarity."]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid text parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'text' parameter. Send JSON body: {\"text\": \"your content to analyze\"}"}
               }
             }
           },

@@ -249,7 +249,7 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">⚡ 15 endpoints · Instant + AI</div>
+  <div class="badge">⚡ 16 endpoints · Instant + AI</div>
   <h1>Stop guessing.<br>Start <em>scoring</em> your content.</h1>
   <p class="hero-sub">
     ContentForge is a REST API that scores tweets, LinkedIn posts, Instagram captions, YouTube titles, and email subject lines before you post. Rewrite weak content with AI, and generate threads, calendars, and bios on demand.
@@ -335,8 +335,8 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 
 <!-- STATS -->
 <div class="stats">
-  <div class="stat"><div class="stat-num">15</div><div class="stat-label">API Endpoints</div></div>
-  <div class="stat"><div class="stat-num">7</div><div class="stat-label">Instant (no AI)</div></div>
+  <div class="stat"><div class="stat-num">16</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-num">8</div><div class="stat-label">Instant (no AI)</div></div>
   <div class="stat"><div class="stat-num">7</div><div class="stat-label">AI-powered</div></div>
   <div class="stat"><div class="stat-num">100+</div><div class="stat-label">Tracked Power Words</div></div>
   <div class="stat"><div class="stat-num">Free</div><div class="stat-label">BASIC Plan</div></div>
@@ -344,8 +344,8 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 
 <!-- ENDPOINTS -->
 <section id="endpoints">
-  <h2>All 15 Endpoints</h2>
-  <p class="section-sub">Seven instant endpoints for zero-latency scoring across every major platform. Seven AI endpoints for generation and improvement.</p>
+  <h2>All 16 Endpoints</h2>
+  <p class="section-sub">Eight instant endpoints for zero-latency scoring across every major platform. Seven AI endpoints for generation and improvement.</p>
   <div class="endpoints-grid">
 
     <div class="endpoint-card">
@@ -394,6 +394,13 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
       <div class="ep-method instant">POST</div>
       <div class="ep-path">/v1/score_multi</div>
       <div class="ep-desc">Score one text across every platform in a single call. Returns per-platform scores and the best-fit platform.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/score_readability</div>
+      <div class="ep-desc">Score any text for readability with Flesch-Kincaid metrics. Returns grade level, reading ease, and clarity suggestions.</div>
       <span class="ep-badge fast">⚡ Instant</span>
     </div>
 

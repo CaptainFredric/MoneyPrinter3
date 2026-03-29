@@ -2020,7 +2020,241 @@ def endpoint_score_email_subject():
 
 
 # ---------------------------------------------------------------------------
-# 5f. Multi-Platform Score (heuristic — instant, no LLM)
+# 5f. Readability Score (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_readability(text: str) -> dict:
+    """Score any text for readability using Flesch-Kincaid metrics.
+
+    Returns 0-100 score, grade, Flesch Reading Ease, Flesch-Kincaid Grade
+    Level, average sentence length, average syllables per word, and
+    suggestions for improving readability.
+    """
+    import re as _re
+    import math
+
+    text = (text or "").strip()
+    if not text:
+        return {
+            "text": "",
+            "score": 0,
+            "grade": "F",
+            "flesch_reading_ease": 0,
+            "flesch_kincaid_grade": 0,
+            "avg_sentence_length": 0,
+            "avg_syllables_per_word": 0,
+            "sentence_count": 0,
+            "word_count": 0,
+            "char_count": 0,
+            "suggestions": ["No text provided."],
+        }
+
+    char_count = len(text)
+
+    # --- sentence splitting ---------------------------------------------------
+    sentences = _re.split(r'[.!?]+', text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    sentence_count = max(len(sentences), 1)
+
+    # --- word splitting -------------------------------------------------------
+    words = _re.findall(r"[a-zA-Z']+", text)
+    word_count = max(len(words), 1)
+
+    # --- syllable counter (approximation) ------------------------------------
+    def _count_syllables(word):
+        word = word.lower().strip()
+        if len(word) <= 2:
+            return 1
+        # remove trailing e
+        if word.endswith("e"):
+            word = word[:-1]
+        vowels = "aeiouy"
+        count = 0
+        prev_vowel = False
+        for ch in word:
+            is_vowel = ch in vowels
+            if is_vowel and not prev_vowel:
+                count += 1
+            prev_vowel = is_vowel
+        return max(count, 1)
+
+    total_syllables = sum(_count_syllables(w) for w in words)
+    avg_sentence_length = round(word_count / sentence_count, 1)
+    avg_syllables_per_word = round(total_syllables / word_count, 2)
+
+    # --- Flesch Reading Ease (0-100, higher = easier) -------------------------
+    fre = 206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_syllables_per_word)
+    fre = round(max(0, min(100, fre)), 1)
+
+    # --- Flesch-Kincaid Grade Level (US school grade) -------------------------
+    fkgl = (0.39 * avg_sentence_length) + (11.8 * avg_syllables_per_word) - 15.59
+    fkgl = round(max(0, fkgl), 1)
+
+    # --- Build 0-100 composite score ------------------------------------------
+    # Goal: most web/social content should target grade 6-9 (easy to read)
+    score = 40  # base
+
+    # Flesch Reading Ease mapping (higher FRE = better for general audiences)
+    if fre >= 70:
+        score += 25  # very easy
+    elif fre >= 60:
+        score += 20  # standard
+    elif fre >= 50:
+        score += 12  # fairly difficult
+    elif fre >= 30:
+        score += 5   # difficult
+    # else: 0 bonus (very difficult)
+
+    # Grade level targeting (6-9 is ideal for most online content)
+    if 5 <= fkgl <= 9:
+        score += 20  # ideal range
+    elif 3 <= fkgl <= 12:
+        score += 10  # acceptable
+    elif fkgl <= 15:
+        score += 3   # academic level
+    # else: 0 (too complex)
+
+    # Sentence length variety (not all same length = more engaging)
+    if sentence_count >= 3:
+        lens = [len(_re.findall(r"[a-zA-Z']+", s)) for s in sentences]
+        variance = sum((l - avg_sentence_length) ** 2 for l in lens) / len(lens)
+        std_dev = math.sqrt(variance)
+        if std_dev >= 4:
+            score += 8  # good variety
+        elif std_dev >= 2:
+            score += 4
+        # monotone sentences get no bonus
+
+    # Short paragraphs bonus (line breaks suggest formatting)
+    line_breaks = text.count("\n")
+    if line_breaks >= 2:
+        score += 5
+    elif line_breaks >= 1:
+        score += 2
+
+    # Penalize excessively long sentences
+    if avg_sentence_length > 25:
+        score -= 8
+    elif avg_sentence_length > 20:
+        score -= 3
+
+    # Penalize very short content (< 50 chars)
+    if char_count < 50:
+        score -= 5
+
+    score = max(0, min(100, score))
+
+    # --- Grade ---------------------------------------------------------------
+    if score >= 80:
+        grade = "A"
+    elif score >= 65:
+        grade = "B"
+    elif score >= 50:
+        grade = "C"
+    elif score >= 35:
+        grade = "D"
+    else:
+        grade = "F"
+
+    # --- Suggestions -----------------------------------------------------------
+    suggestions = []
+    if fre < 50:
+        suggestions.append("Text is hard to read. Use shorter words and simpler sentences.")
+    if fkgl > 12:
+        suggestions.append(f"Grade level {fkgl} is above college level. Aim for grade 6-9 for online audiences.")
+    elif fkgl > 9:
+        suggestions.append(f"Grade level {fkgl} is a bit high. Consider simplifying for broader reach.")
+    if avg_sentence_length > 25:
+        suggestions.append(f"Average sentence length is {avg_sentence_length} words. Try keeping sentences under 20 words.")
+    elif avg_sentence_length > 20:
+        suggestions.append(f"Sentences average {avg_sentence_length} words. Mixing in shorter sentences improves flow.")
+    if sentence_count < 3 and char_count > 100:
+        suggestions.append("Consider breaking your text into more sentences for easier scanning.")
+    if line_breaks == 0 and char_count > 200:
+        suggestions.append("Add line breaks or paragraphs to improve visual readability.")
+    if avg_syllables_per_word > 1.8:
+        suggestions.append("Many multi-syllable words. Replace complex words with simpler alternatives where possible.")
+    if not suggestions:
+        if score >= 80:
+            suggestions.append("Excellent readability! This text is well-suited for a general audience.")
+        else:
+            suggestions.append("Readability is acceptable. Minor simplification could improve clarity.")
+
+    # --- Reading level description -------------------------------------------
+    if fkgl <= 5:
+        reading_level = "elementary"
+    elif fkgl <= 8:
+        reading_level = "middle school"
+    elif fkgl <= 12:
+        reading_level = "high school"
+    elif fkgl <= 16:
+        reading_level = "college"
+    else:
+        reading_level = "graduate"
+
+    return {
+        "text": text[:500] + ("..." if len(text) > 500 else ""),
+        "score": score,
+        "grade": grade,
+        "flesch_reading_ease": fre,
+        "flesch_kincaid_grade": fkgl,
+        "reading_level": reading_level,
+        "avg_sentence_length": avg_sentence_length,
+        "avg_syllables_per_word": avg_syllables_per_word,
+        "sentence_count": sentence_count,
+        "word_count": word_count,
+        "char_count": char_count,
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/score_readability", methods=["GET", "POST"])
+@app.route("/score-readability", methods=["GET", "POST"])
+@app.route("/score_readability", methods=["GET", "POST"])
+def endpoint_score_readability():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+
+    # --- GET: usage docs ---
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "/v1/score_readability",
+            "method": "POST",
+            "description": (
+                "Score any text for readability 0-100. Returns Flesch Reading Ease, "
+                "Flesch-Kincaid Grade Level, reading level label, sentence/word stats, "
+                "and actionable improvement suggestions. Instant, no AI needed."
+            ),
+            "parameters": {
+                "text": "(required) the text to analyze — any length",
+            },
+            "example_body": {"text": "Short sentences work best. They keep the reader engaged. Use simple words too."},
+            "try_it": "POST this endpoint with a JSON body to score your text.",
+        })
+
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded"}), 429
+
+    start = time.time()
+    data = request.get_json(silent=True) or {}
+    text = data.get("text") or data.get("content") or data.get("body") or ""
+    text = text.strip()
+
+    if not text:
+        return jsonify({
+            "error": (
+                "missing 'text' parameter. "
+                'Send JSON body: {"text": "your content to analyze"}'
+            )
+        }), 400
+
+    result = score_readability(text)
+    _log_usage("score_readability", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 5g. Multi-Platform Score (heuristic — instant, no LLM)
 # ---------------------------------------------------------------------------
 _PLATFORM_SCORERS = {
     "tweet": lambda text, _opts: score_tweet(text),
@@ -2525,6 +2759,7 @@ def root():
             "POST /v1/score_youtube_title": "Score a YouTube title for CTR potential (instant, no AI)",
             "POST /v1/score_email_subject": "Score an email subject line for open rate (instant, no AI)",
             "POST /v1/score_multi": "Score text across multiple platforms in one call (instant, no AI)",
+            "POST /v1/score_readability": "Score any text for readability with Flesch-Kincaid metrics (instant, no AI)",
             "POST /v1/improve_headline": "AI-rewrite a headline into N better scored versions",
             "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
             "POST /v1/rewrite": "Rewrite text for any platform/tone",

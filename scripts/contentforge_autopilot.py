@@ -6,7 +6,7 @@ ContentForge Autopilot — fully autonomous promotional tweet scheduler.
 
 Runs in the background and posts ContentForge promotional tweets across
 both Twitter accounts on a randomized schedule.  It combines:
-  1. 28 hand-crafted, high-scoring templates (all verified 70+)
+  1. 30 hand-crafted, high-scoring templates (all verified 70+)
   2. AI-generated tweets (local Ollama -> Gemini fallback)
   3. Live scoring via ContentForge's own score_tweet() — eat the dog food
 
@@ -74,7 +74,7 @@ API_BASE = "https://contentforge-api-lpp9.onrender.com"
 MIN_SCORE = 70
 
 # ===========================================================================
-# Template library — 28 hand-crafted tweets
+# Template library — 30 hand-crafted tweets
 # Every template is engineered for 70+ score by including:
 #   - power words: free, proven, instant, hack, tip, strategy, secret, boost…
 #   - 1-2 hashtags
@@ -376,6 +376,26 @@ PROMO_TEMPLATES: list[dict] = [
         ),
         "accounts": ["EyeCatcher"],
     },
+    {
+        "id": "readability_scorer_intro",
+        "text": (
+            "is your writing too complex for your audience?\n\n"
+            "ContentForge's free Readability Scorer tells you instantly 📖\n\n"
+            "Flesch-Kincaid grade level + suggestions\n\n"
+            f"{RAPIDAPI_URL} #copywriting #buildinpublic"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "readability_grade_tip",
+        "text": (
+            "is your writing too complex? proven fact 🔥\n\n"
+            "grade 6-8 converts best. most writers score 12+\n\n"
+            "free Readability Scorer reveals your grade\n\n"
+            f"{RAPIDAPI_URL} #copywriting"
+        ),
+        "accounts": ["niche_launch_1"],
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -413,6 +433,11 @@ AI_NICHES: dict[str, list[str]] = {
             f"Link: {RAPIDAPI_URL}. Use 'secret', 'boost', 'simple'. Add #youtube. 1 emoji. "
             "Under 260 chars."
         ),
+        (
+            "Write a tweet about readability and writing clarity. Mention ContentForge's free Readability Scorer "
+            f"with Flesch-Kincaid metrics. Link: {RAPIDAPI_URL}. Use 'proven', 'simple', 'instant'. "
+            "Add #copywriting. 1 emoji. Under 260 chars."
+        ),
     ],
     "EyeCatcher": [
         (
@@ -446,8 +471,14 @@ AI_NICHES: dict[str, list[str]] = {
         ),
         (
             "Write a tweet about scoring content across all platforms (tweets, LinkedIn, Instagram, YouTube, email). "
-            "Mention ContentForge has 6 free scoring endpoints. "
+            "Mention ContentForge has 8 free scoring endpoints. "
             f"Link: {RAPIDAPI_URL}. Use 'free', 'proven', 'instant'. Add #contenttools. 1 emoji. "
+            "Under 260 chars."
+        ),
+        (
+            "Write a tweet about why readability matters for engagement. "
+            "Mention ContentForge's free Readability Scorer with Flesch-Kincaid analysis. "
+            f"Link: {RAPIDAPI_URL}. Use 'hack', 'instant', 'proven'. Add #writingtips. 1 emoji. "
             "Under 260 chars."
         ),
     ],
