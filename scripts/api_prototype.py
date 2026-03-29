@@ -664,6 +664,384 @@ def endpoint_score_tweet():
 
 
 # ---------------------------------------------------------------------------
+# 5b. LinkedIn Post Scorer (heuristic -- instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_linkedin_post(text: str) -> dict:
+    """Score a LinkedIn post draft 0-100 for engagement and reach potential.
+
+    LinkedIn algorithm and audience differ from Twitter:
+      - Longer content performs better (800-1500 chars is the sweet spot)
+      - Personal stories and first-person hooks outperform generic advice
+      - Short paragraphs with line breaks improve readability
+      - 3-5 hashtags is optimal (not 1-2 like Twitter)
+      - External URLs suppress reach (LinkedIn wants to keep you on platform)
+      - Lists and bullet points get more saves and shares
+      - Questions and CTAs at the end drive comments, which boost reach
+    """
+    if not isinstance(text, str):
+        text = str(text or "")
+    txt = text.strip()
+    char_count = len(txt)
+    words = txt.split()
+    word_count = len(words)
+
+    # ---- extract features ----
+    hashtags = re.findall(r'#\w+', txt)
+    mentions = re.findall(r'@\w+', txt)
+    urls = re.findall(r'https?://\S+', txt)
+    emoji_count = sum(1 for c in txt if ord(c) > 0x1F300)
+
+    # Paragraphs: split on double newlines
+    paragraphs = [p.strip() for p in re.split(r'\n\s*\n', txt) if p.strip()]
+    paragraph_count = len(paragraphs)
+    avg_paragraph_len = (
+        sum(len(p) for p in paragraphs) / paragraph_count
+    ) if paragraph_count else char_count
+
+    # Hook: first paragraph (what shows before "see more")
+    hook = paragraphs[0] if paragraphs else txt
+    hook_len = len(hook)
+
+    # Bullet / list detection
+    list_lines = [
+        ln for ln in txt.splitlines()
+        if re.match(r'^\s*[-*\u2022\u2023\u25E6\u25CF\u25CB\u2013\u2014]\s', ln)
+        or re.match(r'^\s*\d+[.)]\s', ln)
+    ]
+    has_list = len(list_lines) >= 2
+
+    # CTA detection (last 200 chars)
+    tail = txt[-200:].lower() if len(txt) >= 200 else txt.lower()
+    cta_phrases = [
+        "what do you think", "agree or disagree", "comment below",
+        "share this", "thoughts?", "drop a comment", "let me know",
+        "would you", "do you agree", "save this", "repost",
+        "tag someone", "follow me", "hit follow", "ring the bell",
+        "what would you", "your turn", "am i wrong",
+    ]
+    has_cta = any(phrase in tail for phrase in cta_phrases)
+    has_question_at_end = '?' in tail
+
+    # Clean words for readability analysis
+    clean_words = [
+        re.sub(r'[^a-zA-Z0-9]', '', w)
+        for w in words
+        if w and not w.startswith(('#', '@', 'http'))
+    ]
+    avg_word_len = (
+        sum(len(w) for w in clean_words) / len(clean_words)
+    ) if clean_words else 0
+
+    # Power words (professional/LinkedIn tone)
+    power_word_set = {
+        "strategy", "proven", "secret", "mistake", "insight", "lesson",
+        "discovered", "revealed", "transform", "boost", "growth", "results",
+        "data", "framework", "leadership", "career", "opportunity", "mindset",
+        "productivity", "hack", "tip", "breakthrough", "surprising", "truth",
+        "hidden", "success", "failure", "learned", "changed", "journey",
+        "honest", "unpopular", "controversial", "reality", "myth", "warning",
+        "free", "simple", "powerful", "essential", "critical",
+    }
+    pw_found = [w for w in power_word_set if w in txt.lower()]
+
+    # ---- scoring ----
+    score = 40  # baseline
+
+    # -- Length (most important factor on LinkedIn) --
+    if char_count < 100:
+        score -= 10
+    elif 100 <= char_count < 300:
+        score += 5
+    elif 300 <= char_count < 800:
+        score += 12
+    elif 800 <= char_count <= 1500:
+        score += 20  # optimal sweet spot
+    elif 1500 < char_count <= 2500:
+        score += 15
+    elif 2500 < char_count <= 3000:
+        score += 8
+    else:
+        score += 3  # very long, may lose readers
+
+    # -- Hook strength (the first paragraph decides if people click "see more") --
+    if hook_len <= 150:
+        score += 4  # fits in preview
+    if hook and hook[0:1] == "I":
+        score += 5  # personal story opener
+    if hook and hook[0:1].isdigit():
+        score += 5  # number hook
+    if '?' in hook:
+        score += 4  # curiosity in the hook
+
+    # -- Paragraph structure --
+    if paragraph_count >= 3:
+        score += 5
+    if paragraph_count >= 5:
+        score += 3  # well-structured long form
+    if avg_paragraph_len < 150:
+        score += 4  # short, scannable paragraphs
+
+    # -- List/bullet points --
+    if has_list:
+        score += 5
+
+    # -- Hashtags (3-5 is LinkedIn optimal) --
+    ht_count = len(hashtags)
+    if ht_count == 0:
+        pass  # no penalty but no discovery boost
+    elif 1 <= ht_count <= 2:
+        score += 4
+    elif 3 <= ht_count <= 5:
+        score += 8  # optimal range
+    elif ht_count > 5:
+        score -= 8  # spammy
+
+    # -- Emoji (professional context: moderate is fine) --
+    if 1 <= emoji_count <= 3:
+        score += 4
+    elif 4 <= emoji_count <= 6:
+        score += 2
+    elif emoji_count > 6:
+        score -= 5
+
+    # -- Engagement drivers --
+    if has_question_at_end:
+        score += 7
+    if has_cta:
+        score += 5
+
+    # -- Power words --
+    score += min(12, len(pw_found) * 3)
+
+    # -- URL penalty (LinkedIn suppresses posts with outbound links) --
+    if urls:
+        score -= 5
+
+    # -- ALL CAPS abuse (exclude common acronyms) --
+    _acronyms = {
+        "API", "AI", "CTA", "CEO", "CTO", "CFO", "COO", "CMO", "HR", "PR",
+        "SEO", "SEM", "URL", "DNS", "CSS", "HTML", "JSON", "SQL", "AWS",
+        "GCP", "SaaS", "SAAS", "B2B", "B2C", "ROI", "KPI", "OKR", "MVP",
+        "IPO", "VC", "YC", "USA", "LLC", "INC", "ETF", "NFT", "DM", "PM",
+    }
+    caps_words = sum(
+        1 for w in words
+        if len(w) > 2
+        and w.isupper()
+        and any(c.isalpha() for c in w)
+        and w.strip(".,!?:;") not in _acronyms
+    )
+    if caps_words >= 3:
+        score -= 5
+
+    # -- Excessive exclamation marks --
+    if txt.count('!') >= 4:
+        score -= 3
+
+    # -- Line break style (single newlines for readability) --
+    single_breaks = txt.count('\n') - txt.count('\n\n')
+    if single_breaks >= 3:
+        score += 3  # LinkedIn-style line spacing
+
+    score = max(0, min(100, int(score)))
+    grade = (
+        "A" if score >= 80 else
+        "B" if score >= 60 else
+        "C" if score >= 40 else
+        "D" if score >= 20 else
+        "F"
+    )
+
+    # ---- suggestions ----
+    suggestions = []
+
+    if char_count < 300:
+        suggestions.append(
+            "LinkedIn rewards longer posts. Aim for 800-1500 characters "
+            "for maximum reach."
+        )
+    elif char_count > 2500:
+        suggestions.append(
+            "Your post is quite long. Consider trimming to under 1500 "
+            "characters for better read-through rates."
+        )
+
+    if paragraph_count <= 1:
+        suggestions.append(
+            "Break your post into short paragraphs (2-3 sentences each). "
+            "Walls of text get skipped on LinkedIn."
+        )
+    elif avg_paragraph_len > 200:
+        suggestions.append(
+            "Your paragraphs are long. Keep each one under 150 characters "
+            "for easier scanning on mobile."
+        )
+
+    if hook_len > 200:
+        suggestions.append(
+            "Your opening is too long for the preview. Keep the first "
+            "paragraph under 150 characters so people see the hook "
+            "before clicking 'see more'."
+        )
+
+    if not (hook and hook[0:1] in ("I", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")):
+        if '?' not in hook:
+            suggestions.append(
+                "Start with a personal story ('I ...'), a number ('3 things...'), "
+                "or a question to grab attention in the feed."
+            )
+
+    if ht_count == 0:
+        suggestions.append(
+            "Add 3-5 relevant hashtags at the end. LinkedIn uses them for "
+            "topic distribution."
+        )
+    elif ht_count < 3:
+        suggestions.append(
+            "Add more hashtags (3-5 total). LinkedIn distributes posts to "
+            "hashtag followers."
+        )
+    elif ht_count > 5:
+        suggestions.append(
+            "Too many hashtags. Stick to 3-5 relevant ones at the end."
+        )
+
+    if not has_list and char_count > 500:
+        suggestions.append(
+            "Consider adding a bulleted or numbered list. Lists get more "
+            "saves and shares."
+        )
+
+    if not has_question_at_end and not has_cta:
+        suggestions.append(
+            "End with a question or call to action (e.g. 'What do you think?' "
+            "or 'Save this for later'). Comments drive reach on LinkedIn."
+        )
+
+    if urls:
+        suggestions.append(
+            "LinkedIn suppresses posts with external links. Put the URL in "
+            "the first comment instead of the post body for better reach."
+        )
+
+    if emoji_count == 0 and char_count > 200:
+        suggestions.append(
+            "Add 1-2 emojis to break up the text and draw the eye."
+        )
+
+    if not pw_found:
+        suggestions.append(
+            "Add a power word (e.g. 'proven', 'strategy', 'mistake', "
+            "'discovered') to make the post more compelling."
+        )
+
+    if caps_words >= 3:
+        suggestions.append(
+            "Tone down the ALL CAPS words. It comes across as shouting "
+            "in a professional context."
+        )
+
+    return {
+        "text": txt,
+        "platform": "linkedin",
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "paragraph_count": paragraph_count,
+        "avg_paragraph_length": round(avg_paragraph_len),
+        "hook_length": hook_len,
+        "hook_preview": hook[:150] + ("..." if hook_len > 150 else ""),
+        "has_list": has_list,
+        "list_items_detected": len(list_lines),
+        "hashtag_count": ht_count,
+        "hashtags": hashtags,
+        "mention_count": len(mentions),
+        "emoji_count": emoji_count,
+        "has_url": bool(urls),
+        "url_penalty_applied": bool(urls),
+        "has_cta": has_cta,
+        "has_question_at_end": has_question_at_end,
+        "power_words_found": pw_found,
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/score_linkedin_post", methods=["GET", "POST"])
+@app.route("/score-linkedin-post", methods=["GET", "POST"])
+@app.route("/score_linkedin_post", methods=["GET", "POST"])
+def endpoint_score_linkedin_post():
+    # GET: return usage doc
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-linkedin-post",
+            "method": "POST",
+            "description": (
+                "Score a LinkedIn post draft 0-100 for reach and engagement. "
+                "Analyzes hook strength, paragraph structure, hashtag count, "
+                "CTA presence, URL penalties, and more."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-linkedin-post",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {"post": "your linkedin post text here"},
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-linkedin-post '
+                '-H "Content-Type: application/json" '
+                "-d '{\"post\": \"I spent 3 years building tools nobody used."
+                "\\n\\nThen I changed one thing: I started scoring my own content "
+                "before posting.\\n\\n#buildinpublic #contentcreation #linkedin\"}'"
+            ),
+            "scoring_factors": [
+                "Post length (sweet spot: 800-1500 chars)",
+                "Hook strength (first paragraph, under 150 chars)",
+                "Paragraph structure (short, scannable blocks)",
+                "Hashtag count (optimal: 3-5)",
+                "Bullet/list detection",
+                "Call to action or question at end",
+                "Power words (professional context)",
+                "Emoji usage (moderate is positive)",
+                "URL penalty (LinkedIn suppresses external links)",
+            ],
+            "note": (
+                "No API key needed for direct access. "
+                "Free tier on RapidAPI: 50 calls/month."
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (
+        payload.get("post")
+        or payload.get("text")
+        or payload.get("content")
+        or ""
+    ).strip()
+
+    if not text:
+        return jsonify({
+            "error": (
+                "missing 'post' parameter. "
+                'Send JSON body: {"post": "your linkedin post text"}'
+            )
+        }), 400
+    if len(text) > 5000:
+        return jsonify({"error": "text too long (max 5000 chars)"}), 400
+
+    result = score_linkedin_post(text)
+    _log_usage("score_linkedin_post", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 6. Content Calendar (AI-powered)
 # ---------------------------------------------------------------------------
 @app.route("/v1/content_calendar", methods=["POST"])
@@ -1048,6 +1426,7 @@ def root():
         "endpoints": {
             "POST /v1/analyze_headline": "Score & improve any headline (instant, no AI)",
             "POST /v1/score_tweet": "Score a tweet draft for engagement potential (instant, no AI)",
+            "POST /v1/score_linkedin_post": "Score a LinkedIn post for reach and engagement (instant, no AI)",
             "POST /v1/improve_headline": "AI-rewrite a headline into N better scored versions",
             "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
             "POST /v1/rewrite": "Rewrite text for any platform/tone",

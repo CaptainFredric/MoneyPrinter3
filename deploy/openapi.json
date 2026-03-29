@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
@@ -107,6 +107,103 @@
               "application/json": {
                 "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
                 "example": {"error": "missing 'text' parameter"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/score_linkedin_post": {
+      "post": {
+        "summary": "Score a LinkedIn Post Draft",
+        "description": "Score any LinkedIn post draft 0-100 for reach and engagement before you publish. Heuristic analysis, instant, no AI needed. Evaluates post length, hook strength (first paragraph preview), paragraph structure, hashtag count, list/bullet detection, call-to-action presence, URL penalty, emoji usage, and power words. Returns a grade (A-F) plus actionable improvement tips tailored to LinkedIn best practices.",
+        "operationId": "scoreLinkedInPost",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["post"],
+                "properties": {
+                  "post": {
+                    "type": "string",
+                    "maxLength": 5000,
+                    "description": "The LinkedIn post draft text to score",
+                    "example": "I spent 3 years building tools nobody used.\n\nThen I changed one thing: I started scoring my own content before posting.\n\nHere is what I learned:\n\n- Your hook decides everything (keep it under 150 chars)\n- Short paragraphs get 2x more read-throughs\n- A question at the end doubles your comments\n\nThe result? 4x more engagement in 2 months.\n\nWhat is one thing you changed that boosted your reach?\n\n#contentcreation #linkedin #buildinpublic"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "LinkedIn post score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "platform": {"type": "string", "enum": ["linkedin"]},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "char_count": {"type": "integer"},
+                    "word_count": {"type": "integer"},
+                    "paragraph_count": {"type": "integer"},
+                    "avg_paragraph_length": {"type": "integer"},
+                    "hook_length": {"type": "integer"},
+                    "hook_preview": {"type": "string", "description": "First 150 chars of the opening paragraph"},
+                    "has_list": {"type": "boolean"},
+                    "list_items_detected": {"type": "integer"},
+                    "hashtag_count": {"type": "integer"},
+                    "hashtags": {"type": "array", "items": {"type": "string"}},
+                    "mention_count": {"type": "integer"},
+                    "emoji_count": {"type": "integer"},
+                    "has_url": {"type": "boolean"},
+                    "url_penalty_applied": {"type": "boolean", "description": "True if an external URL was found (LinkedIn suppresses these)"},
+                    "has_cta": {"type": "boolean", "description": "True if a call-to-action phrase was detected near the end"},
+                    "has_question_at_end": {"type": "boolean"},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "text": "I spent 3 years building tools nobody used...",
+                  "platform": "linkedin",
+                  "score": 88,
+                  "grade": "A",
+                  "char_count": 520,
+                  "word_count": 82,
+                  "paragraph_count": 6,
+                  "avg_paragraph_length": 87,
+                  "hook_length": 48,
+                  "hook_preview": "I spent 3 years building tools nobody used.",
+                  "has_list": true,
+                  "list_items_detected": 3,
+                  "hashtag_count": 3,
+                  "hashtags": ["#contentcreation", "#linkedin", "#buildinpublic"],
+                  "mention_count": 0,
+                  "emoji_count": 0,
+                  "has_url": false,
+                  "url_penalty_applied": false,
+                  "has_cta": false,
+                  "has_question_at_end": true,
+                  "power_words_found": ["changed", "learned"],
+                  "suggestions": ["Add 1-2 emojis to break up the text and draw the eye."]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid post parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'post' parameter. Send JSON body: {\"post\": \"your linkedin post text\"}"}
               }
             }
           },
