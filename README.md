@@ -11,7 +11,7 @@ A Python 3.12 automation platform that runs Twitter bots, generates AI content, 
 | Component | Status | Notes |
 |---|---|---|
 | **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
-| **RapidAPI Listing** | ✅ Public | All 5 endpoints, 4-tier pricing configured |
+| **RapidAPI Listing** | ✅ Public | All 10 endpoints, 4-tier pricing configured |
 | **Twitter bot: niche_launch_1** | ✅ Active | health=50, 2 verified posts |
 | **Twitter bot: EyeCatcher** | ✅ Active | health=100, 1 verified post |
 | **Gemini backend** | ✅ Configured | `gemini-2.0-flash` on Render |
@@ -24,7 +24,7 @@ A Python 3.12 automation platform that runs Twitter bots, generates AI content, 
 ## What This Does
 
 1. **Twitter Bots** — AI-generated posts (copywriting tips, attention psychology) published on schedule via Selenium + Firefox profiles
-2. **ContentForge API** — Flask API monetized on RapidAPI that scores headlines, generates hooks, rewrites text, and produces tweet ideas
+2. **ContentForge API** — Flask API monetized on RapidAPI that scores headlines and tweets, improves headlines with AI, generates hooks, rewrites text, produces tweet ideas, builds content calendars, generates thread outlines, and writes social bios
 3. **YouTube Shorts** — LLM script → TTS → image generation → MoviePy composite → Selenium upload
 4. **Affiliate Marketing** — Amazon product scraping + AI pitch generation + Twitter posting
 5. **Local Business Outreach** — Google Maps scraping (Go) → email extraction → cold outreach via SMTP
@@ -67,13 +67,18 @@ A monetized API product hosted on Render and listed on RapidAPI.
 | Endpoint | What It Does |
 |---|---|
 | `POST /v1/analyze_headline` | Score any headline (0–100) with word-level feedback and suggestions. Instant, no AI needed. |
+| `POST /v1/score_tweet` | Score any tweet draft (0–100) for engagement potential before posting. Instant, no AI needed. |
+| `POST /v1/improve_headline` | Submit a weak headline, get N AI-rewritten versions sorted by score. |
 | `POST /v1/generate_hooks` | Generate scroll-stopping openers for a topic. Viral, professional, or casual style. |
 | `POST /v1/rewrite` | Rewrite text for Twitter, LinkedIn, email, or blog with tone control. |
 | `POST /v1/tweet_ideas` | Generate tweet ideas for any niche with hashtags. Mix of hot takes, tips, and questions. |
-| `GET /health` | Service health check with LLM backend detection. |
+| `POST /v1/content_calendar` | Build a 7-day content calendar with themes and ready-to-post drafts. |
+| `POST /v1/thread_outline` | Generate a full Twitter thread: hook, body tweets, and CTA closing tweet. |
+| `POST /v1/generate_bio` | Generate an optimized social bio for Twitter, LinkedIn, or Instagram. Auto-trimmed to fit. |
+| `GET /health` | Service health check with LLM backend detection and per-endpoint usage stats. |
 
 **Pricing tiers** (via RapidAPI — live):
-- **BASIC** — Free, 50 AI objects + 30 requests/month
+- **BASIC** — Free, 50 AI objects + 300 requests/month
 - **PRO** — $9.99/month, 750 AI objects + 1,000 requests
 - **ULTRA** — $29.99/month, 3,000 AI objects + 4,000 requests
 - **MEGA** — $99/month, 18,000 AI objects + 20,000 requests
@@ -132,7 +137,7 @@ src/
 │   ├── AFM.py               # Amazon affiliate marketing
 │   └── Outreach.py          # Google Maps scraper + SMTP outreach
 scripts/
-├── api_prototype.py         # ContentForge Flask API (4 endpoints + health)
+├── api_prototype.py         # ContentForge Flask API (9 endpoints + health)
 ├── smart_post_twitter.py    # Headless smart posting (one-shot)
 ├── backfill_pending_twitter.py  # Retry failed/pending posts
 ├── verify_twitter_posts_phase3.py # Post verification with similarity search

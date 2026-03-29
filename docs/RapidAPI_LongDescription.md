@@ -95,13 +95,13 @@ Response:
 
 ## Plans
 
-All plans share a server-side rate limit of **30 requests/minute**. Plans are differentiated by AI calls per month. Instant endpoints (`analyze_headline`, `score_tweet`, `health`) do not consume AI calls.
+All plans share a server-side rate limit of **30 requests/minute**. Plans are differentiated by AI calls and total requests per month. Instant endpoints (`analyze_headline`, `score_tweet`, `health`) do not consume AI calls.
 
-| Plan | Price | AI Calls/Month | Rate Limit |
-|---|---|---|---|
-| BASIC | Free | 50 | 30 req/min |
-| PRO | $9.99/mo | 750 | 30 req/min |
-| ULTRA | $29.99/mo | 3,000 | 30 req/min |
-| MEGA | $99/mo | 18,000 | 30 req/min |
+| Plan | Price | AI Calls/Month | Requests/Month | Rate Limit |
+|---|---|---|---|---|
+| BASIC | Free | 50 | 300 | 30 req/min |
+| PRO | $9.99/mo | 750 | 1,000 | 30 req/min |
+| ULTRA | $29.99/mo | 3,000 | 4,000 | 30 req/min |
+| MEGA | $99/mo | 18,000 | 20,000 | 30 req/min |
 
 Need something custom? Email captainarmoreddude@gmail.com.
