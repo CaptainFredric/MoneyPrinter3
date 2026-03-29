@@ -6,7 +6,7 @@
 
 ## Step 1: Get Your API Key
 
-1. Subscribe to any plan on the [ContentForge RapidAPI page](https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1)
+1. Subscribe to any plan on the [ContentForge RapidAPI page](https://rapidapi.com/captainarmoreddude/api/contentforge1)
 2. After subscribing, your `X-RapidAPI-Key` is shown in the **Code Snippets** panel on the right side of any endpoint page
 3. Copy your key — you'll use it in every request
 
