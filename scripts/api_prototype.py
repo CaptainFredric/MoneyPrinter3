@@ -8,11 +8,18 @@ Endpoints:
   POST /v1/score_instagram     — Score an Instagram caption for engagement (heuristic, instant)
   POST /v1/score_youtube_title — Score a YouTube title for CTR (heuristic, instant)
   POST /v1/score_email_subject — Score an email subject line for open rate (heuristic, instant)
+  POST /v1/score_multi         — Score text across multiple platforms in one call (heuristic, instant)
+  POST /v1/score_readability   — Score text for readability w/ Flesch-Kincaid (heuristic, instant)
+  POST /v1/score_tiktok        — Score a TikTok caption for engagement/reach (heuristic, instant)
+  POST /v1/analyze_hashtags    — Analyze hashtags for quality, spam risk, platform fit (heuristic, instant)
   POST /v1/improve_headline    — AI-rewrites a headline into N better scored versions (AI)
   POST /v1/generate_hooks      — Generate scroll-stopping hooks for a topic (AI)
   POST /v1/rewrite             — Rewrite text for a target platform/tone (AI)
   POST /v1/tweet_ideas         — Generate tweet ideas for a niche/topic (AI)
   POST /v1/content_calendar    — AI-generated 7-day content calendar for any niche (AI)
+  POST /v1/thread_outline      — AI-generated Twitter thread outline (hook + body + CTA) (AI)
+  POST /v1/generate_bio        — AI-generated social media bio (Twitter/LinkedIn/Instagram) (AI)
+  POST /v1/generate_caption    — AI-generated Instagram or TikTok caption (AI)
   GET  /health                 — Service health check
 
 Run smoke test:
@@ -407,7 +414,7 @@ def endpoint_rewrite():
     if len(text) > 2000:
         return jsonify({"error": "text too long (max 2000 chars)"}), 400
 
-    char_limits = {"twitter": 280, "linkedin": 700, "email": 500, "blog": 1000}
+    char_limits = {"twitter": 280, "linkedin": 700, "instagram": 2200, "tiktok": 150, "email": 500, "blog": 1000}
     limit = char_limits.get(platform, 500)
 
     prompt = (
@@ -3181,6 +3188,111 @@ def endpoint_generate_bio():
 
 
 # ---------------------------------------------------------------------------
+# 8. Generate Caption (AI-powered) — Instagram / TikTok
+# ---------------------------------------------------------------------------
+@app.route("/v1/generate_caption", methods=["GET", "POST"])
+@app.route("/generate-caption", methods=["GET", "POST"])
+@app.route("/generate_caption", methods=["GET", "POST"])
+def endpoint_generate_caption():
+    """AI-generated caption for Instagram or TikTok, ready to score and post."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "generate-caption",
+            "method": "POST",
+            "description": (
+                "Generate an optimized caption for Instagram or TikTok. "
+                "Includes hashtags, emojis, and a call-to-action engineered "
+                "for the target platform's algorithm."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/generate-caption",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "topic": "your post topic here",
+                    "platform": "instagram",
+                    "tone": "engaging",
+                },
+            },
+            "parameters": {
+                "topic": "What your post is about (required)",
+                "platform": "instagram or tiktok (default: instagram)",
+                "tone": "engaging, inspirational, educational, humorous (default: engaging)",
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/generate-caption '
+                '-H "Content-Type: application/json" '
+                "-d '{\"topic\": \"morning productivity routine\", \"platform\": \"instagram\"}'"
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    topic = (payload.get("topic") or payload.get("content") or "").strip()
+    platform = payload.get("platform", "instagram").lower().strip()
+    tone = payload.get("tone", "engaging").lower().strip()
+
+    if not topic:
+        return jsonify({
+            "error": "missing 'topic' parameter. Send JSON: {\"topic\": \"your post topic\"}"
+        }), 400
+    if len(topic) > 500:
+        return jsonify({"error": "topic too long (max 500 chars)"}), 400
+
+    if platform not in ("instagram", "tiktok"):
+        platform = "instagram"
+    if tone not in ("engaging", "inspirational", "educational", "humorous"):
+        tone = "engaging"
+
+    if platform == "instagram":
+        platform_rules = (
+            "Instagram caption rules:\n"
+            "- First line is the hook (scroll-stopper)\n"
+            "- Body: 3-5 short lines\n"
+            "- End with a question or call-to-action\n"
+            "- Add 5-10 relevant hashtags at the end\n"
+            "- Include 2-4 emojis throughout\n"
+            "- Under 300 words total\n"
+        )
+    else:
+        platform_rules = (
+            "TikTok caption rules:\n"
+            "- First line is a strong hook (POV / question / bold claim)\n"
+            "- Keep total text under 150 characters (captions show truncated)\n"
+            "- Add 3-5 relevant hashtags inline\n"
+            "- Include 1-2 emojis\n"
+            "- Add one clear CTA (follow, save, share, comment)\n"
+        )
+
+    prompt = (
+        f"Write a {tone} {platform} caption about: {topic}\n\n"
+        f"{platform_rules}\n"
+        "Return ONLY the caption text, nothing else. No intro, no explanation."
+    )
+
+    try:
+        caption = _llm_generate(prompt).strip().strip('"').strip("'")
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    _log_usage("generate_caption", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "topic": topic,
+        "platform": platform,
+        "tone": tone,
+        "caption": caption,
+        "char_count": len(caption),
+        "word_count": len(caption.split()),
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
 # Health + Root
 # ---------------------------------------------------------------------------
 @app.route("/health", methods=["GET"])
@@ -3250,6 +3362,7 @@ def root():
             "POST /v1/content_calendar": "AI-generated 7-day content calendar",
             "POST /v1/thread_outline": "AI-generated Twitter thread outline (hook + body + CTA)",
             "POST /v1/generate_bio": "AI-generated social media bio (Twitter/LinkedIn/Instagram)",
+            "POST /v1/generate_caption": "AI-generated Instagram or TikTok caption (with hashtags + CTA)",
             "GET /health": "Service health check + usage stats",
         },
         "docs": "https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1",
@@ -3291,6 +3404,14 @@ def _run_test():
         rv = c.post("/v1/score_readability", json={"text": "Short sentences work best. They keep the reader engaged. Use simple words too."})
         pprint.pprint(rv.get_json())
 
+        print("\n=== TikTok Caption Scorer ===")
+        rv = c.post("/v1/score_tiktok", json={"text": "POV: you stop guessing and start knowing if your content will go viral 🔥\n\nTry this free tool 👇\n\n#tiktok #viral #contentcreator"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Hashtag Analyzer ===")
+        rv = c.post("/v1/analyze_hashtags", json={"hashtags": "#coding #python #buildinpublic", "platform": "twitter"})
+        pprint.pprint(rv.get_json())
+
         print("\n=== Multi-Platform Scorer ===")
         rv = c.post("/v1/score_multi", json={"text": "Just shipped v2 of my SaaS. Revenue hit $5K MRR in 90 days #buildinpublic"})
         pprint.pprint(rv.get_json())
@@ -3325,6 +3446,10 @@ def _run_test():
 
         print("\n=== Generate Bio ===")
         rv = c.post("/v1/generate_bio", json={"name": "Alex Rivera", "niche": "indie developer building micro-SaaS tools", "platform": "twitter", "tone": "casual", "keywords": ["APIs", "side income", "buildinpublic"]})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Generate Caption ===")
+        rv = c.post("/v1/generate_caption", json={"topic": "morning productivity routine", "platform": "instagram", "tone": "inspirational"})
         pprint.pprint(rv.get_json())
 
         print("\n=== Health ===")
