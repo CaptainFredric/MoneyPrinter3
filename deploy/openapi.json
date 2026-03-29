@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score YouTube titles for CTR, score email subject lines for open rates, score text across all platforms in one call, analyze readability with Flesch-Kincaid metrics, score TikTok captions for engagement, analyze hashtags for platform fit and spam risk, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score TikTok captions for engagement, score Meta Threads posts (hashtags penalize reach — we detect that), score Facebook organic posts, score YouTube titles for CTR, score email subject lines for open rates, score text across all 8 platforms in one call, analyze readability with Flesch-Kincaid metrics, analyze hashtags for platform fit and spam risk, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, generate optimized social media bios, generate Instagram or TikTok captions, and generate full LinkedIn posts.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
