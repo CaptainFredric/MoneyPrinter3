@@ -6,7 +6,7 @@ ContentForge Autopilot — fully autonomous promotional tweet scheduler.
 
 Runs in the background and posts ContentForge promotional tweets across
 both Twitter accounts on a randomized schedule.  It combines:
-  1. 30 hand-crafted, high-scoring templates (all verified 70+)
+  1. 32 hand-crafted, high-scoring templates (all verified 70+)
   2. AI-generated tweets (local Ollama -> Gemini fallback)
   3. Live scoring via ContentForge's own score_tweet() — eat the dog food
 
@@ -74,7 +74,7 @@ API_BASE = "https://contentforge-api-lpp9.onrender.com"
 MIN_SCORE = 70
 
 # ===========================================================================
-# Template library — 30 hand-crafted tweets
+# Template library — 32 hand-crafted tweets
 # Every template is engineered for 70+ score by including:
 #   - power words: free, proven, instant, hack, tip, strategy, secret, boost…
 #   - 1-2 hashtags
@@ -396,6 +396,30 @@ PROMO_TEMPLATES: list[dict] = [
         ),
         "accounts": ["niche_launch_1"],
     },
+
+    # ── TikTok ──────────────────────────────────────────────────────────────
+    {
+        "id": "tiktok_scorer_intro",
+        "text": (
+            "is your TikTok caption killing your reach? 🔥\n\n"
+            "ContentForge's free TikTok Scorer — instant, proven score 0-100\n\n"
+            "hack: 3-6 hashtags + 1-3 emojis + CTA = boost in reach\n\n"
+            f"{RAPIDAPI_URL} #tiktok #contentcreator"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+
+    # ── Hashtag Analyzer ────────────────────────────────────────────────────
+    {
+        "id": "hashtag_analyzer_intro",
+        "text": (
+            "are your hashtags secretly killing your reach? 📊\n\n"
+            "hack: spam tags, duplicates, and wrong counts cost you real engagement 🔥\n\n"
+            "ContentForge's free Hashtag Analyzer reveals it instantly\n\n"
+            f"{RAPIDAPI_URL} #growthhack"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -438,6 +462,16 @@ AI_NICHES: dict[str, list[str]] = {
             f"with Flesch-Kincaid metrics. Link: {RAPIDAPI_URL}. Use 'proven', 'simple', 'instant'. "
             "Add #copywriting. 1 emoji. Under 260 chars."
         ),
+        (
+            "Write a tweet about TikTok content strategy and caption optimization. Mention ContentForge's free "
+            f"TikTok Caption Scorer on RapidAPI. Link: {RAPIDAPI_URL}. Use 'hack', 'instant', 'boost'. "
+            "Add #tiktok. 1 emoji. Under 260 chars."
+        ),
+        (
+            "Write a tweet about hashtag strategy for social media growth. Mention ContentForge's free Hashtag Analyzer "
+            f"that checks spam risk and platform-specific tag counts. Link: {RAPIDAPI_URL}. "
+            "Use 'proven', 'free', 'strategy'. Add #socialmedia. 1 emoji. Under 260 chars."
+        ),
     ],
     "EyeCatcher": [
         (
@@ -479,6 +513,18 @@ AI_NICHES: dict[str, list[str]] = {
             "Write a tweet about why readability matters for engagement. "
             "Mention ContentForge's free Readability Scorer with Flesch-Kincaid analysis. "
             f"Link: {RAPIDAPI_URL}. Use 'hack', 'instant', 'proven'. Add #writingtips. 1 emoji. "
+            "Under 260 chars."
+        ),
+        (
+            "Write a tweet about going viral on TikTok and the science of caption hooks. "
+            "Mention ContentForge's free TikTok Caption Scorer. "
+            f"Link: {RAPIDAPI_URL}. Use 'secret', 'viral', 'instant'. Add #tiktok. 1 emoji. "
+            "Under 260 chars."
+        ),
+        (
+            "Write a tweet about why most people use hashtags wrong (too many, spam tags, no variety). "
+            "Mention ContentForge's free Hashtag Analyzer that detects spam risk across platforms. "
+            f"Link: {RAPIDAPI_URL}. Use 'mistake', 'proven', 'free'. Add #growthhack. 1 emoji. "
             "Under 260 chars."
         ),
     ],

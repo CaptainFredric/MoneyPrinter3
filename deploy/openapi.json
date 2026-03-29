@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score YouTube titles for CTR, score email subject lines for open rates, score text across all platforms in one call, analyze readability with Flesch-Kincaid metrics, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score YouTube titles for CTR, score email subject lines for open rates, score text across all platforms in one call, analyze readability with Flesch-Kincaid metrics, score TikTok captions for engagement, analyze hashtags for platform fit and spam risk, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
@@ -648,6 +648,181 @@
               "application/json": {
                 "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
                 "example": {"error": "missing 'text' parameter. Send JSON body: {\"text\": \"your content to analyze\"}"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/score_tiktok": {
+      "post": {
+        "summary": "Score a TikTok Caption",
+        "description": "Score a TikTok caption for engagement and reach potential 0-100. Evaluates hashtag count (3-6 is ideal), emoji usage (1-3 ideal), CTA keywords (follow/save/share/duet/stitch), TikTok power words (viral/pov/hack/trending), hook strength, number usage, and caps abuse. Instant heuristic analysis, no AI needed.",
+        "operationId": "scoreTiktok",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "The TikTok caption to score",
+                    "example": "POV: you stop guessing and start knowing if your content will go viral 🔥\n\nTry this free tool 👇\n\n#tiktok #viral #contentcreator"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "TikTok caption score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "char_count": {"type": "integer"},
+                    "word_count": {"type": "integer"},
+                    "hashtag_count": {"type": "integer"},
+                    "emoji_count": {"type": "integer"},
+                    "has_cta": {"type": "boolean"},
+                    "has_question": {"type": "boolean"},
+                    "has_number": {"type": "boolean"},
+                    "caps_abuse": {"type": "boolean"},
+                    "hook_length": {"type": "integer"},
+                    "hashtags": {"type": "array", "items": {"type": "string"}},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "caps_words": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "text": "POV: you stop guessing 🔥 #tiktok #viral #contentcreator",
+                  "score": 87,
+                  "grade": "A",
+                  "char_count": 56,
+                  "word_count": 9,
+                  "hashtag_count": 3,
+                  "emoji_count": 1,
+                  "has_cta": false,
+                  "has_question": false,
+                  "has_number": false,
+                  "caps_abuse": false,
+                  "hook_length": 22,
+                  "hashtags": ["#tiktok", "#viral", "#contentcreator"],
+                  "power_words_found": ["pov", "viral"],
+                  "caps_words": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid text parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'text' parameter"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/analyze_hashtags": {
+      "post": {
+        "summary": "Analyze Hashtags for Platform Fit",
+        "description": "Analyze a list of hashtags for quality, spam risk, duplicates, and platform suitability 0-100. Supports twitter, instagram, tiktok, linkedin, and youtube with platform-specific ideal count ranges. Detects spam/banned tags (f4f, followme, likeforlike etc.), duplicate tags, overly long/short tags, caps abuse, and specificity variety (broad/niche/micro). Instant heuristic analysis, no AI needed.",
+        "operationId": "analyzeHashtags",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["hashtags"],
+                "properties": {
+                  "hashtags": {
+                    "oneOf": [
+                      {"type": "string", "description": "Space or comma-separated hashtags, e.g. '#coding #python #buildinpublic'"},
+                      {"type": "array", "items": {"type": "string"}, "description": "Array of hashtag strings"}
+                    ],
+                    "example": "#coding #python #buildinpublic"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": ["twitter", "instagram", "tiktok", "linkedin", "youtube"],
+                    "default": "twitter",
+                    "description": "Target platform for ideal range evaluation"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hashtag analysis result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hashtags": {"type": "array", "items": {"type": "string"}},
+                    "platform": {"type": "string"},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "count": {"type": "integer"},
+                    "platform_ideal_range": {"type": "string"},
+                    "count_in_ideal_range": {"type": "boolean"},
+                    "duplicates": {"type": "array", "items": {"type": "string"}},
+                    "spam_risk_tags": {"type": "array", "items": {"type": "string"}},
+                    "long_tags": {"type": "array", "items": {"type": "string"}},
+                    "caps_tags": {"type": "array", "items": {"type": "string"}},
+                    "camel_case_tags": {"type": "array", "items": {"type": "string"}},
+                    "specificity": {
+                      "type": "object",
+                      "properties": {
+                        "broad": {"type": "integer"},
+                        "niche": {"type": "integer"},
+                        "micro": {"type": "integer"}
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "hashtags": ["#coding", "#python", "#buildinpublic"],
+                  "platform": "twitter",
+                  "score": 75,
+                  "grade": "B",
+                  "count": 3,
+                  "platform_ideal_range": "1-3",
+                  "count_in_ideal_range": true,
+                  "duplicates": [],
+                  "spam_risk_tags": [],
+                  "long_tags": [],
+                  "caps_tags": [],
+                  "camel_case_tags": ["#buildinpublic"],
+                  "specificity": {"broad": 1, "niche": 1, "micro": 0}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid hashtags parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'hashtags' parameter"}
               }
             }
           },

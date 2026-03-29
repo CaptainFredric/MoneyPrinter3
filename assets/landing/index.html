@@ -3,12 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ContentForge — AI Content Toolkit for Creators & Developers</title>
-  <meta name="description" content="Score headlines, score tweet drafts, generate viral hooks, build content calendars, write Twitter threads and social bios — all from one REST API.">
+  <title>ContentForge API — Score Tweets, LinkedIn, Instagram, YouTube & Email Before You Post</title>
+  <meta name="description" content="ContentForge is a REST API that scores tweets, LinkedIn posts, Instagram captions, YouTube titles, and email subject lines before you post. 8 instant scorers + 7 AI endpoints. Free plan on RapidAPI.">
+  <link rel="canonical" href="https://contentforge-api-lpp9.onrender.com">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-  <meta property="og:title" content="ContentForge — AI Content Toolkit">
-  <meta property="og:description" content="Score headlines & tweets, generate hooks, build content calendars — one REST API on RapidAPI.">
+  <!-- Open Graph -->
+  <meta property="og:title" content="ContentForge API — Score Your Content Before You Post">
+  <meta property="og:description" content="8 instant content scoring endpoints + 7 AI generation endpoints. Score tweets, LinkedIn, Instagram, YouTube, email in one API call. Free plan on RapidAPI.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://contentforge-api-lpp9.onrender.com">
+  <meta property="og:site_name" content="ContentForge">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="ContentForge — Score Your Content Before You Post">
+  <meta name="twitter:description" content="REST API: score tweets, LinkedIn, Instagram, YouTube titles & email subjects instantly. Free on RapidAPI. #buildinpublic">
+  <meta name="twitter:creator" content="@AdenCisneros">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -224,7 +233,52 @@
     .audience-card h3 { font-size: 0.95rem; color: #f0f0f5; margin-bottom: 6px; }
     .audience-card p { font-size: 0.85rem; color: #9999aa; line-height: 1.5; }
 
-    /* ── HERO GRADIENT ── */
+    /* ── PLATFORM GRID ── */
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 0;
+    }
+    .platform-card {
+      background: #141418; border: 1px solid #1e1e28; border-radius: 12px;
+      padding: 18px 14px; text-align: center; transition: border-color .2s, transform .1s;
+    }
+    .platform-card:hover { border-color: #7c6af7; transform: translateY(-2px); }
+    .platform-icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .platform-name { font-size: 0.8rem; font-weight: 700; color: #c8c8d8; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .platform-score {
+      font-size: 1.6rem; font-weight: 800; color: #7c6af7; line-height: 1;
+    }
+    .platform-grade { font-size: 0.75rem; color: #9999aa; margin-top: 4px; }
+    .platform-card.best { border-color: #5ec8a0; }
+    .platform-card.best .platform-score { color: #5ec8a0; }
+    .platform-card.best .platform-name::after { content: ' ✓ Best'; color: #5ec8a0; }
+
+    /* ── FAQ ── */
+    .faq-list { display: flex; flex-direction: column; gap: 12px; }
+    .faq-item {
+      background: #141418; border: 1px solid #1e1e28; border-radius: 12px;
+      padding: 20px 22px;
+    }
+    .faq-q { font-size: 0.95rem; font-weight: 700; color: #f0f0f5; margin-bottom: 8px; }
+    .faq-a { font-size: 0.88rem; color: #9999aa; line-height: 1.6; }
+    .faq-a code { color: #7c6af7; background: #1e1e28; padding: 1px 5px; border-radius: 4px; font-size: 0.82rem; }
+    .faq-a a { color: #7c6af7; }
+
+    /* ── SCORE-MULTI VISUAL ── */
+    .multi-demo {
+      background: #141418; border: 1px solid #1e1e28; border-radius: 16px;
+      padding: 28px 24px;
+    }
+    .multi-text {
+      font-family: monospace; font-size: 0.88rem; color: #5ec8a0;
+      background: #0f0f11; border: 1px solid #2e2e40; border-radius: 8px;
+      padding: 12px 16px; margin-bottom: 20px; line-height: 1.5;
+    }
+    .multi-label { font-size: 0.75rem; color: #555566; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+
     .hero::before {
       content: '';
       position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
@@ -242,6 +296,7 @@
   <div class="logo">Content<span>Forge</span></div>
   <div>
     <a href="#endpoints">Endpoints</a>
+    <a href="#faq">FAQ</a>
     <a href="#pricing">Pricing</a>
     <a href="https://rapidapi.com/captainarmoreddude/api/contentforge1" class="nav-cta" target="_blank" rel="noopener">Get API Key →</a>
   </div>
@@ -249,7 +304,7 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">⚡ 16 endpoints · Instant + AI</div>
+  <div class="badge">⚡ 18 endpoints · Instant + AI</div>
   <h1>Stop guessing.<br>Start <em>scoring</em> your content.</h1>
   <p class="hero-sub">
     ContentForge is a REST API that scores tweets, LinkedIn posts, Instagram captions, YouTube titles, and email subject lines before you post. Rewrite weak content with AI, and generate threads, calendars, and bios on demand.
@@ -262,17 +317,71 @@
 
 <!-- CODE PREVIEW -->
 <div class="code-card">
-  <pre><code><span class="c-dim"># Score a tweet before posting — instant, no AI needed</span>
+  <pre><code><span class="c-dim"># Score the same text across ALL platforms — one call, instant</span>
 <span class="c-key">import</span> requests
 
-r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.com/v1/score_tweet"</span>, headers=HEADERS,
-    json={<span class="c-str">"text"</span>: <span class="c-str">"I'm working on a new project."</span>})
-<span class="c-dim"># → score: 32  grade: C  ← skip this one</span>
+HEADERS = {<span class="c-str">"X-RapidAPI-Key"</span>: <span class="c-str">"YOUR_KEY"</span>, <span class="c-str">"X-RapidAPI-Host"</span>: <span class="c-str">"contentforge1.p.rapidapi.com"</span>}
 
-r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.com/v1/score_tweet"</span>, headers=HEADERS,
-    json={<span class="c-str">"text"</span>: <span class="c-str">"Got 100 signups in 24 hours 🚀 Here's the copy that converted: #buildinpublic"</span>})
-<span class="c-dim"># → score: 91  grade: </span><span class="c-grade-a">A</span><span class="c-dim">  ← post this one</span></code></pre>
+r = requests.post(<span class="c-str">"https://contentforge1.p.rapidapi.com/v1/score_multi"</span>, headers=HEADERS,
+    json={<span class="c-str">"text"</span>: <span class="c-str">"I built a free API that scores your content. #buildinpublic"</span>})
+data = r.json()
+
+<span class="c-dim"># → tweet:     score: 69  grade: B</span>
+<span class="c-dim"># → linkedin:  score: 65  grade: B</span>
+<span class="c-dim"># → instagram: score: 44  grade: C  ← needs hashtags</span>
+<span class="c-dim"># → youtube:   score: 35  grade: D  ← too short for title</span>
+<span class="c-dim"># → email:     score: 30  grade: D  ← subject too short</span>
+<span class="c-dim"># → best_platform: </span><span class="c-grade-a">"tweet"</span><span class="c-dim">  best_score: 69</span></code></pre>
 </div>
+
+<!-- MULTI-PLATFORM DEMO -->
+<section>
+  <h2>One Text, Six Platform Scores</h2>
+  <p class="section-sub">Paste your draft into <code style="color:#7c6af7">/v1/score_multi</code> — get back a full scorecard in milliseconds. Know exactly where to post it.</p>
+  <div class="multi-demo">
+    <div class="multi-label">Text being scored:</div>
+    <div class="multi-text">"Got 100 signups in 24 hours 🚀 Here's the exact copy that converted. Thread below 👇 #buildinpublic"</div>
+    <div class="multi-label">Platform scores (instant):</div>
+    <div class="platform-grid">
+      <div class="platform-card best">
+        <div class="platform-icon">🐦</div>
+        <div class="platform-name">Tweet</div>
+        <div class="platform-score">91</div>
+        <div class="platform-grade">Grade A</div>
+      </div>
+      <div class="platform-card">
+        <div class="platform-icon">💼</div>
+        <div class="platform-name">LinkedIn</div>
+        <div class="platform-score">74</div>
+        <div class="platform-grade">Grade B</div>
+      </div>
+      <div class="platform-card">
+        <div class="platform-icon">📸</div>
+        <div class="platform-name">Instagram</div>
+        <div class="platform-score">58</div>
+        <div class="platform-grade">Grade C · add hashtags</div>
+      </div>
+      <div class="platform-card">
+        <div class="platform-icon">🎵</div>
+        <div class="platform-name">TikTok</div>
+        <div class="platform-score">62</div>
+        <div class="platform-grade">Grade B · add CTA</div>
+      </div>
+      <div class="platform-card">
+        <div class="platform-icon">▶️</div>
+        <div class="platform-name">YouTube</div>
+        <div class="platform-score">42</div>
+        <div class="platform-grade">Grade C · needs brackets</div>
+      </div>
+      <div class="platform-card">
+        <div class="platform-icon">📧</div>
+        <div class="platform-name">Email</div>
+        <div class="platform-score">31</div>
+        <div class="platform-grade">Grade D · too long for subject</div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- BEFORE & AFTER DEMO -->
 <section>
@@ -308,7 +417,7 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <div class="audience-card">
       <div class="audience-icon">✍️</div>
       <h3>Bloggers &amp; Newsletter Writers</h3>
-      <p>Test 10 headlines in a loop, pick the highest-scoring one. Open rates go up, guaranteed.</p>
+      <p>Test 10 headlines in a loop, pick the highest-scoring one. A/B test email subjects to boost open rates.</p>
     </div>
     <div class="audience-card">
       <div class="audience-icon">🚀</div>
@@ -323,20 +432,30 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <div class="audience-card">
       <div class="audience-icon">🤖</div>
       <h3>Bot &amp; Automation Builders</h3>
-      <p>Plug ContentForge into your Zapier flows, CMS hooks, or custom bots. Clean JSON, CORS enabled, consistent schemas.</p>
+      <p>Plug ContentForge into Zapier, n8n, CMS hooks, or custom bots. Clean JSON, CORS enabled, consistent schemas.</p>
     </div>
     <div class="audience-card">
       <div class="audience-icon">📧</div>
       <h3>Email Marketers</h3>
-      <p>Score subject lines with score_email_subject. Detect spam triggers, test personalization, A/B test 5 versions before sending.</p>
+      <p>Score subject lines, detect spam triggers, and A/B test 5 versions programmatically before hitting send.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">📸</div>
+      <h3>Instagram &amp; TikTok Creators</h3>
+      <p>Optimize captions for reach. Get hashtag counts, emoji balance, hook analysis, and CTA scoring instantly.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">▶️</div>
+      <h3>YouTubers</h3>
+      <p>Score titles for CTR before uploading. Check thumbnail text overlap, bracket/number usage, and power words.</p>
     </div>
   </div>
 </section>
 
 <!-- STATS -->
 <div class="stats">
-  <div class="stat"><div class="stat-num">16</div><div class="stat-label">API Endpoints</div></div>
-  <div class="stat"><div class="stat-num">8</div><div class="stat-label">Instant (no AI)</div></div>
+  <div class="stat"><div class="stat-num">18</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-num">10</div><div class="stat-label">Instant (no AI)</div></div>
   <div class="stat"><div class="stat-num">7</div><div class="stat-label">AI-powered</div></div>
   <div class="stat"><div class="stat-num">100+</div><div class="stat-label">Tracked Power Words</div></div>
   <div class="stat"><div class="stat-num">Free</div><div class="stat-label">BASIC Plan</div></div>
@@ -344,8 +463,8 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 
 <!-- ENDPOINTS -->
 <section id="endpoints">
-  <h2>All 16 Endpoints</h2>
-  <p class="section-sub">Eight instant endpoints for zero-latency scoring across every major platform. Seven AI endpoints for generation and improvement.</p>
+  <h2>All 18 Endpoints</h2>
+  <p class="section-sub">Ten instant endpoints for zero-latency scoring across every major platform. Seven AI endpoints for generation and improvement.</p>
   <div class="endpoints-grid">
 
     <div class="endpoint-card">
@@ -401,6 +520,20 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
       <div class="ep-method instant">POST</div>
       <div class="ep-path">/v1/score_readability</div>
       <div class="ep-desc">Score any text for readability with Flesch-Kincaid metrics. Returns grade level, reading ease, and clarity suggestions.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/score_tiktok</div>
+      <div class="ep-desc">Score a TikTok caption for engagement and reach. Checks hashtag count (3-6 ideal), emojis, CTA, hook, and power words.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/analyze_hashtags</div>
+      <div class="ep-desc">Analyze hashtags for quality, diversity, and platform fit. Detects duplicates, spam-risk tags, and specificity variety.</div>
       <span class="ep-badge fast">⚡ Instant</span>
     </div>
 
@@ -486,6 +619,42 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   </div>
 </section>
 
+<!-- FAQ -->
+<section id="faq">
+  <h2>Frequently Asked Questions</h2>
+  <p class="section-sub">Everything you need to know before making your first API call.</p>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">Is there a free plan?</div>
+      <div class="faq-a">Yes. The BASIC plan is completely free with 50 AI calls and 300 total requests per month. No credit card required. Instant scoring endpoints don't count against the AI quota.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How fast are the instant endpoints?</div>
+      <div class="faq-a">The 8 heuristic scoring endpoints (<code>score_tweet</code>, <code>score_linkedin_post</code>, <code>score_instagram</code>, <code>score_youtube_title</code>, <code>score_email_subject</code>, <code>score_multi</code>, <code>score_readability</code>, <code>analyze_headline</code>) run in &lt;5ms on the server. No AI call, no wait time.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How does the scoring system work?</div>
+      <div class="faq-a">Each scorer uses a heuristic model tuned for that platform. Scores are 0–100 with letter grades A–F. For example, the tweet scorer checks character length (optimal: 71–240), hashtag count (1–3 is ideal), emoji presence, power words, question hooks, and readability. Every scorer returns suggestions explaining how to improve.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What does score_multi do?</div>
+      <div class="faq-a">It scores your text against all 5 platforms (tweet, LinkedIn, Instagram, YouTube, email) in a single API call. Useful for deciding which platform a particular piece of copy is best suited for before you start adapting or rewriting it.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I integrate ContentForge with Zapier, Make, or n8n?</div>
+      <div class="faq-a">Yes. All endpoints accept standard JSON over HTTPS and return consistent JSON responses. The RapidAPI gateway handles auth via the <code>X-RapidAPI-Key</code> header. Works with any automation tool that supports HTTP requests.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What AI model powers the AI endpoints?</div>
+      <div class="faq-a">The AI endpoints use Google Gemini 2.0 Flash via the Gemini API. Responses are typically under 3 seconds. The instant scoring endpoints use zero AI — they are purely algorithmic and always available.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is the OpenAPI spec available?</div>
+      <div class="faq-a">Yes. The full OpenAPI 3.0 spec is available in the <a href="https://github.com/CaptainFredric/ContentForge" target="_blank" rel="noopener">GitHub repository</a> at <code>deploy/openapi.json</code>. The RapidAPI listing also provides interactive docs for every endpoint.</div>
+    </div>
+  </div>
+</section>
+
 <!-- PRICING -->
 <section id="pricing">
   <h2>Simple Pricing</h2>
@@ -541,5 +710,26 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 </footer>
 
 <script>/* UTM tracking placeholder */</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "ContentForge",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "description": "REST API that scores tweets, LinkedIn posts, Instagram captions, YouTube titles, and email subject lines before you post. Includes AI-powered content generation endpoints.",
+  "url": "https://contentforge-api-lpp9.onrender.com",
+  "author": {
+    "@type": "Person",
+    "name": "Aden Cisneros",
+    "url": "https://github.com/CaptainFredric"
+  }
+}
+</script>
 </body>
 </html>

@@ -2254,6 +2254,486 @@ def endpoint_score_readability():
 
 
 # ---------------------------------------------------------------------------
+# 5h. TikTok Caption Score (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_tiktok_caption(text: str) -> dict:
+    """Score a TikTok caption 0-100 for reach and engagement.
+
+    TikTok-specific signals:
+    - Caption length: 1-150 chars is sweet spot (captions are secondary; hook is in the video)
+    - Hashtags: 3-6 is optimal (more selective than Instagram)
+    - Hook (first 100 chars): starts with question, number, or power word
+    - Emojis: 1-3 ideal (less is more on TikTok vs Instagram)
+    - CTA: 'follow', 'save', 'share', 'comment', 'duet', 'stitch'
+    - Trending sounds mention: not scoreable but context tip
+    - Power words tuned for TikTok discovery
+    """
+    import re as _re
+
+    text = (text or "").strip()
+    if not text:
+        return {
+            "text": "",
+            "platform": "tiktok",
+            "score": 0,
+            "grade": "F",
+            "char_count": 0,
+            "word_count": 0,
+            "hashtag_count": 0,
+            "hashtags": [],
+            "emoji_count": 0,
+            "has_question": False,
+            "has_cta": False,
+            "hook_length": 0,
+            "power_words_found": [],
+            "suggestions": ["No caption provided."],
+        }
+
+    TIKTOK_POWER_WORDS = [
+        "viral", "hack", "secret", "transform", "instant", "proven", "simple",
+        "easy", "fast", "quick", "real", "honest", "truth", "warning",
+        "pov", "trend", "trending", "watch", "boost", "free", "discover",
+        "reveal", "exposed", "stop", "mistake", "results", "works", "change",
+        "this", "why", "how", "do", "try", "omg", "wait", "wild",
+    ]
+
+    TIKTOK_CTA_WORDS = [
+        "follow", "save", "share", "comment", "duet", "stitch",
+        "like", "subscribe", "link in bio", "link bio", "click", "tap",
+    ]
+
+    char_count = len(text)
+    words = _re.findall(r"[a-zA-Z']+", text)
+    word_count = len(words)
+
+    # hashtags
+    hashtags = _re.findall(r"#\w+", text.lower())
+    hashtag_count = len(hashtags)
+
+    # emojis
+    emoji_count = sum(1 for ch in text
+                      if ord(ch) > 127000 or (0x1F300 <= ord(ch) <= 0x1FAFF)
+                      or (0x2600 <= ord(ch) <= 0x27BF))
+
+    # hook = first 100 characters
+    hook = text[:100]
+    hook_length = len(hook.strip())
+    has_question = "?" in hook
+
+    # power words
+    lower_words = [w.lower() for w in words]
+    power_words_found = list({w for w in lower_words if w in TIKTOK_POWER_WORDS})
+
+    # CTA
+    text_lower = text.lower()
+    has_cta = any(cta in text_lower for cta in TIKTOK_CTA_WORDS)
+
+    # CAPS abuse (whole words)
+    caps_words = [w for w in words if w.isupper() and len(w) > 1]
+
+    # numbers in caption
+    has_number = bool(_re.search(r'\d', text))
+
+    # --- Score ---
+    score = 40  # base
+
+    # Length: TikTok captions are secondary; 50-150 is sweet spot
+    if 50 <= char_count <= 150:
+        score += 18
+    elif 20 <= char_count <= 200:
+        score += 12
+    elif char_count <= 300:
+        score += 5
+    elif char_count > 500:
+        score -= 5  # too long, harder to read
+
+    # Hashtags: 3-6 optimal (TikTok prefers focused tags)
+    if 3 <= hashtag_count <= 6:
+        score += 12
+    elif hashtag_count == 2:
+        score += 7
+    elif hashtag_count == 1 or hashtag_count == 7:
+        score += 4
+    elif hashtag_count > 10:
+        score -= 6  # over-tagging penalty on TikTok
+
+    # Emojis: 1-3 ideal
+    if 1 <= emoji_count <= 3:
+        score += 8
+    elif 4 <= emoji_count <= 5:
+        score += 3
+    elif emoji_count > 6:
+        score -= 3
+
+    # CTA
+    if has_cta:
+        score += 8
+
+    # Question hook
+    if has_question:
+        score += 5
+
+    # Power words (max +12)
+    pw_bonus = min(len(power_words_found) * 4, 12)
+    score += pw_bonus
+
+    # Number in caption
+    if has_number:
+        score += 4
+
+    # Hook starts strong (> 10 chars, signals caption isn't just hashtags)
+    if hook_length >= 20:
+        score += 5
+
+    # Caps abuse penalty
+    if len(caps_words) >= 3:
+        score -= 6
+    elif len(caps_words) >= 2:
+        score -= 2
+
+    score = max(0, min(100, score))
+
+    # Grade
+    if score >= 80:
+        grade = "A"
+    elif score >= 65:
+        grade = "B"
+    elif score >= 50:
+        grade = "C"
+    elif score >= 35:
+        grade = "D"
+    else:
+        grade = "F"
+
+    # Suggestions
+    suggestions = []
+    if char_count < 20:
+        suggestions.append("Caption is very short. Add context or a hook to entice viewers to engage.")
+    elif char_count > 300:
+        suggestions.append("Caption is long. TikTok users typically engage with captions under 150 characters.")
+    if hashtag_count < 3:
+        suggestions.append(f"Only {hashtag_count} hashtag(s). TikTok discovery works best with 3-6 focused hashtags.")
+    elif hashtag_count > 8:
+        suggestions.append(f"{hashtag_count} hashtags is too many. Stick to 3-6 niche-specific tags for better distribution.")
+    if emoji_count == 0:
+        suggestions.append("Add 1-3 emojis to make the caption more eye-catching in the feed.")
+    elif emoji_count > 5:
+        suggestions.append(f"{emoji_count} emojis may look spammy. 1-3 is usually optimal on TikTok.")
+    if not has_cta:
+        suggestions.append("Add a CTA like 'save this', 'follow for more', or 'duet this' to drive interaction.")
+    if not has_question and not has_number:
+        suggestions.append("Start with a question or a number to hook viewers into reading the caption.")
+    if not power_words_found:
+        suggestions.append("Include power words like 'viral', 'hack', 'secret', or 'POV' to boost discovery.")
+    if not suggestions:
+        suggestions.append("Well-optimized TikTok caption! Strong hashtag mix, hook, and CTA detected.")
+
+    return {
+        "text": text[:500] + ("..." if len(text) > 500 else ""),
+        "platform": "tiktok",
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "hashtag_count": hashtag_count,
+        "hashtags": hashtags[:20],
+        "emoji_count": emoji_count,
+        "has_question": has_question,
+        "has_cta": has_cta,
+        "has_number": has_number,
+        "hook_length": hook_length,
+        "power_words_found": power_words_found,
+        "caps_words": caps_words[:10],
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/score_tiktok", methods=["GET", "POST"])
+@app.route("/score-tiktok", methods=["GET", "POST"])
+@app.route("/score_tiktok", methods=["GET", "POST"])
+def endpoint_score_tiktok():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+
+    # --- GET: usage docs ---
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "/v1/score_tiktok",
+            "method": "POST",
+            "description": (
+                "Score a TikTok caption 0-100 for reach and engagement. "
+                "Checks caption length (50-150 ideal), hashtag count (3-6 optimal), "
+                "emojis (1-3 ideal), question hooks, CTA detection, and TikTok-specific power words. "
+                "Instant, no AI needed."
+            ),
+            "parameters": {
+                "caption": "(required) the TikTok caption to score",
+            },
+            "aliases": ["text", "post", "content"],
+            "example_body": {
+                "caption": "POV: you stop guessing and start scoring your content 🎯 Try this free #contenttips #tiktokmarketing #growthhack"
+            },
+            "try_it": "POST this endpoint with a JSON body to score your TikTok caption.",
+        })
+
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded"}), 429
+
+    start = time.time()
+    data = request.get_json(silent=True) or {}
+    caption = (
+        data.get("caption") or data.get("text") or
+        data.get("post") or data.get("content") or ""
+    ).strip()
+
+    if not caption:
+        return jsonify({
+            "error": (
+                "missing 'caption' parameter. "
+                'Send JSON body: {"caption": "your TikTok caption"}'
+            )
+        }), 400
+    if len(caption) > 2200:
+        return jsonify({"error": "caption too long (TikTok max is 2200 chars)"}), 400
+
+    result = score_tiktok_caption(caption)
+    _log_usage("score_tiktok", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 5i. Hashtag Analyzer (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def analyze_hashtags(hashtags_input: str, platform: str = "twitter") -> dict:
+    """Analyze a set of hashtags for quality, diversity, and platform fit.
+
+    Checks: count vs platform ideal, individual tag length, ALL CAPS tags,
+    banned/spam-risk patterns, duplicate detection, specificity variety
+    (mega/large/niche/micro), and mixed_case usage.
+    """
+    import re as _re
+
+    platform = (platform or "twitter").lower().strip()
+    hashtags_input = (hashtags_input or "").strip()
+
+    if not hashtags_input:
+        return {
+            "platform": platform,
+            "input": "",
+            "score": 0,
+            "grade": "F",
+            "hashtag_count": 0,
+            "hashtags": [],
+            "platform_ideal_range": "1-5",
+            "duplicates": [],
+            "spam_risk_tags": [],
+            "caps_tags": [],
+            "long_tags": [],
+            "camel_case_tags": [],
+            "specificity": {"broad": 0, "niche": 0, "micro": 0},
+            "suggestions": ["No hashtags provided."],
+        }
+
+    # Extract hashtags — allow input as "tag1 tag2 #tag3" or "#tag1 #tag2"
+    raw = _re.findall(r"#?(\w+)", hashtags_input)
+    tags = [t.lower() for t in raw if len(t) >= 2]
+    tags_original = [t for t in _re.findall(r"#?(\w+)", hashtags_input) if len(t) >= 2]
+    unique_tags = list(dict.fromkeys(tags))  # deduplicated, order preserved
+    duplicates = [t for t in tags if tags.count(t) > 1]
+    duplicates = list(set(duplicates))
+    hashtag_count = len(unique_tags)
+
+    # Platform-specific ideal counts
+    _PLATFORM_IDEAL = {
+        "twitter": (1, 3),
+        "tweet": (1, 3),
+        "instagram": (5, 15),
+        "tiktok": (3, 6),
+        "linkedin": (3, 5),
+        "youtube": (3, 8),
+        "facebook": (1, 3),
+    }
+    lo, hi = _PLATFORM_IDEAL.get(platform, (1, 5))
+
+    # Tag length analysis (chars)
+    short_tags = [t for t in unique_tags if len(t) <= 3]
+    long_tags = [t for t in unique_tags if len(t) > 25]
+    caps_tags = [t for t in tags_original if t.isupper() and len(t) > 2]
+
+    # Spam/banned pattern detection
+    _SPAM_PATTERNS = [
+        "followme", "follow4follow", "f4f", "likeforlike", "l4l",
+        "followback", "spammerfollow", "spam", "bot", "fake",
+        "tagforlikes", "likeall", "followall",
+    ]
+    spam_tags = [t for t in unique_tags if t in _SPAM_PATTERNS]
+
+    # Rough specificity tier (by tag length as proxy — longer tags tend to be more niche)
+    mega_tags = [t for t in unique_tags if len(t) <= 6]       # e.g. #love, #food
+    niche_tags = [t for t in unique_tags if 12 <= len(t) <= 22]  # e.g. #webdevelopment
+    micro_tags = [t for t in unique_tags if len(t) > 22]         # very specific
+
+    # Mixed case presence (camelCase is good UX — screen readers)
+    camel_tags = [t for t in tags_original if any(c.isupper() for c in t[1:])]
+
+    # --- Score ---
+    score = 40
+
+    # Count relative to ideal for platform
+    if lo <= hashtag_count <= hi:
+        score += 25
+    elif hashtag_count == lo - 1 or hashtag_count == hi + 1:
+        score += 15
+    elif hashtag_count < lo:
+        score += 5
+    elif hashtag_count <= hi + 5:
+        score += 8
+    else:
+        score -= 5  # way too many
+
+    # Duplicate penalty
+    if duplicates:
+        score -= len(duplicates) * 5
+
+    # Spam tags penalty
+    score -= len(spam_tags) * 8
+
+    # Long tag penalty (over 25 chars is likely typo/noise)
+    score -= len(long_tags) * 3
+
+    # Short tag penalty (≤3 chars, usually too broad e.g. #ai, #go, #js)
+    if len(short_tags) > 2:
+        score -= (len(short_tags) - 2) * 3
+
+    # Specificity variety bonus: mix of broad + niche = good
+    has_variety = (len(mega_tags) >= 1 and len(niche_tags) >= 1)
+    if has_variety:
+        score += 10
+
+    # Mixed case (accessibility) bonus
+    if camel_tags:
+        score += 5
+
+    # Caps abuse penalty
+    if len(caps_tags) > 1:
+        score -= len(caps_tags) * 3
+
+    score = max(0, min(100, score))
+
+    # Grade
+    if score >= 80:
+        grade = "A"
+    elif score >= 65:
+        grade = "B"
+    elif score >= 50:
+        grade = "C"
+    elif score >= 35:
+        grade = "D"
+    else:
+        grade = "F"
+
+    # Suggestions
+    suggestions = []
+    if hashtag_count < lo:
+        suggestions.append(f"Only {hashtag_count} hashtag(s). For {platform}, aim for {lo}-{hi} hashtags.")
+    elif hashtag_count > hi + 3:
+        suggestions.append(f"{hashtag_count} hashtags is too many for {platform}. Trim to {lo}-{hi} for best reach.")
+    if duplicates:
+        suggestions.append(f"Duplicate hashtags found: {', '.join('#' + t for t in duplicates)}. Remove duplicates.")
+    if spam_tags:
+        suggestions.append(f"Spam-risk tags detected: {', '.join('#' + t for t in spam_tags)}. Remove these for better reach.")
+    if long_tags:
+        suggestions.append(f"Very long tag(s): {', '.join('#' + t for t in long_tags)}. Keep hashtags under 25 characters.")
+    if len(short_tags) > 2:
+        suggestions.append(f"Many very short tags ({', '.join('#' + t for t in short_tags)}). Mix in more specific niche tags.")
+    if not has_variety:
+        suggestions.append("Mix broad/trending tags with niche-specific ones for better discovery at multiple levels.")
+    if not camel_tags and hashtag_count > 1:
+        suggestions.append("Consider CamelCase hashtags (e.g., #BuildInPublic) for better accessibility and readability.")
+    if len(caps_tags) > 1:
+        suggestions.append(f"ALL CAPS hashtags look aggressive: {', '.join('#' + t for t in caps_tags)}. Use CamelCase instead.")
+    if not suggestions:
+        suggestions.append(f"Well-balanced hashtag set for {platform}. Good mix and appropriate count.")
+
+    return {
+        "platform": platform,
+        "input": hashtags_input[:500],
+        "score": score,
+        "grade": grade,
+        "hashtag_count": hashtag_count,
+        "hashtags": [f"#{t}" for t in unique_tags],
+        "platform_ideal_range": f"{lo}-{hi}",
+        "duplicates": [f"#{t}" for t in duplicates],
+        "spam_risk_tags": [f"#{t}" for t in spam_tags],
+        "caps_tags": [f"#{t}" for t in caps_tags],
+        "long_tags": [f"#{t}" for t in long_tags],
+        "camel_case_tags": [f"#{t}" for t in camel_tags],
+        "specificity": {
+            "broad": len(mega_tags),
+            "niche": len(niche_tags),
+            "micro": len(micro_tags),
+        },
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/analyze_hashtags", methods=["GET", "POST"])
+@app.route("/analyze-hashtags", methods=["GET", "POST"])
+@app.route("/analyze_hashtags", methods=["GET", "POST"])
+def endpoint_analyze_hashtags():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+
+    # --- GET: usage docs ---
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "/v1/analyze_hashtags",
+            "method": "POST",
+            "description": (
+                "Analyze a set of hashtags for quality, diversity, and platform fit. "
+                "Checks count vs platform ideal, duplicates, spam-risk tags, tag length, "
+                "specificity variety (broad/niche/micro), and CamelCase accessibility. "
+                "Instant, no AI needed."
+            ),
+            "parameters": {
+                "hashtags": "(required) space or comma-separated hashtags (with or without #)",
+                "platform": "(optional) twitter/instagram/tiktok/linkedin/youtube. Default: twitter",
+            },
+            "example_body": {
+                "hashtags": "#buildinpublic #indiehackers #saas #contentmarketing",
+                "platform": "twitter"
+            },
+            "try_it": "POST this endpoint with a JSON body to analyze your hashtags.",
+        })
+
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded"}), 429
+
+    start = time.time()
+    data = request.get_json(silent=True) or {}
+    hashtags = (
+        data.get("hashtags") or data.get("tags") or data.get("text") or ""
+    ).strip()
+    platform = (data.get("platform") or "twitter").strip().lower()
+
+    if not hashtags:
+        return jsonify({
+            "error": (
+                "missing 'hashtags' parameter. "
+                'Send JSON body: {"hashtags": "#tag1 #tag2 #tag3", "platform": "twitter"}'
+            )
+        }), 400
+    if len(hashtags) > 1000:
+        return jsonify({"error": "hashtags input too long (max 1000 chars)"}), 400
+
+    result = analyze_hashtags(hashtags, platform)
+    _log_usage("analyze_hashtags", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 5g. Multi-Platform Score (heuristic — instant, no LLM)
 # ---------------------------------------------------------------------------
 _PLATFORM_SCORERS = {
@@ -2261,6 +2741,7 @@ _PLATFORM_SCORERS = {
     "twitter": lambda text, _opts: score_tweet(text),
     "linkedin": lambda text, _opts: score_linkedin_post(text),
     "instagram": lambda text, _opts: score_instagram_caption(text),
+    "tiktok": lambda text, _opts: score_tiktok_caption(text),
     "youtube": lambda text, opts: score_youtube_title(
         text, opts.get("thumbnail_text", "")
     ),
@@ -2760,6 +3241,8 @@ def root():
             "POST /v1/score_email_subject": "Score an email subject line for open rate (instant, no AI)",
             "POST /v1/score_multi": "Score text across multiple platforms in one call (instant, no AI)",
             "POST /v1/score_readability": "Score any text for readability with Flesch-Kincaid metrics (instant, no AI)",
+            "POST /v1/score_tiktok": "Score a TikTok caption for engagement and reach (instant, no AI)",
+            "POST /v1/analyze_hashtags": "Analyze hashtags for quality, diversity, and platform fit (instant, no AI)",
             "POST /v1/improve_headline": "AI-rewrite a headline into N better scored versions",
             "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
             "POST /v1/rewrite": "Rewrite text for any platform/tone",
