@@ -11,6 +11,7 @@ Endpoints:
   POST /v1/score_multi         — Score text across multiple platforms in one call (heuristic, instant)
   POST /v1/score_readability   — Score text for readability w/ Flesch-Kincaid (heuristic, instant)
   POST /v1/score_tiktok        — Score a TikTok caption for engagement/reach (heuristic, instant)
+  POST /v1/score_threads       — Score a Meta Threads post for engagement (heuristic, instant)
   POST /v1/analyze_hashtags    — Analyze hashtags for quality, spam risk, platform fit (heuristic, instant)
   POST /v1/improve_headline    — AI-rewrites a headline into N better scored versions (AI)
   POST /v1/generate_hooks      — Generate scroll-stopping hooks for a topic (AI)
@@ -2262,6 +2263,201 @@ def endpoint_score_readability():
 
 
 # ---------------------------------------------------------------------------
+# 5g2. Threads Post Score (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_threads_post(text: str) -> dict:
+    """Score a Meta Threads post 0-100 for reach and engagement.
+
+    Threads-specific signals (as of 2024-2026 Meta guidance):
+    - Length: 50-250 is conversational sweet spot (+15). 251-400 (+8). <50 or >400 (-5)
+    - Hashtags: Threads penalizes hashtag stuffing. 0 = neutral. 1 = -3. 2+ = -5 each.
+    - Emojis: 1-2 is natural (+8). 3-4 is OK (+4). 5+ feels spammy (-4).
+    - Question hook: conversational and reply-baiting (+10)
+    - Personal pronouns (I/me/my/we): first-person authenticity (+6)
+    - CTA keywords: "agree", "thoughts", "comment", "reply", "share", "follow" (+7)
+    - Power words: same broad set as tweet scorer (max +12)
+    - Number/digit in text: +4
+    - Links in the post: -6 (Meta removes links; bad for reach)
+    - ALL CAPS word abuse: -6
+    """
+    _THREADS_POWER_WORDS = {
+        "secret", "hack", "revealed", "proven", "instant", "boost", "simple",
+        "free", "discover", "strategy", "tip", "now", "fast", "quick",
+        "powerful", "result", "growth", "worth", "better", "mistake",
+        "change", "never", "always", "only", "real", "truth", "honest",
+        "exactly", "finally", "stop", "start",
+    }
+    _THREADS_CTA_WORDS = {
+        "agree", "disagree", "thoughts", "comment", "reply",
+        "share", "follow", "drop", "tell me", "what do you",
+    }
+
+    text = (text or "").strip()
+    if not text:
+        return {
+            "text": text, "score": 0, "grade": "F",
+            "char_count": 0, "word_count": 0, "hashtag_count": 0,
+            "emoji_count": 0, "has_cta": False, "has_question": False,
+            "has_number": False, "has_link": False, "has_personal_pronoun": False,
+            "caps_abuse": False, "hashtags": [], "power_words_found": [], "caps_words": [],
+        }
+
+    char_count = len(text)
+    words = text.split()
+    word_count = len(words)
+    hashtags = re.findall(r'#\w+', text)
+    hashtag_count = len(hashtags)
+    emojis = re.findall(
+        r'[\U0001F300-\U0001F9FF\U00002600-\U000027BF\U0001FA00-\U0001FA9F]',
+        text, re.UNICODE,
+    )
+    emoji_count = len(emojis)
+    has_question = "?" in text
+    has_number = bool(re.search(r'\b\d+\b', text))
+    has_link = bool(re.search(r'https?://', text, re.IGNORECASE))
+
+    text_lower = text.lower()
+    has_cta = any(cta in text_lower for cta in _THREADS_CTA_WORDS)
+    has_personal_pronoun = bool(re.search(r'\b(i|me|my|we|our)\b', text_lower))
+
+    caps_words = [w for w in words if w.isupper() and len(w) > 2 and w.lstrip("#@").isalpha()]
+    caps_abuse = len(caps_words) >= 3
+
+    power_words_found = sorted({w for w in _THREADS_POWER_WORDS if re.search(rf'\b{re.escape(w)}\b', text_lower)})
+
+    score = 40
+
+    # Length bonus
+    if 50 <= char_count <= 250:
+        score += 15
+    elif 251 <= char_count <= 400:
+        score += 8
+    elif char_count < 50 or char_count > 400:
+        score -= 5
+
+    # Hashtag: Threads discourages hashtags
+    if hashtag_count == 1:
+        score -= 3
+    elif hashtag_count >= 2:
+        score -= 5 * hashtag_count
+
+    # Emojis
+    if 1 <= emoji_count <= 2:
+        score += 8
+    elif 3 <= emoji_count <= 4:
+        score += 4
+    elif emoji_count > 4:
+        score -= 4
+
+    # Quality signals
+    if has_question:
+        score += 10
+    if has_personal_pronoun:
+        score += 6
+    if has_cta:
+        score += 7
+    if has_number:
+        score += 4
+    if has_link:
+        score -= 6
+
+    # Power words (capped at 4)
+    pw_bonus = min(len(power_words_found), 4) * 3
+    score += pw_bonus
+
+    # Caps abuse
+    if caps_abuse:
+        score -= 6
+
+    score = max(0, min(100, score))
+    grade_map = [(90, "A"), (75, "B"), (60, "C"), (45, "D")]
+    grade = next((g for t, g in grade_map if score >= t), "F")
+
+    return {
+        "text": text,
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "hashtag_count": hashtag_count,
+        "emoji_count": emoji_count,
+        "has_cta": has_cta,
+        "has_question": has_question,
+        "has_number": has_number,
+        "has_link": has_link,
+        "has_personal_pronoun": has_personal_pronoun,
+        "caps_abuse": caps_abuse,
+        "hashtags": hashtags,
+        "power_words_found": power_words_found,
+        "caps_words": caps_words,
+    }
+
+
+@app.route("/v1/score_threads", methods=["GET", "POST"])
+@app.route("/score-threads", methods=["GET", "POST"])
+@app.route("/score_threads", methods=["GET", "POST"])
+def endpoint_score_threads():
+    """Score a Meta Threads post for engagement and reach."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-threads",
+            "method": "POST",
+            "description": (
+                "Score a Meta Threads post 0-100 for reach and engagement. "
+                "Threads rewards conversational short-form text, personal voice, "
+                "and questions. Unlike other platforms, hashtags actually penalize "
+                "reach on Threads — and links are stripped by Meta. "
+                "Returns score, grade, and all signal breakdowns."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-threads",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {"text": "your Threads post draft here"},
+            },
+            "scoring_weights": {
+                "length_50_to_250_chars": "+15",
+                "question_hook": "+10",
+                "personal_pronoun_I_me_my": "+6",
+                "cta_agree_thoughts_reply": "+7",
+                "emojis_1_or_2": "+8",
+                "power_words_max_4": "+12",
+                "number_in_text": "+4",
+                "hashtags": "-3 to -5 each (Threads penalizes hashtags)",
+                "link_in_text": "-6 (Meta removes links)",
+                "caps_abuse_3plus_caps_words": "-6",
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-threads '
+                '-H "Content-Type: application/json" '
+                "-d '{\"text\": \"I spent 3 years building the wrong thing.\\n\\nHere's what I wish I knew on day 1:\\n\\nTalk to 10 customers before writing a single line of code.\\n\\nAgree?\"}'"
+            ),
+            "note": "No API key needed for direct access. Free tier on RapidAPI: 50 calls/month.",
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or payload.get("post") or payload.get("content") or "").strip()
+
+    if not text:
+        return jsonify({
+            "error": "missing 'text' parameter. Send JSON body: {\"text\": \"your Threads post\"}"
+        }), 400
+    if len(text) > 500:
+        return jsonify({"error": "text too long (Threads max is 500 chars)"}), 400
+
+    result = score_threads_post(text)
+    _log_usage("score_threads", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 5h. TikTok Caption Score (heuristic — instant, no LLM)
 # ---------------------------------------------------------------------------
 def score_tiktok_caption(text: str) -> dict:
@@ -2750,6 +2946,7 @@ _PLATFORM_SCORERS = {
     "linkedin": lambda text, _opts: score_linkedin_post(text),
     "instagram": lambda text, _opts: score_instagram_caption(text),
     "tiktok": lambda text, _opts: score_tiktok_caption(text),
+    "threads": lambda text, _opts: score_threads_post(text),
     "youtube": lambda text, opts: score_youtube_title(
         text, opts.get("thumbnail_text", "")
     ),
@@ -3457,6 +3654,7 @@ def root():
             "POST /v1/score_multi": "Score text across multiple platforms in one call (instant, no AI)",
             "POST /v1/score_readability": "Score any text for readability with Flesch-Kincaid metrics (instant, no AI)",
             "POST /v1/score_tiktok": "Score a TikTok caption for engagement and reach (instant, no AI)",
+            "POST /v1/score_threads": "Score a Meta Threads post for reach and engagement (instant, no AI)",
             "POST /v1/analyze_hashtags": "Analyze hashtags for quality, diversity, and platform fit (instant, no AI)",
             "POST /v1/improve_headline": "AI-rewrite a headline into N better scored versions",
             "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
@@ -3514,6 +3712,10 @@ def _run_test():
 
         print("\n=== Hashtag Analyzer ===")
         rv = c.post("/v1/analyze_hashtags", json={"hashtags": "#coding #python #buildinpublic", "platform": "twitter"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Threads Post Scorer ===")
+        rv = c.post("/v1/score_threads", json={"text": "I spent 3 years building the wrong thing.\n\nHere's what I wish I knew on day 1: talk to 10 customers before writing a single line of code.\n\nAgree?"})
         pprint.pprint(rv.get_json())
 
         print("\n=== Multi-Platform Scorer ===")

@@ -655,6 +655,91 @@
         }
       }
     },
+    "/v1/score_threads": {
+      "post": {
+        "summary": "Score a Meta Threads Post",
+        "description": "Score a Meta Threads post for engagement and reach potential 0-100. Threads rewards conversational short-form text (50-250 chars), personal voice (I/me/my), question hooks, and CTAs (agree/thoughts/comment). Unlike other platforms, hashtags penalize Threads reach and links are stripped by Meta. Instant heuristic analysis, no AI needed.",
+        "operationId": "scoreThreads",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "The Threads post to score",
+                    "example": "I spent 3 years building the wrong thing.\n\nHere's what I wish I knew on day 1:\n\nTalk to 10 customers before writing a single line of code.\n\nAgree?"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Threads post score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "char_count": {"type": "integer"},
+                    "word_count": {"type": "integer"},
+                    "hashtag_count": {"type": "integer"},
+                    "emoji_count": {"type": "integer"},
+                    "has_cta": {"type": "boolean"},
+                    "has_question": {"type": "boolean"},
+                    "has_number": {"type": "boolean"},
+                    "has_link": {"type": "boolean"},
+                    "has_personal_pronoun": {"type": "boolean"},
+                    "caps_abuse": {"type": "boolean"},
+                    "hashtags": {"type": "array", "items": {"type": "string"}},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "caps_words": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "text": "I spent 3 years building the wrong thing. Here's what I wish I knew on day 1: Talk to customers first. Agree?",
+                  "score": 89,
+                  "grade": "A",
+                  "char_count": 108,
+                  "word_count": 20,
+                  "hashtag_count": 0,
+                  "emoji_count": 0,
+                  "has_cta": true,
+                  "has_question": true,
+                  "has_number": false,
+                  "has_link": false,
+                  "has_personal_pronoun": true,
+                  "caps_abuse": false,
+                  "hashtags": [],
+                  "power_words_found": [],
+                  "caps_words": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid text parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'text' parameter"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
     "/v1/score_tiktok": {
       "post": {
         "summary": "Score a TikTok Caption",

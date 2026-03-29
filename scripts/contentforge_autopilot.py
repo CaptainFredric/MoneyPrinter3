@@ -6,7 +6,7 @@ ContentForge Autopilot — fully autonomous promotional tweet scheduler.
 
 Runs in the background and posts ContentForge promotional tweets across
 both Twitter accounts on a randomized schedule.  It combines:
-  1. 34 hand-crafted, high-scoring templates (all verified 70+)
+  1. 35 hand-crafted, high-scoring templates (all verified 70+)
   2. AI-generated tweets (local Ollama -> Gemini fallback)
   3. Live scoring via ContentForge's own score_tweet() — eat the dog food
 
@@ -74,7 +74,7 @@ API_BASE = "https://contentforge-api-lpp9.onrender.com"
 MIN_SCORE = 70
 
 # ===========================================================================
-# Template library — 34 hand-crafted tweets
+# Template library — 35 hand-crafted tweets
 # Every template is engineered for 70+ score by including:
 #   - power words: free, proven, instant, hack, tip, strategy, secret, boost…
 #   - 1-2 hashtags
@@ -439,6 +439,16 @@ PROMO_TEMPLATES: list[dict] = [
             "ContentForge's free LinkedIn Post Generator writes the whole thing:\n"
             "hook, story, insight, CTA — instant results\n\n"
             f"{RAPIDAPI_URL} #linkedin #contentmarketing"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "threads_scorer_intro",
+        "text": (
+            "posting on Threads but getting 0 reach? proven reason why 🔥\n\n"
+            "hack: hashtags and links HURT reach on Threads — most creators don't know\n\n"
+            "ContentForge's free Threads Scorer reveals your score instantly\n\n"
+            f"{RAPIDAPI_URL} #growthhack"
         ),
         "accounts": ["niche_launch_1", "EyeCatcher"],
     },
