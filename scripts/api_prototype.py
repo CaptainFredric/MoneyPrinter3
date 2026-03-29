@@ -4,6 +4,10 @@
 Endpoints:
   POST /v1/analyze_headline    — Score & improve any headline (heuristic, instant)
   POST /v1/score_tweet         — Score a tweet draft before posting (heuristic, instant)
+  POST /v1/score_linkedin_post — Score a LinkedIn post for reach/engagement (heuristic, instant)
+  POST /v1/score_instagram     — Score an Instagram caption for engagement (heuristic, instant)
+  POST /v1/score_youtube_title — Score a YouTube title for CTR (heuristic, instant)
+  POST /v1/score_email_subject — Score an email subject line for open rate (heuristic, instant)
   POST /v1/improve_headline    — AI-rewrites a headline into N better scored versions (AI)
   POST /v1/generate_hooks      — Generate scroll-stopping hooks for a topic (AI)
   POST /v1/rewrite             — Rewrite text for a target platform/tone (AI)
@@ -1042,6 +1046,980 @@ def endpoint_score_linkedin_post():
 
 
 # ---------------------------------------------------------------------------
+# 5c. Instagram Caption Scorer (heuristic -- instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_instagram_caption(text: str) -> dict:
+    """Score an Instagram caption draft 0-100 for engagement potential.
+
+    Instagram-specific signals:
+      - Caption length: 138-150 chars is highest engagement, but longer
+        captions (up to 2200) work for storytelling niches.
+      - Hashtags: 5-15 is optimal (research varies; 11 is the cited sweet
+        spot, but 5-15 is broadly safe).  Instagram allows up to 30.
+      - Emojis strongly correlate with higher engagement (2-6 is ideal).
+      - Call-to-action ("save this", "tag a friend", "double tap") drives
+        interaction signals the algorithm rewards.
+      - Line breaks improve readability in captions (the "dot spacer" trick
+        or simply \\n\\n).
+      - Mentions can boost reach via shares.
+      - First line is the hook (only ~125 chars show before "more").
+    """
+    if not isinstance(text, str):
+        text = str(text or "")
+    txt = text.strip()
+    char_count = len(txt)
+    words = txt.split()
+    word_count = len(words)
+
+    # ---- extract features ----
+    hashtags = re.findall(r'#\w+', txt)
+    mentions = re.findall(r'@\w+', txt)
+    urls = re.findall(r'https?://\S+', txt)
+    emoji_count = sum(1 for c in txt if ord(c) > 0x1F300)
+
+    # Hook: first line (before first newline, or first 125 chars)
+    first_line = txt.split('\n')[0].strip()
+    hook = first_line[:125]
+    hook_len = len(first_line)
+
+    # Line breaks (readability)
+    line_break_count = txt.count('\n')
+
+    # CTA detection
+    tail = txt[-250:].lower() if len(txt) >= 250 else txt.lower()
+    cta_phrases = [
+        "save this", "tag a friend", "double tap", "comment below",
+        "share this", "link in bio", "tap the link", "follow for more",
+        "what do you think", "which one", "would you", "tell me",
+        "drop a", "let me know", "agree or disagree", "thoughts?",
+        "dm me", "check the link", "swipe", "bookmark this",
+    ]
+    has_cta = any(phrase in tail for phrase in cta_phrases)
+    has_question = '?' in tail
+
+    # Power words (Instagram / lifestyle context)
+    power_word_set = {
+        "free", "secret", "hack", "tip", "proven", "easy", "simple",
+        "transform", "boost", "best", "ultimate", "exclusive", "limited",
+        "discover", "amazing", "stunning", "beautiful", "inspiring",
+        "powerful", "essential", "guide", "tutorial", "results",
+        "mistake", "honest", "real", "authentic", "truth", "game-changer",
+    }
+    pw_found = [w for w in power_word_set if w in txt.lower()]
+
+    # ---- scoring ----
+    score = 40  # baseline
+
+    # -- Length --
+    if char_count < 20:
+        score -= 10  # too short, no context
+    elif 20 <= char_count < 70:
+        score += 2
+    elif 70 <= char_count <= 150:
+        score += 15  # optimal engagement sweet spot
+    elif 150 < char_count <= 300:
+        score += 12
+    elif 300 < char_count <= 1000:
+        score += 10
+    elif 1000 < char_count <= 2200:
+        score += 6  # long-form storytelling
+    else:
+        score -= 5  # over Instagram's 2200 char limit
+
+    # -- Hashtags (5-15 optimal, max 30) --
+    ht_count = len(hashtags)
+    if ht_count == 0:
+        pass  # no discovery boost
+    elif 1 <= ht_count <= 4:
+        score += 4
+    elif 5 <= ht_count <= 15:
+        score += 10  # optimal range
+    elif 16 <= ht_count <= 30:
+        score += 3  # works but may look spammy
+    else:
+        score -= 10  # over 30 = Instagram may hide the post
+
+    # -- Emojis (Instagram loves them) --
+    if emoji_count == 0:
+        pass  # no penalty but missed opportunity
+    elif 1 <= emoji_count <= 2:
+        score += 4
+    elif 3 <= emoji_count <= 6:
+        score += 8  # optimal
+    elif 7 <= emoji_count <= 10:
+        score += 4
+    elif emoji_count > 10:
+        score -= 4
+
+    # -- CTA / engagement prompt --
+    if has_cta:
+        score += 7
+    if has_question:
+        score += 5
+
+    # -- Hook strength --
+    if hook_len <= 125:
+        score += 4  # full hook visible before "more"
+    if hook and hook[0:1].isdigit():
+        score += 3  # numbered hook
+
+    # -- Line breaks (readability) --
+    if line_break_count >= 2:
+        score += 4
+
+    # -- Mentions --
+    if 1 <= len(mentions) <= 3:
+        score += 3
+
+    # -- Power words --
+    score += min(10, len(pw_found) * 3)
+
+    # -- URL penalty (Instagram captions don't support clickable links) --
+    if urls:
+        score -= 5
+
+    # -- ALL CAPS abuse --
+    caps_words = sum(
+        1 for w in words
+        if len(w) > 2 and w.isupper() and any(c.isalpha() for c in w)
+    )
+    if caps_words >= 3:
+        score -= 5
+
+    # -- Excessive exclamation --
+    if txt.count('!') >= 5:
+        score -= 3
+
+    score = max(0, min(100, int(score)))
+    grade = (
+        "A" if score >= 80 else
+        "B" if score >= 60 else
+        "C" if score >= 40 else
+        "D" if score >= 20 else
+        "F"
+    )
+
+    # ---- suggestions ----
+    suggestions = []
+
+    if char_count < 50:
+        suggestions.append(
+            "Your caption is very short. Add more context or a story "
+            "to engage your audience."
+        )
+    if char_count > 2200:
+        suggestions.append(
+            "Instagram caps captions at 2,200 characters. Trim it down."
+        )
+
+    if ht_count == 0:
+        suggestions.append(
+            "Add 5-15 relevant hashtags for discoverability. Mix popular "
+            "and niche-specific tags."
+        )
+    elif ht_count < 5:
+        suggestions.append(
+            f"You have {ht_count} hashtag(s). Aim for 5-15 for optimal "
+            "Instagram reach."
+        )
+    elif ht_count > 30:
+        suggestions.append(
+            "Instagram allows a max of 30 hashtags. Remove the extras "
+            "or your post may be hidden."
+        )
+
+    if emoji_count == 0:
+        suggestions.append(
+            "Add 2-6 emojis. Instagram posts with emojis get measurably "
+            "higher engagement."
+        )
+
+    if not has_cta and not has_question:
+        suggestions.append(
+            "End with a CTA ('Save this', 'Tag a friend', 'What do you "
+            "think?') to drive comments and saves."
+        )
+
+    if hook_len > 125:
+        suggestions.append(
+            "Keep the first line under 125 characters — that's all users "
+            "see before tapping 'more'."
+        )
+
+    if line_break_count == 0 and char_count > 100:
+        suggestions.append(
+            "Add line breaks to make the caption scannable. Use blank "
+            "lines or dot spacers between sections."
+        )
+
+    if urls:
+        suggestions.append(
+            "Links in Instagram captions aren't clickable. Move the URL "
+            "to your bio and say 'link in bio'."
+        )
+
+    if not pw_found:
+        suggestions.append(
+            "Add a power word (e.g. 'secret', 'hack', 'transform', "
+            "'authentic') to make the caption pop."
+        )
+
+    return {
+        "text": txt,
+        "platform": "instagram",
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "hook_length": hook_len,
+        "hook_preview": hook + ("..." if hook_len > 125 else ""),
+        "line_break_count": line_break_count,
+        "hashtag_count": ht_count,
+        "hashtags": hashtags,
+        "mention_count": len(mentions),
+        "emoji_count": emoji_count,
+        "has_url": bool(urls),
+        "has_cta": has_cta,
+        "has_question": has_question,
+        "power_words_found": pw_found,
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/score_instagram", methods=["GET", "POST"])
+@app.route("/score-instagram", methods=["GET", "POST"])
+@app.route("/score_instagram", methods=["GET", "POST"])
+def endpoint_score_instagram():
+    # GET: return usage doc
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-instagram",
+            "method": "POST",
+            "description": (
+                "Score an Instagram caption draft 0-100 for engagement. "
+                "Analyzes caption length, hashtag count, emoji usage, "
+                "CTA detection, hook strength, and more."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-instagram",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {"caption": "your instagram caption here"},
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-instagram '
+                '-H "Content-Type: application/json" '
+                "-d '{\"caption\": \"Stop scrolling. This changed my morning routine forever."
+                "\\n\\nI tried 30 days of cold showers and here's what happened.\\n\\n"
+                "#morningroutine #coldshower #productivity #selfimprovement #lifehacks\"}'"
+            ),
+            "scoring_factors": [
+                "Caption length (sweet spot: 70-150 chars for engagement)",
+                "Hashtag count (optimal: 5-15)",
+                "Emoji usage (2-6 is ideal on Instagram)",
+                "Hook strength (first 125 chars show before 'more')",
+                "Call to action (save, tag, comment, etc.)",
+                "Line breaks and readability",
+                "Power words (lifestyle/engagement context)",
+                "URL penalty (links aren't clickable in captions)",
+            ],
+            "note": (
+                "No API key needed for direct access. "
+                "Free tier on RapidAPI: 50 calls/month."
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (
+        payload.get("caption")
+        or payload.get("text")
+        or payload.get("post")
+        or ""
+    ).strip()
+
+    if not text:
+        return jsonify({
+            "error": (
+                "missing 'caption' parameter. "
+                'Send JSON body: {"caption": "your instagram caption text"}'
+            )
+        }), 400
+    if len(text) > 5000:
+        return jsonify({"error": "text too long (max 5000 chars)"}), 400
+
+    result = score_instagram_caption(text)
+    _log_usage("score_instagram", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 5d. YouTube Title & Thumbnail Text Scorer (heuristic -- instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_youtube_title(text: str, thumbnail_text: str = "") -> dict:
+    """Score a YouTube title (and optional thumbnail text) 0-100 for CTR.
+
+    YouTube-specific signals:
+      - Title length: 40-60 chars is optimal for CTR (shows fully in search
+        and suggested). Under 70 to avoid truncation.
+      - Numbers in titles boost CTR (listicles, years, amounts).
+      - Emotional/curiosity words drive clicks.
+      - Brackets/parentheses add perceived value: [Tutorial], (2026).
+      - ALL CAPS in 1-2 words is acceptable for emphasis; full caps = spam.
+      - Thumbnail text should be short (3-5 words max), readable, and not
+        repeat the title verbatim.
+    """
+    if not isinstance(text, str):
+        text = str(text or "")
+    title = text.strip()
+    thumb = (thumbnail_text or "").strip()
+    char_count = len(title)
+    words = title.split()
+    word_count = len(words)
+
+    # ---- extract features ----
+    has_number = bool(re.search(r'\d', title))
+    has_year = bool(re.search(r'20\d{2}', title))
+    has_bracket = bool(re.search(r'[\[\(]', title))
+    has_question = '?' in title
+    has_pipe_or_dash = bool(re.search(r'[|—–-]', title))
+    has_colon = ':' in title
+
+    # Power words (YouTube CTR drivers)
+    power_word_set = {
+        "how", "why", "best", "worst", "top", "secret", "proven", "free",
+        "ultimate", "complete", "guide", "tutorial", "review", "honest",
+        "truth", "mistake", "avoid", "hack", "easy", "fast", "simple",
+        "shocking", "insane", "unbelievable", "never", "always", "stop",
+        "need", "must", "watch", "revealed", "warning", "finally",
+        "changed", "updated", "new", "real", "actual", "exactly",
+        "tried", "tested", "results", "money", "making", "earn",
+    }
+    pw_found = [w for w in power_word_set if w in title.lower().split()]
+
+    # Emoji in title (generally discouraged on YT)
+    emoji_count = sum(1 for c in title if ord(c) > 0x1F300)
+
+    # ALL CAPS analysis
+    caps_words = [w for w in words if w.isupper() and len(w) > 1 and any(c.isalpha() for c in w)]
+    caps_count = len(caps_words)
+
+    # ---- scoring ----
+    score = 40  # baseline
+
+    # -- Length --
+    if char_count < 20:
+        score -= 5
+    elif 20 <= char_count < 40:
+        score += 8
+    elif 40 <= char_count <= 60:
+        score += 18  # optimal CTR range
+    elif 60 < char_count <= 70:
+        score += 12  # still shows fully
+    elif 70 < char_count <= 100:
+        score += 3  # starts truncating
+    else:
+        score -= 8  # heavily truncated
+
+    # -- Numbers --
+    if has_number:
+        score += 6
+    if has_year:
+        score += 3  # current year signals freshness
+
+    # -- Brackets/Parentheses --
+    if has_bracket:
+        score += 5
+
+    # -- Question --
+    if has_question:
+        score += 5
+
+    # -- Structural separators (Title | Category or Title: Subtitle) --
+    if has_pipe_or_dash or has_colon:
+        score += 3
+
+    # -- Power words --
+    score += min(12, len(pw_found) * 3)
+
+    # -- Emoji (mild penalty on YouTube) --
+    if emoji_count == 1:
+        score += 1
+    elif emoji_count >= 2:
+        score -= 3
+
+    # -- CAPS emphasis (1-2 words = emphasis, 3+ = spammy) --
+    if 1 <= caps_count <= 2:
+        score += 4
+    elif caps_count >= 3:
+        score -= 8
+
+    # -- Word count sweet spot --
+    if 5 <= word_count <= 10:
+        score += 3
+
+    # -- Thumbnail text analysis --
+    thumb_score_detail = {}
+    if thumb:
+        thumb_words = thumb.split()
+        thumb_word_count = len(thumb_words)
+        thumb_char_count = len(thumb)
+
+        thumb_bonus = 0
+        if 1 <= thumb_word_count <= 5:
+            thumb_bonus += 5  # short and readable
+        elif thumb_word_count > 7:
+            thumb_bonus -= 5  # too cluttered
+
+        # Penalize if thumbnail text duplicates the title
+        title_lower = title.lower()
+        thumb_lower = thumb.lower()
+        overlap_words = set(thumb_lower.split()) & set(title_lower.split())
+        filler_words = {"the", "a", "an", "is", "to", "for", "and", "of", "in", "on", "it", "my", "i", "you", "your"}
+        meaningful_overlap = overlap_words - filler_words
+        if len(meaningful_overlap) >= 3:
+            thumb_bonus -= 5  # too much repetition
+
+        # Thumb caps (acceptable for thumbnails)
+        if thumb.isupper() and thumb_word_count <= 4:
+            thumb_bonus += 2  # ALL CAPS thumbnail text is fine for short text
+
+        score += thumb_bonus
+        thumb_score_detail = {
+            "thumbnail_text": thumb,
+            "thumbnail_word_count": thumb_word_count,
+            "thumbnail_char_count": thumb_char_count,
+            "thumbnail_title_overlap": list(meaningful_overlap),
+            "thumbnail_bonus": thumb_bonus,
+        }
+
+    score = max(0, min(100, int(score)))
+    grade = (
+        "A" if score >= 80 else
+        "B" if score >= 60 else
+        "C" if score >= 40 else
+        "D" if score >= 20 else
+        "F"
+    )
+
+    # ---- suggestions ----
+    suggestions = []
+
+    if char_count < 30:
+        suggestions.append(
+            "Your title is very short. Aim for 40-60 characters for "
+            "optimal CTR in YouTube search and suggested."
+        )
+    elif char_count > 70:
+        suggestions.append(
+            "Your title may be truncated in search results. Keep it "
+            "under 70 characters (40-60 is the sweet spot)."
+        )
+
+    if not has_number:
+        suggestions.append(
+            "Add a number to your title (e.g. '5 Ways...', '$1,000', "
+            "'in 30 Days'). Numbered titles get higher CTR."
+        )
+
+    if not has_bracket:
+        suggestions.append(
+            "Consider adding brackets like [Tutorial], [2026], or "
+            "(Step by Step) — they boost perceived value."
+        )
+
+    if not pw_found:
+        suggestions.append(
+            "Add a power word (e.g. 'best', 'secret', 'proven', "
+            "'honest', 'ultimate') to drive curiosity."
+        )
+
+    if not has_question and word_count < 8:
+        suggestions.append(
+            "Try phrasing as a question ('How to...?', 'Why does...?') "
+            "for a curiosity-driven hook."
+        )
+
+    if caps_count >= 3:
+        suggestions.append(
+            "Too many ALL CAPS words. Use 1-2 for emphasis (e.g. "
+            "'NEVER Do This') — more looks clickbaity."
+        )
+
+    if emoji_count >= 2:
+        suggestions.append(
+            "Minimize emojis in YouTube titles. One max — save emojis "
+            "for the description."
+        )
+
+    if thumb:
+        if len(thumb.split()) > 5:
+            suggestions.append(
+                "Thumbnail text is too long. Keep it to 3-5 words max "
+                "for readability at small sizes."
+            )
+        if thumb_score_detail.get("thumbnail_title_overlap"):
+            suggestions.append(
+                "Your thumbnail text repeats title words "
+                f"({', '.join(thumb_score_detail['thumbnail_title_overlap'])}). "
+                "Use complementary text that adds context, not repetition."
+            )
+
+    result = {
+        "text": title,
+        "platform": "youtube",
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "has_number": has_number,
+        "has_year": has_year,
+        "has_bracket": has_bracket,
+        "has_question": has_question,
+        "caps_words": caps_count,
+        "emoji_count": emoji_count,
+        "power_words_found": pw_found,
+        "suggestions": suggestions,
+    }
+    result.update(thumb_score_detail)
+    return result
+
+
+@app.route("/v1/score_youtube_title", methods=["GET", "POST"])
+@app.route("/score-youtube-title", methods=["GET", "POST"])
+@app.route("/score_youtube_title", methods=["GET", "POST"])
+def endpoint_score_youtube_title():
+    # GET: return usage doc
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-youtube-title",
+            "method": "POST",
+            "description": (
+                "Score a YouTube title (and optional thumbnail text) 0-100 "
+                "for click-through rate potential. Analyzes title length, "
+                "numbers, power words, brackets, caps emphasis, and more."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-youtube-title",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "title": "your youtube title here",
+                    "thumbnail_text": "(optional) text on the thumbnail",
+                },
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-youtube-title '
+                '-H "Content-Type: application/json" '
+                "-d '{\"title\": \"I Tried Making $1,000 in 24 Hours [Realistic Results]\", "
+                "\"thumbnail_text\": \"$1K IN 24H??\"}'"
+            ),
+            "scoring_factors": [
+                "Title length (sweet spot: 40-60 chars)",
+                "Numbers in title (boost CTR)",
+                "Power words (curiosity, emotion)",
+                "Brackets/parentheses ([Tutorial], (2026))",
+                "Question format (curiosity hook)",
+                "CAPS emphasis (1-2 words good, 3+ bad)",
+                "Thumbnail text (short, complementary, not repetitive)",
+            ],
+            "note": (
+                "No API key needed for direct access. "
+                "Free tier on RapidAPI: 50 calls/month."
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    title = (
+        payload.get("title")
+        or payload.get("text")
+        or ""
+    ).strip()
+    thumbnail_text = (payload.get("thumbnail_text") or "").strip()
+
+    if not title:
+        return jsonify({
+            "error": (
+                "missing 'title' parameter. "
+                'Send JSON body: {"title": "your youtube title"}'
+            )
+        }), 400
+    if len(title) > 500:
+        return jsonify({"error": "title too long (max 500 chars)"}), 400
+
+    result = score_youtube_title(title, thumbnail_text)
+    _log_usage("score_youtube_title", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 5e. Email Subject Line Scorer (heuristic -- instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_email_subject(text: str, preview_text: str = "") -> dict:
+    """Score an email subject line 0-100 for open rate potential.
+
+    Email-specific signals:
+      - Length: 30-50 chars is optimal (fully visible on mobile and desktop).
+        Under 20 feels incomplete, over 60 gets truncated on mobile.
+      - Personalization tokens (e.g. {first_name}) boost open rates ~26%.
+      - Numbers boost opens (specificity).
+      - Urgency/scarcity words work but overuse triggers spam filters.
+      - ALL CAPS is a major spam signal.
+      - Excessive punctuation (!!! or ???) hurts deliverability.
+      - Spam trigger words lower inbox placement.
+      - Preview/preheader text should complement, not repeat the subject.
+      - Emojis: one well-placed emoji boosts mobile open rates.
+    """
+    if not isinstance(text, str):
+        text = str(text or "")
+    subj = text.strip()
+    preview = (preview_text or "").strip()
+    char_count = len(subj)
+    words = subj.split()
+    word_count = len(words)
+
+    # ---- extract features ----
+    has_number = bool(re.search(r'\d', subj))
+    has_question = '?' in subj
+    emoji_count = sum(1 for c in subj if ord(c) > 0x1F300)
+
+    # Personalization tokens like {first_name}, {{name}}, [NAME]
+    personalization_tokens = re.findall(
+        r'\{+\w+\}+|\[\w+\]', subj
+    )
+    has_personalization = bool(personalization_tokens)
+
+    # Urgency/scarcity words
+    urgency_words = {
+        "urgent", "limited", "expires", "deadline", "last chance",
+        "final", "hurry", "now", "today", "ending", "don't miss",
+        "act now", "only", "hours left", "closing",
+    }
+    uw_found = [w for w in urgency_words if w in subj.lower()]
+
+    # Power words (email context)
+    power_word_set = {
+        "free", "new", "exclusive", "proven", "secret", "insider",
+        "important", "update", "announcement", "invitation", "breaking",
+        "confirmed", "discover", "unlock", "introducing", "save",
+        "results", "quick", "easy", "guide", "mistake", "warning",
+        "alert", "you", "your",
+    }
+    pw_found = [w for w in power_word_set if w in subj.lower().split()]
+
+    # Spam trigger words (common in email marketing)
+    spam_triggers = {
+        "buy now", "click here", "order now", "subscribe now",
+        "100% free", "act now", "apply now", "as seen on",
+        "billion", "cash", "cheap", "congratulations", "credit",
+        "dear friend", "discount", "double your", "earn money",
+        "fast cash", "get rich", "guarantee", "incredible deal",
+        "info you requested", "investment", "lottery", "make money",
+        "million", "no obligation", "offer", "once in a lifetime",
+        "opt in", "please read", "prize", "promise", "risk free",
+        "satisfaction guaranteed", "special promotion", "this isn't spam",
+        "unsolicited", "winner", "you have been selected", "$$",
+    }
+    spam_found = [t for t in spam_triggers if t in subj.lower()]
+
+    # ALL CAPS detection
+    caps_words = sum(
+        1 for w in words
+        if len(w) > 1 and w.isupper() and any(c.isalpha() for c in w)
+    )
+
+    # Excessive punctuation
+    exclamation_count = subj.count('!')
+    question_count = subj.count('?')
+
+    # ---- scoring ----
+    score = 40  # baseline
+
+    # -- Length --
+    if char_count < 10:
+        score -= 10
+    elif 10 <= char_count < 20:
+        score += 3
+    elif 20 <= char_count < 30:
+        score += 10
+    elif 30 <= char_count <= 50:
+        score += 18  # optimal
+    elif 50 < char_count <= 60:
+        score += 12
+    elif 60 < char_count <= 80:
+        score += 5
+    else:
+        score -= 5  # too long
+
+    # -- Personalization --
+    if has_personalization:
+        score += 8
+
+    # -- Numbers --
+    if has_number:
+        score += 5
+
+    # -- Question --
+    if has_question and question_count <= 1:
+        score += 5
+
+    # -- Power words --
+    score += min(12, len(pw_found) * 3)
+
+    # -- Urgency words (small boost, but penalize excess) --
+    if 1 <= len(uw_found) <= 2:
+        score += 5
+    elif len(uw_found) >= 3:
+        score -= 5  # feels like spam
+
+    # -- Emoji --
+    if emoji_count == 1:
+        score += 4
+    elif emoji_count >= 2:
+        score -= 3
+
+    # -- Spam triggers --
+    score -= min(20, len(spam_found) * 5)
+
+    # -- ALL CAPS --
+    if caps_words >= 2:
+        score -= 10  # major spam signal
+    elif caps_words == 1:
+        score -= 3
+
+    # -- Excessive punctuation --
+    if exclamation_count >= 2:
+        score -= 6
+    elif exclamation_count == 1:
+        score -= 1
+    if question_count >= 2:
+        score -= 3
+
+    # -- Word count sweet spot --
+    if 4 <= word_count <= 8:
+        score += 3
+
+    # -- Preview text analysis --
+    preview_detail = {}
+    if preview:
+        preview_bonus = 0
+        preview_len = len(preview)
+        if 40 <= preview_len <= 100:
+            preview_bonus += 5  # optimal preheader length
+        elif preview_len < 20:
+            preview_bonus += 1
+
+        # Penalize if preview repeats subject
+        subj_words_set = set(subj.lower().split())
+        preview_words_set = set(preview.lower().split())
+        filler = {"the", "a", "an", "is", "to", "for", "and", "of", "in", "on", "it", "i", "you", "your", "we"}
+        overlap = (subj_words_set & preview_words_set) - filler
+        if len(overlap) >= 3:
+            preview_bonus -= 4
+
+        score += preview_bonus
+        preview_detail = {
+            "preview_text": preview,
+            "preview_char_count": preview_len,
+            "preview_subject_overlap": list(overlap),
+            "preview_bonus": preview_bonus,
+        }
+
+    score = max(0, min(100, int(score)))
+    grade = (
+        "A" if score >= 80 else
+        "B" if score >= 60 else
+        "C" if score >= 40 else
+        "D" if score >= 20 else
+        "F"
+    )
+
+    # ---- suggestions ----
+    suggestions = []
+
+    if char_count < 20:
+        suggestions.append(
+            "Your subject line is very short. Aim for 30-50 characters "
+            "to give recipients enough context to open."
+        )
+    elif char_count > 60:
+        suggestions.append(
+            "Your subject line will be truncated on mobile. Keep it "
+            "under 50 characters (30-50 is optimal)."
+        )
+
+    if not has_personalization:
+        suggestions.append(
+            "Add personalization like {first_name} — personalized subject "
+            "lines increase open rates by ~26%."
+        )
+
+    if not has_number:
+        suggestions.append(
+            "Add a number for specificity (e.g. '5 tips', 'in 3 minutes', "
+            "'save $200'). Numbers signal concrete value."
+        )
+
+    if not pw_found and not uw_found:
+        suggestions.append(
+            "Add a power word (e.g. 'exclusive', 'proven', 'quick', "
+            "'free', 'new') to drive curiosity."
+        )
+
+    if spam_found:
+        suggestions.append(
+            f"Spam trigger(s) detected: {', '.join(spam_found)}. These "
+            "can land you in the spam folder."
+        )
+
+    if caps_words >= 2:
+        suggestions.append(
+            "Avoid ALL CAPS words in email subjects — it's a spam signal "
+            "that hurts deliverability."
+        )
+
+    if exclamation_count >= 2:
+        suggestions.append(
+            "Reduce exclamation marks. Multiple !!! triggers spam "
+            "filters in most email clients."
+        )
+
+    if emoji_count == 0:
+        suggestions.append(
+            "Consider adding one emoji — it can boost open rates on "
+            "mobile by making your subject stand out."
+        )
+    elif emoji_count >= 2:
+        suggestions.append(
+            "Use at most 1 emoji. Multiple emojis in subjects reduce "
+            "perceived professionalism."
+        )
+
+    if preview and preview_detail.get("preview_subject_overlap"):
+        suggestions.append(
+            "Your preview text repeats the subject. Use it to add context "
+            "or a teaser that complements the subject line."
+        )
+    elif not preview:
+        suggestions.append(
+            "Add preview/preheader text (40-100 chars) to complement "
+            "the subject line. It shows next to the subject in inbox."
+        )
+
+    result = {
+        "text": subj,
+        "platform": "email",
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "has_number": has_number,
+        "has_question": has_question,
+        "has_personalization": has_personalization,
+        "personalization_tokens": personalization_tokens,
+        "emoji_count": emoji_count,
+        "urgency_words_found": uw_found,
+        "power_words_found": pw_found,
+        "spam_triggers_found": spam_found,
+        "caps_word_count": caps_words,
+        "exclamation_count": exclamation_count,
+        "suggestions": suggestions,
+    }
+    result.update(preview_detail)
+    return result
+
+
+@app.route("/v1/score_email_subject", methods=["GET", "POST"])
+@app.route("/score-email-subject", methods=["GET", "POST"])
+@app.route("/score_email_subject", methods=["GET", "POST"])
+def endpoint_score_email_subject():
+    # GET: return usage doc
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-email-subject",
+            "method": "POST",
+            "description": (
+                "Score an email subject line (and optional preview/preheader) "
+                "0-100 for open rate potential. Analyzes length, personalization, "
+                "power words, spam triggers, ALL CAPS, and more."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-email-subject",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "subject": "your email subject line here",
+                    "preview_text": "(optional) preheader/preview text",
+                },
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-email-subject '
+                '-H "Content-Type: application/json" '
+                "-d '{\"subject\": \"{first_name}, your 3-step plan is ready\", "
+                "\"preview_text\": \"Open to see the strategy top creators use\"}'"
+            ),
+            "scoring_factors": [
+                "Subject length (sweet spot: 30-50 chars)",
+                "Personalization tokens ({first_name}, etc.)",
+                "Numbers (specificity boosts opens)",
+                "Power words (exclusive, proven, new, etc.)",
+                "Urgency words (limited, deadline, etc.)",
+                "Spam trigger detection (buy now, click here, etc.)",
+                "ALL CAPS penalty (spam signal)",
+                "Excessive punctuation penalty",
+                "Emoji (1 is good, 2+ is risky)",
+                "Preview text (complementary, not repetitive)",
+            ],
+            "note": (
+                "No API key needed for direct access. "
+                "Free tier on RapidAPI: 50 calls/month."
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    subject = (
+        payload.get("subject")
+        or payload.get("text")
+        or ""
+    ).strip()
+    preview_text = (payload.get("preview_text") or payload.get("preview") or "").strip()
+
+    if not subject:
+        return jsonify({
+            "error": (
+                "missing 'subject' parameter. "
+                'Send JSON body: {"subject": "your email subject line"}'
+            )
+        }), 400
+    if len(subject) > 500:
+        return jsonify({"error": "subject too long (max 500 chars)"}), 400
+
+    result = score_email_subject(subject, preview_text)
+    _log_usage("score_email_subject", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 6. Content Calendar (AI-powered)
 # ---------------------------------------------------------------------------
 @app.route("/v1/content_calendar", methods=["POST"])
@@ -1427,6 +2405,9 @@ def root():
             "POST /v1/analyze_headline": "Score & improve any headline (instant, no AI)",
             "POST /v1/score_tweet": "Score a tweet draft for engagement potential (instant, no AI)",
             "POST /v1/score_linkedin_post": "Score a LinkedIn post for reach and engagement (instant, no AI)",
+            "POST /v1/score_instagram": "Score an Instagram caption for engagement (instant, no AI)",
+            "POST /v1/score_youtube_title": "Score a YouTube title for CTR potential (instant, no AI)",
+            "POST /v1/score_email_subject": "Score an email subject line for open rate (instant, no AI)",
             "POST /v1/improve_headline": "AI-rewrite a headline into N better scored versions",
             "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
             "POST /v1/rewrite": "Rewrite text for any platform/tone",
@@ -1453,6 +2434,22 @@ def _run_test():
 
         print("\n=== Tweet Scorer ===")
         rv = c.post("/v1/score_tweet", json={"text": "Built an API in 48 hours. It made $500 last month 💸 Here's how: #indiehacker #buildinpublic"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== LinkedIn Post Scorer ===")
+        rv = c.post("/v1/score_linkedin_post", json={"post": "I spent 3 years building tools nobody used.\n\nThen I changed one thing.\n\nHere's what I learned:\n\n- Hook matters\n- Short paragraphs\n- Questions at the end\n\nWhat did you change?\n\n#buildinpublic #contentcreation #linkedin"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Instagram Caption Scorer ===")
+        rv = c.post("/v1/score_instagram", json={"caption": "Stop scrolling. This changed everything.\n\nI tried 30 days of cold showers and here's what happened 🧊💪\n\nSave this for later 👇\n\n#morningroutine #coldshower #productivity #selfimprovement #lifehacks"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== YouTube Title Scorer ===")
+        rv = c.post("/v1/score_youtube_title", json={"title": "I Tried Making $1,000 in 24 Hours [Honest Results]", "thumbnail_text": "$1K IN 24H??"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Email Subject Scorer ===")
+        rv = c.post("/v1/score_email_subject", json={"subject": "{first_name}, your 3-step plan is ready", "preview_text": "Open to see the strategy top creators use"})
         pprint.pprint(rv.get_json())
 
         print("\n=== Improve Headline ===")

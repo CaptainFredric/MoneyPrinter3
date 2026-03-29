@@ -6,7 +6,7 @@ ContentForge Autopilot — fully autonomous promotional tweet scheduler.
 
 Runs in the background and posts ContentForge promotional tweets across
 both Twitter accounts on a randomized schedule.  It combines:
-  1. 22 hand-crafted, high-scoring templates (all verified 70+)
+  1. 28 hand-crafted, high-scoring templates (all verified 70+)
   2. AI-generated tweets (local Ollama -> Gemini fallback)
   3. Live scoring via ContentForge's own score_tweet() — eat the dog food
 
@@ -74,7 +74,7 @@ API_BASE = "https://contentforge-api-lpp9.onrender.com"
 MIN_SCORE = 70
 
 # ===========================================================================
-# Template library — 22 hand-crafted tweets
+# Template library — 28 hand-crafted tweets
 # Every template is engineered for 70+ score by including:
 #   - power words: free, proven, instant, hack, tip, strategy, secret, boost…
 #   - 1-2 hashtags
@@ -313,6 +313,69 @@ PROMO_TEMPLATES: list[dict] = [
         ),
         "accounts": ["niche_launch_1"],
     },
+
+    # ── NEW: Instagram, YouTube, Email scorers ──────────────────────────────
+    {
+        "id": "instagram_scorer_intro",
+        "text": (
+            "posting on Instagram without scoring your caption? 📸\n\n"
+            "that's a proven mistake — ContentForge's free Instagram Scorer checks "
+            "hashtags, emojis, hook strength instantly\n\n"
+            "simple tip: boost your reach before you post\n\n"
+            f"free on RapidAPI: {RAPIDAPI_URL} #instagramgrowth #contentmarketing"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "youtube_title_scorer",
+        "text": (
+            "90% of your YouTube clicks come from the title 🎬\n\n"
+            "proven hack: ContentForge's free YouTube Title Scorer checks "
+            "CTR signals — length, numbers, brackets, power words\n\n"
+            "instant results, simple API, no AI needed\n\n"
+            f"try it free: {RAPIDAPI_URL} #youtube #buildinpublic"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "email_subject_scorer",
+        "text": (
+            "47% of emails live or die by the subject line 📧\n\n"
+            "proven hack: score it before you send\n\n"
+            "ContentForge catches spam triggers + checks power words instantly\n\n"
+            f"free API: {RAPIDAPI_URL} #emailmarketing #growthhacking"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "six_platform_scorer",
+        "text": (
+            "6 free content scorers in 1 API 🔥\n\n"
+            "tweets, LinkedIn, Instagram, YouTube, email, headlines — proven instant scoring\n\n"
+            f"try it free: {RAPIDAPI_URL} #contentmarketing #buildinpublic"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "ig_vs_linkedin_tip",
+        "text": (
+            "quick tip: Instagram = 5-15 hashtags, LinkedIn = 3-5 🤔\n\n"
+            "proven mistake: same strategy everywhere\n\n"
+            "ContentForge scores each platform free\n\n"
+            f"{RAPIDAPI_URL} #socialmedia #growthhacking"
+        ),
+        "accounts": ["niche_launch_1"],
+    },
+    {
+        "id": "yt_thumbnail_trick",
+        "text": (
+            "secret hack: thumbnail text should NOT repeat your title 🎯\n\n"
+            "proven mistake — overlap kills CTR\n\n"
+            "ContentForge checks this free, instant\n\n"
+            f"{RAPIDAPI_URL} #youtube #contentcreator"
+        ),
+        "accounts": ["EyeCatcher"],
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -340,6 +403,16 @@ AI_NICHES: dict[str, list[str]] = {
             f"Link: {RAPIDAPI_URL}. Use 'quick', 'strategy', 'free'. Add #contentmarketing. 1 emoji. "
             "Under 260 chars."
         ),
+        (
+            "Write a tweet about Instagram caption optimization. Mention ContentForge's free Instagram Caption Scorer "
+            f"on RapidAPI. Link: {RAPIDAPI_URL}. Use 'hack', 'instant', 'proven'. Add #instagramtips. 1 emoji. "
+            "Under 260 chars."
+        ),
+        (
+            "Write a tweet about YouTube title optimization for CTR. Mention ContentForge's free YouTube Title Scorer. "
+            f"Link: {RAPIDAPI_URL}. Use 'secret', 'boost', 'simple'. Add #youtube. 1 emoji. "
+            "Under 260 chars."
+        ),
     ],
     "EyeCatcher": [
         (
@@ -363,6 +436,18 @@ AI_NICHES: dict[str, list[str]] = {
             "Write a tweet about why most tweets fail. "
             "Mention ContentForge's free tweet scoring. "
             f"Link: {RAPIDAPI_URL}. Use 'mistake', 'revealed', 'hack'. Add #twittergrowth. 1 emoji. "
+            "Under 260 chars."
+        ),
+        (
+            "Write a tweet about email marketing and subject line optimization. "
+            "Mention ContentForge's free Email Subject Scorer that catches spam triggers. "
+            f"Link: {RAPIDAPI_URL}. Use 'proven', 'free', 'instant'. Add #emailmarketing. 1 emoji. "
+            "Under 260 chars."
+        ),
+        (
+            "Write a tweet about scoring content across all platforms (tweets, LinkedIn, Instagram, YouTube, email). "
+            "Mention ContentForge has 6 free scoring endpoints. "
+            f"Link: {RAPIDAPI_URL}. Use 'free', 'proven', 'instant'. Add #contenttools. 1 emoji. "
             "Under 260 chars."
         ),
     ],

@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score YouTube titles for CTR, score email subject lines for open rates, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
@@ -204,6 +204,289 @@
               "application/json": {
                 "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
                 "example": {"error": "missing 'post' parameter. Send JSON body: {\"post\": \"your linkedin post text\"}"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/score_instagram": {
+      "post": {
+        "summary": "Score an Instagram Caption",
+        "description": "Score any Instagram caption draft 0-100 for engagement potential before you post. Heuristic analysis, instant, no AI needed. Evaluates caption length, hashtag count (5-15 optimal), emoji usage, hook strength (first 125 chars), call-to-action detection, line breaks, power words, and URL penalties. Returns a grade (A-F) plus actionable improvement tips tailored to Instagram best practices.",
+        "operationId": "scoreInstagram",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["caption"],
+                "properties": {
+                  "caption": {
+                    "type": "string",
+                    "maxLength": 5000,
+                    "description": "The Instagram caption draft to score",
+                    "example": "Stop scrolling. This changed everything.\n\nI tried 30 days of cold showers 🧊💪\n\nSave this for later 👇\n\n#morningroutine #coldshower #productivity #selfimprovement #lifehacks"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Instagram caption score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "platform": {"type": "string", "enum": ["instagram"]},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "char_count": {"type": "integer"},
+                    "word_count": {"type": "integer"},
+                    "hook_length": {"type": "integer"},
+                    "hook_preview": {"type": "string", "description": "First 125 chars of the caption"},
+                    "line_break_count": {"type": "integer"},
+                    "hashtag_count": {"type": "integer"},
+                    "hashtags": {"type": "array", "items": {"type": "string"}},
+                    "mention_count": {"type": "integer"},
+                    "emoji_count": {"type": "integer"},
+                    "has_url": {"type": "boolean"},
+                    "has_cta": {"type": "boolean"},
+                    "has_question": {"type": "boolean"},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "text": "Stop scrolling. This changed everything...",
+                  "platform": "instagram",
+                  "score": 88,
+                  "grade": "A",
+                  "char_count": 165,
+                  "word_count": 26,
+                  "hook_length": 40,
+                  "hook_preview": "Stop scrolling. This changed everything.",
+                  "line_break_count": 4,
+                  "hashtag_count": 5,
+                  "hashtags": ["#morningroutine", "#coldshower", "#productivity", "#selfimprovement", "#lifehacks"],
+                  "mention_count": 0,
+                  "emoji_count": 3,
+                  "has_url": false,
+                  "has_cta": true,
+                  "has_question": false,
+                  "power_words_found": ["secret", "transform"],
+                  "suggestions": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid caption parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'caption' parameter. Send JSON body: {\"caption\": \"your instagram caption text\"}"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/score_youtube_title": {
+      "post": {
+        "summary": "Score a YouTube Title",
+        "description": "Score a YouTube title (and optional thumbnail text) 0-100 for click-through rate potential. Heuristic analysis, instant, no AI needed. Evaluates title length (40-60 chars optimal), numbers, power words, brackets/parentheses, question format, CAPS emphasis, and thumbnail text complementarity. Returns a grade (A-F) plus actionable CTR improvement tips.",
+        "operationId": "scoreYoutubeTitle",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "The YouTube title to score",
+                    "example": "I Tried Making $1,000 in 24 Hours [Honest Results]"
+                  },
+                  "thumbnail_text": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Optional text on the thumbnail image",
+                    "example": "$1K IN 24H??"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "YouTube title score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "platform": {"type": "string", "enum": ["youtube"]},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "char_count": {"type": "integer"},
+                    "word_count": {"type": "integer"},
+                    "has_number": {"type": "boolean"},
+                    "has_year": {"type": "boolean"},
+                    "has_bracket": {"type": "boolean"},
+                    "has_question": {"type": "boolean"},
+                    "caps_words": {"type": "integer"},
+                    "emoji_count": {"type": "integer"},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "thumbnail_text": {"type": "string"},
+                    "thumbnail_word_count": {"type": "integer"},
+                    "thumbnail_char_count": {"type": "integer"},
+                    "thumbnail_title_overlap": {"type": "array", "items": {"type": "string"}},
+                    "thumbnail_bonus": {"type": "integer"},
+                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "text": "I Tried Making $1,000 in 24 Hours [Honest Results]",
+                  "platform": "youtube",
+                  "score": 85,
+                  "grade": "A",
+                  "char_count": 51,
+                  "word_count": 10,
+                  "has_number": true,
+                  "has_year": false,
+                  "has_bracket": true,
+                  "has_question": false,
+                  "caps_words": 0,
+                  "emoji_count": 0,
+                  "power_words_found": ["tried", "honest", "making", "results"],
+                  "thumbnail_text": "$1K IN 24H??",
+                  "thumbnail_word_count": 3,
+                  "thumbnail_bonus": 7,
+                  "suggestions": ["Try phrasing as a question for a curiosity-driven hook."]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid title parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'title' parameter. Send JSON body: {\"title\": \"your youtube title\"}"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/score_email_subject": {
+      "post": {
+        "summary": "Score an Email Subject Line",
+        "description": "Score an email subject line (and optional preview/preheader text) 0-100 for open rate potential. Heuristic analysis, instant, no AI needed. Evaluates length (30-50 chars optimal), personalization tokens, numbers, power words, urgency words, spam trigger detection, ALL CAPS penalty, punctuation abuse, emoji usage, and preview text quality. Returns a grade (A-F) plus deliverability and engagement tips.",
+        "operationId": "scoreEmailSubject",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["subject"],
+                "properties": {
+                  "subject": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "The email subject line to score",
+                    "example": "{first_name}, your 3-step plan is ready"
+                  },
+                  "preview_text": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "Optional preview/preheader text",
+                    "example": "Open to see the strategy top creators use"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email subject line score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "platform": {"type": "string", "enum": ["email"]},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "char_count": {"type": "integer"},
+                    "word_count": {"type": "integer"},
+                    "has_number": {"type": "boolean"},
+                    "has_question": {"type": "boolean"},
+                    "has_personalization": {"type": "boolean"},
+                    "personalization_tokens": {"type": "array", "items": {"type": "string"}},
+                    "emoji_count": {"type": "integer"},
+                    "urgency_words_found": {"type": "array", "items": {"type": "string"}},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "spam_triggers_found": {"type": "array", "items": {"type": "string"}},
+                    "caps_word_count": {"type": "integer"},
+                    "exclamation_count": {"type": "integer"},
+                    "preview_text": {"type": "string"},
+                    "preview_char_count": {"type": "integer"},
+                    "preview_bonus": {"type": "integer"},
+                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "text": "{first_name}, your 3-step plan is ready",
+                  "platform": "email",
+                  "score": 82,
+                  "grade": "A",
+                  "char_count": 39,
+                  "word_count": 7,
+                  "has_number": true,
+                  "has_question": false,
+                  "has_personalization": true,
+                  "personalization_tokens": ["{first_name}"],
+                  "emoji_count": 0,
+                  "urgency_words_found": [],
+                  "power_words_found": ["your"],
+                  "spam_triggers_found": [],
+                  "caps_word_count": 0,
+                  "exclamation_count": 0,
+                  "preview_text": "Open to see the strategy top creators use",
+                  "preview_char_count": 42,
+                  "preview_bonus": 5,
+                  "suggestions": ["Consider adding one emoji to boost mobile open rates."]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid subject parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'subject' parameter. Send JSON body: {\"subject\": \"your email subject line\"}"}
               }
             }
           },
