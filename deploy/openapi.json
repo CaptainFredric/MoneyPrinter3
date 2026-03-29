@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score YouTube titles for CTR, score email subject lines for open rates, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score YouTube titles for CTR, score email subject lines for open rates, score text across all platforms in one call, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
@@ -487,6 +487,91 @@
               "application/json": {
                 "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
                 "example": {"error": "missing 'subject' parameter. Send JSON body: {\"subject\": \"your email subject line\"}"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
+    "/v1/score_multi": {
+      "post": {
+        "summary": "Score Text Across Multiple Platforms",
+        "description": "Score the same text across every supported platform (tweet, LinkedIn, Instagram, YouTube, email) in a single call. Returns per-platform scores, grades, and suggestions plus the best-fit platform. Heuristic analysis, instant, no AI needed.",
+        "operationId": "scoreMulti",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 5000,
+                    "description": "The text to score across platforms",
+                    "example": "Just shipped v2 of my SaaS \ud83d\ude80 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic"
+                  },
+                  "platforms": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["tweet", "linkedin", "instagram", "youtube", "email"]},
+                    "description": "Optional list of platforms to score. Defaults to all if omitted.",
+                    "example": ["tweet", "linkedin", "instagram"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Multi-platform score results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "platforms_scored": {"type": "integer"},
+                    "results": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                          "grade": {"type": "string"},
+                          "suggestions": {"type": "array", "items": {"type": "string"}}
+                        }
+                      }
+                    },
+                    "best_platform": {"type": "string"},
+                    "best_score": {"type": "integer"}
+                  }
+                },
+                "example": {
+                  "text": "Just shipped v2 of my SaaS \ud83d\ude80 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic",
+                  "platforms_scored": 5,
+                  "results": {
+                    "tweet": {"score": 85, "grade": "A", "suggestions": []},
+                    "linkedin": {"score": 62, "grade": "B", "suggestions": ["Consider adding a call-to-action."]},
+                    "instagram": {"score": 58, "grade": "C", "suggestions": ["Add 5-15 hashtags for better reach."]},
+                    "youtube": {"score": 40, "grade": "C", "suggestions": ["Keep title between 40-60 characters."]},
+                    "email": {"score": 35, "grade": "D", "suggestions": ["Too long for a subject line."]}
+                  },
+                  "best_platform": "tweet",
+                  "best_score": 85
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'text' parameter. Send JSON body: {\"text\": \"your content\"}"}
               }
             }
           },

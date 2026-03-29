@@ -2020,6 +2020,122 @@ def endpoint_score_email_subject():
 
 
 # ---------------------------------------------------------------------------
+# 5f. Multi-Platform Score (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+_PLATFORM_SCORERS = {
+    "tweet": lambda text, _opts: score_tweet(text),
+    "twitter": lambda text, _opts: score_tweet(text),
+    "linkedin": lambda text, _opts: score_linkedin_post(text),
+    "instagram": lambda text, _opts: score_instagram_caption(text),
+    "youtube": lambda text, opts: score_youtube_title(
+        text, opts.get("thumbnail_text", "")
+    ),
+    "email": lambda text, opts: score_email_subject(
+        text, opts.get("preview_text", "")
+    ),
+}
+
+
+@app.route("/v1/score_multi", methods=["GET", "POST"])
+@app.route("/score-multi", methods=["GET", "POST"])
+@app.route("/score_multi", methods=["GET", "POST"])
+def endpoint_score_multi():
+    """Score one piece of text across multiple platforms in a single call."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-multi",
+            "method": "POST",
+            "description": (
+                "Score one piece of text across multiple platforms in a single "
+                "API call. Returns per-platform scores, grades, and suggestions. "
+                "Instant heuristic analysis, no AI needed."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-multi",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "text": "your content text here",
+                    "platforms": ["tweet", "linkedin", "instagram"],
+                },
+            },
+            "available_platforms": list(_PLATFORM_SCORERS.keys()),
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-multi '
+                '-H "Content-Type: application/json" '
+                "-d '{\"text\": \"I built a free tool that scores your content "
+                "before you post it.\", \"platforms\": [\"tweet\", \"linkedin\", \"instagram\"]}'"
+            ),
+            "note": (
+                "No API key needed for direct access. "
+                "Free tier on RapidAPI: 50 calls/month."
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or payload.get("content") or "").strip()
+    platforms = payload.get("platforms", [])
+    opts = payload  # pass full payload for thumbnail_text, preview_text
+
+    if not text:
+        return jsonify({
+            "error": (
+                "missing 'text' parameter. "
+                'Send JSON: {"text": "...", "platforms": ["tweet", "linkedin"]}'
+            )
+        }), 400
+    if len(text) > 5000:
+        return jsonify({"error": "text too long (max 5000 chars)"}), 400
+
+    if not platforms or not isinstance(platforms, list):
+        # Default: score for all major platforms
+        platforms = ["tweet", "linkedin", "instagram"]
+
+    # Validate platforms
+    valid = [p for p in platforms if p in _PLATFORM_SCORERS]
+    if not valid:
+        return jsonify({
+            "error": (
+                f"no valid platforms. Available: {list(_PLATFORM_SCORERS.keys())}"
+            )
+        }), 400
+
+    results = {}
+    best_platform = None
+    best_score = -1
+
+    for p in valid:
+        try:
+            r = _PLATFORM_SCORERS[p](text, opts)
+            results[p] = {
+                "score": r["score"],
+                "grade": r["grade"],
+                "suggestions": r.get("suggestions", []),
+            }
+            if r["score"] > best_score:
+                best_score = r["score"]
+                best_platform = p
+        except Exception as e:
+            results[p] = {"score": 0, "grade": "F", "error": str(e)}
+
+    _log_usage("score_multi", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "text": text[:200] + ("..." if len(text) > 200 else ""),
+        "platforms_scored": valid,
+        "results": results,
+        "best_platform": best_platform,
+        "best_score": best_score,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 6. Content Calendar (AI-powered)
 # ---------------------------------------------------------------------------
 @app.route("/v1/content_calendar", methods=["POST"])
@@ -2408,6 +2524,7 @@ def root():
             "POST /v1/score_instagram": "Score an Instagram caption for engagement (instant, no AI)",
             "POST /v1/score_youtube_title": "Score a YouTube title for CTR potential (instant, no AI)",
             "POST /v1/score_email_subject": "Score an email subject line for open rate (instant, no AI)",
+            "POST /v1/score_multi": "Score text across multiple platforms in one call (instant, no AI)",
             "POST /v1/improve_headline": "AI-rewrite a headline into N better scored versions",
             "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
             "POST /v1/rewrite": "Rewrite text for any platform/tone",

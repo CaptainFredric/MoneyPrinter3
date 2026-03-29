@@ -249,10 +249,10 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">⚡ 10 endpoints · Instant + AI</div>
+  <div class="badge">⚡ 15 endpoints · Instant + AI</div>
   <h1>Stop guessing.<br>Start <em>scoring</em> your content.</h1>
   <p class="hero-sub">
-    ContentForge is a REST API that scores headlines and tweets before you post, rewrites weak content with AI, and generates threads, calendars, and bios on demand.
+    ContentForge is a REST API that scores tweets, LinkedIn posts, Instagram captions, YouTube titles, and email subject lines before you post. Rewrite weak content with AI, and generate threads, calendars, and bios on demand.
   </p>
   <div class="hero-btns">
     <a href="https://rapidapi.com/captainarmoreddude/api/contentforge1" class="btn-primary" target="_blank" rel="noopener">Start Free on RapidAPI →</a>
@@ -328,24 +328,24 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <div class="audience-card">
       <div class="audience-icon">📧</div>
       <h3>Email Marketers</h3>
-      <p>Score subject lines with analyze_headline. A/B test 5 versions programmatically before sending.</p>
+      <p>Score subject lines with score_email_subject. Detect spam triggers, test personalization, A/B test 5 versions before sending.</p>
     </div>
   </div>
 </section>
 
 <!-- STATS -->
 <div class="stats">
-  <div class="stat"><div class="stat-num">10</div><div class="stat-label">API Endpoints</div></div>
-  <div class="stat"><div class="stat-num">2</div><div class="stat-label">Instant (no AI)</div></div>
-  <div class="stat"><div class="stat-num">8</div><div class="stat-label">AI-powered</div></div>
-  <div class="stat"><div class="stat-num">60+</div><div class="stat-label">Tracked Power Words</div></div>
+  <div class="stat"><div class="stat-num">15</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-num">7</div><div class="stat-label">Instant (no AI)</div></div>
+  <div class="stat"><div class="stat-num">7</div><div class="stat-label">AI-powered</div></div>
+  <div class="stat"><div class="stat-num">100+</div><div class="stat-label">Tracked Power Words</div></div>
   <div class="stat"><div class="stat-num">Free</div><div class="stat-label">BASIC Plan</div></div>
 </div>
 
 <!-- ENDPOINTS -->
 <section id="endpoints">
-  <h2>All 10 Endpoints</h2>
-  <p class="section-sub">Two instant endpoints for zero-latency scoring. Eight AI endpoints for generation and improvement.</p>
+  <h2>All 15 Endpoints</h2>
+  <p class="section-sub">Seven instant endpoints for zero-latency scoring across every major platform. Seven AI endpoints for generation and improvement.</p>
   <div class="endpoints-grid">
 
     <div class="endpoint-card">
@@ -359,6 +359,41 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
       <div class="ep-method instant">POST</div>
       <div class="ep-path">/v1/score_tweet</div>
       <div class="ep-desc">Score any tweet draft for engagement potential before you post. Checks length, hashtags, emojis, power words, readability.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/score_linkedin_post</div>
+      <div class="ep-desc">Score a LinkedIn post for professional engagement. Checks length, hook, formatting, hashtags, CTA, and readability.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/score_instagram</div>
+      <div class="ep-desc">Score an Instagram caption for reach and engagement. Evaluates hashtags, emojis, hook strength, CTA, and power words.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/score_youtube_title</div>
+      <div class="ep-desc">Score a YouTube title for click-through rate. Checks length, numbers, brackets, power words, and optional thumbnail text.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/score_email_subject</div>
+      <div class="ep-desc">Score an email subject line for open rate. Detects spam triggers, personalization, urgency words, and preview text fit.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/score_multi</div>
+      <div class="ep-desc">Score one text across every platform in a single call. Returns per-platform scores and the best-fit platform.</div>
       <span class="ep-badge fast">⚡ Instant</span>
     </div>
 
@@ -434,7 +469,7 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <div class="step">
       <div class="step-num">2</div>
       <h3>Score before you post</h3>
-      <p>Run every headline and tweet through the instant scoring endpoints. Only publish A/B grade content.</p>
+      <p>Run every tweet, caption, title, and subject line through the instant scoring endpoints. Only publish A/B grade content.</p>
     </div>
     <div class="step">
       <div class="step-num">3</div>
