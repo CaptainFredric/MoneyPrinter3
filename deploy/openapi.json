@@ -15,6 +15,11 @@
       "description": "Production"
     }
   ],
+  "tags": [
+    {"name": "Content Analysis", "description": "Instant heuristic scoring — zero latency, no AI token cost"},
+    {"name": "AI Content Generation", "description": "AI-powered endpoints for generating and improving content"},
+    {"name": "System", "description": "Health and service status"}
+  ],
   "components": {
     "headers": {
       "X-RateLimit-Limit": {
@@ -618,7 +623,7 @@
         "summary": "Generate Twitter Thread Outline",
         "description": "Generate a complete Twitter thread outline for any topic. Returns a hook tweet (scroll-stopping opener), numbered body tweets with key insights, and a CTA closing tweet — all ready to post. Configurable tweet count (3-10) and tone.",
         "operationId": "threadOutline",
-        "tags": ["Content Generation"],
+        "tags": ["AI Content Generation"],
         "requestBody": {
           "required": true,
           "content": {
@@ -690,7 +695,7 @@
         "summary": "Generate Social Media Bio",
         "description": "Generate an optimized social media bio for Twitter, LinkedIn, or Instagram. Supply a name, niche, optional keywords, platform, and tone — get back a punchy, professional bio that stays within platform character limits.",
         "operationId": "generateBio",
-        "tags": ["Content Generation"],
+        "tags": ["AI Content Generation"],
         "requestBody": {
           "required": true,
           "content": {

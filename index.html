@@ -383,34 +383,32 @@
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 16px;
     }
-    a.price-card { text-decoration: none; display: block; }
+    a.price-card { text-decoration: none; display: block; position: relative; border-radius: 12px; transition: transform .3s, box-shadow .3s; }
     .price-card {
       background: #141418; border: 1px solid #1e1e28; border-radius: 12px;
       padding: 28px 22px; text-align: center;
-      transition: border-color .3s, transform .3s, box-shadow .3s;
+      transition: border-color .3s;
     }
-    a.price-card:hover .price-card,
-    .price-card:hover {
+    a.price-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     }
-    a.price-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+    a.price-card.featured {
+      border-radius: 12px;
+    }
+    a.price-card.featured .price-card,
     .price-card.featured {
       border-color: #7c6af7;
-      position: relative;
-    }
-    a.price-card.featured {
-      border-color: #7c6af7;
-      border-radius: 12px;
-      position: relative;
     }
     a.price-card.featured::before,
     .price-card.featured::before {
       content: 'POPULAR';
+      display: block;
       position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
       background: linear-gradient(135deg, #7c6af7, #6a57e6);
       color: #fff; font-size: 0.68rem; font-weight: 700;
       padding: 2px 12px; border-radius: 100px; letter-spacing: 1px;
+      white-space: nowrap; z-index: 1;
     }
     .price-name { font-size: 0.85rem; font-weight: 700; color: #7c6af7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
     .price-amount { font-size: 2.2rem; font-weight: 800; color: #f0f0f5; }
