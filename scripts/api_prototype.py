@@ -20,6 +20,7 @@ Endpoints:
   POST /v1/thread_outline      — AI-generated Twitter thread outline (hook + body + CTA) (AI)
   POST /v1/generate_bio        — AI-generated social media bio (Twitter/LinkedIn/Instagram) (AI)
   POST /v1/generate_caption    — AI-generated Instagram or TikTok caption (AI)
+  POST /v1/generate_linkedin_post — AI-generated LinkedIn post (storytelling/professional/motivational) (AI)
   GET  /health                 — Service health check
 
 Run smoke test:
@@ -3293,6 +3294,108 @@ def endpoint_generate_caption():
 
 
 # ---------------------------------------------------------------------------
+# 9. Generate LinkedIn Post (AI-powered)
+# ---------------------------------------------------------------------------
+@app.route("/v1/generate_linkedin_post", methods=["GET", "POST"])
+@app.route("/generate-linkedin-post", methods=["GET", "POST"])
+@app.route("/generate_linkedin_post", methods=["GET", "POST"])
+def endpoint_generate_linkedin_post():
+    """AI-generated LinkedIn post with hook, body paragraphs, insight, and CTA."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "generate-linkedin-post",
+            "method": "POST",
+            "description": (
+                "Generate a full LinkedIn post for any topic. "
+                "Returns a structured post with a scroll-stopping hook, "
+                "story/insight body, and a closing call-to-action — "
+                "formatted in LinkedIn's proven short-paragraph style."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/generate-linkedin-post",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "topic": "your post topic here",
+                    "tone": "storytelling",
+                },
+            },
+            "parameters": {
+                "topic": "What your post is about (required)",
+                "tone": "storytelling, professional, motivational (default: storytelling)",
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/generate-linkedin-post '
+                '-H "Content-Type: application/json" '
+                "-d '{\"topic\": \"lessons from launching my first SaaS\"}'"
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    topic = (payload.get("topic") or "").strip()
+    tone = payload.get("tone", "storytelling").lower().strip()
+
+    if not topic:
+        return jsonify({
+            "error": "missing 'topic' parameter. Send JSON: {\"topic\": \"your post topic\"}"
+        }), 400
+    if len(topic) > 500:
+        return jsonify({"error": "topic too long (max 500 chars)"}), 400
+
+    if tone not in ("storytelling", "professional", "motivational"):
+        tone = "storytelling"
+
+    tone_instructions = {
+        "storytelling": (
+            "Use personal story-telling format. Start with a bold first-person statement. "
+            "Tell a mini story. Extract a key lesson. End with an engaging question."
+        ),
+        "professional": (
+            "Use a data-driven professional tone. Open with a strong insight or statistic. "
+            "Give 3 concise concrete points. End with a professional call-to-action."
+        ),
+        "motivational": (
+            "Use an inspirational motivational tone. Start with a powerful challenge or truth. "
+            "Build with short punch lines. End with an empowering CTA that feels actionable."
+        ),
+    }[tone]
+
+    prompt = (
+        f"Write a LinkedIn post about: {topic}\n\n"
+        f"{tone_instructions}\n\n"
+        "LinkedIn formatting rules:\n"
+        "- Short paragraphs (1-2 sentences max each)\n"
+        "- Blank line between each paragraph\n"
+        "- First line is the hook (must make someone stop scrolling)\n"
+        "- Add 3-5 relevant hashtags at the very end\n"
+        "- Total length 150-400 words\n"
+        "- Do NOT use bullet points or numbered lists\n\n"
+        "Return ONLY the post text, nothing else."
+    )
+
+    try:
+        post = _llm_generate(prompt).strip().strip('"').strip("'")
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    _log_usage("generate_linkedin_post", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "topic": topic,
+        "tone": tone,
+        "post": post,
+        "char_count": len(post),
+        "word_count": len(post.split()),
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
 # Health + Root
 # ---------------------------------------------------------------------------
 @app.route("/health", methods=["GET"])
@@ -3363,6 +3466,7 @@ def root():
             "POST /v1/thread_outline": "AI-generated Twitter thread outline (hook + body + CTA)",
             "POST /v1/generate_bio": "AI-generated social media bio (Twitter/LinkedIn/Instagram)",
             "POST /v1/generate_caption": "AI-generated Instagram or TikTok caption (with hashtags + CTA)",
+            "POST /v1/generate_linkedin_post": "AI-generated LinkedIn post (storytelling, professional, or motivational)",
             "GET /health": "Service health check + usage stats",
         },
         "docs": "https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1",
@@ -3450,6 +3554,10 @@ def _run_test():
 
         print("\n=== Generate Caption ===")
         rv = c.post("/v1/generate_caption", json={"topic": "morning productivity routine", "platform": "instagram", "tone": "inspirational"})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Generate LinkedIn Post ===")
+        rv = c.post("/v1/generate_linkedin_post", json={"topic": "lessons from launching my first SaaS", "tone": "storytelling"})
         pprint.pprint(rv.get_json())
 
         print("\n=== Health ===")

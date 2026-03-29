@@ -304,7 +304,7 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">⚡ 19 endpoints · Instant + AI</div>
+  <div class="badge">⚡ 20 endpoints · Instant + AI</div>
   <h1>Stop guessing.<br>Start <em>scoring</em> your content.</h1>
   <p class="hero-sub">
     ContentForge is a REST API that scores tweets, LinkedIn posts, Instagram captions, YouTube titles, and email subject lines before you post. Rewrite weak content with AI, and generate threads, calendars, and bios on demand.
@@ -454,7 +454,7 @@ data = r.json()
 
 <!-- STATS -->
 <div class="stats">
-  <div class="stat"><div class="stat-num">19</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-num">20</div><div class="stat-label">API Endpoints</div></div>
   <div class="stat"><div class="stat-num">10</div><div class="stat-label">Instant (no AI)</div></div>
   <div class="stat"><div class="stat-num">7</div><div class="stat-label">AI-powered</div></div>
   <div class="stat"><div class="stat-num">100+</div><div class="stat-label">Tracked Power Words</div></div>
@@ -463,8 +463,8 @@ data = r.json()
 
 <!-- ENDPOINTS -->
 <section id="endpoints">
-  <h2>All 19 Endpoints</h2>
-  <p class="section-sub">Ten instant endpoints for zero-latency scoring across every major platform. Eight AI endpoints for generation and improvement.</p>
+  <h2>All 20 Endpoints</h2>
+  <p class="section-sub">Ten instant endpoints for zero-latency scoring across every major platform. Nine AI endpoints for generating and improving content across every format.</p>
   <div class="endpoints-grid">
 
     <div class="endpoint-card">
@@ -592,7 +592,12 @@ data = r.json()
       <div class="ep-desc">AI-generated Instagram or TikTok caption with platform-tuned hashtags, emojis, and a call-to-action built in.</div>
       <span class="ep-badge ai">✦ AI</span>
     </div>
-
+    <div class="endpoint-card">
+      <div class="ep-method">POST</div>
+      <div class="ep-path">/v1/generate_linkedin_post</div>
+      <div class="ep-desc">Full AI-generated LinkedIn post for any topic. Storytelling, professional, or motivational format — with hook, body, and CTA.</div>
+      <span class="ep-badge ai">❖ AI</span>
+    </div>
     <div class="endpoint-card">
       <div class="ep-method instant">GET</div>
       <div class="ep-path">/health</div>

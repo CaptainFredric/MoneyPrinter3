@@ -6,7 +6,7 @@ ContentForge Autopilot — fully autonomous promotional tweet scheduler.
 
 Runs in the background and posts ContentForge promotional tweets across
 both Twitter accounts on a randomized schedule.  It combines:
-  1. 32 hand-crafted, high-scoring templates (all verified 70+)
+  1. 34 hand-crafted, high-scoring templates (all verified 70+)
   2. AI-generated tweets (local Ollama -> Gemini fallback)
   3. Live scoring via ContentForge's own score_tweet() — eat the dog food
 
@@ -74,7 +74,7 @@ API_BASE = "https://contentforge-api-lpp9.onrender.com"
 MIN_SCORE = 70
 
 # ===========================================================================
-# Template library — 32 hand-crafted tweets
+# Template library — 34 hand-crafted tweets
 # Every template is engineered for 70+ score by including:
 #   - power words: free, proven, instant, hack, tip, strategy, secret, boost…
 #   - 1-2 hashtags
@@ -420,6 +420,28 @@ PROMO_TEMPLATES: list[dict] = [
         ),
         "accounts": ["niche_launch_1", "EyeCatcher"],
     },
+
+    # ── Caption + LinkedIn Generator ────────────────────────────────────────
+    {
+        "id": "caption_generator_intro",
+        "text": (
+            "is writing Instagram captions harder than the actual post? 📸\n\n"
+            "hack: ContentForge's free Caption Generator writes it for you —\n"
+            "hook + body + hashtags + CTA, instant\n\n"
+            f"{RAPIDAPI_URL} #instagram #contentcreator"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "linkedin_post_generator_intro",
+        "text": (
+            "is writing LinkedIn posts taking you 2 hours? proven fix 🔥\n\n"
+            "ContentForge's free LinkedIn Post Generator writes the whole thing:\n"
+            "hook, story, insight, CTA — instant results\n\n"
+            f"{RAPIDAPI_URL} #linkedin #contentmarketing"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -471,6 +493,17 @@ AI_NICHES: dict[str, list[str]] = {
             "Write a tweet about hashtag strategy for social media growth. Mention ContentForge's free Hashtag Analyzer "
             f"that checks spam risk and platform-specific tag counts. Link: {RAPIDAPI_URL}. "
             "Use 'proven', 'free', 'strategy'. Add #socialmedia. 1 emoji. Under 260 chars."
+        ),
+        (
+            "Write a tweet about writing Instagram or TikTok captions faster. Mention ContentForge's free Caption Generator "
+            f"that creates hooks, hashtags, and CTAs instantly. Link: {RAPIDAPI_URL}. "
+            "Use 'hack', 'instant', 'free'. Add #instagram. 1 emoji. Under 260 chars."
+        ),
+        (
+            "Write a tweet about writing LinkedIn posts faster without staring at a blank page. "
+            "Mention ContentForge's free LinkedIn Post Generator. "
+            f"Link: {RAPIDAPI_URL}. Use 'proven', 'instant', 'strategy'. Add #linkedin. 1 emoji. "
+            "Under 260 chars."
         ),
     ],
     "EyeCatcher": [
@@ -525,6 +558,18 @@ AI_NICHES: dict[str, list[str]] = {
             "Write a tweet about why most people use hashtags wrong (too many, spam tags, no variety). "
             "Mention ContentForge's free Hashtag Analyzer that detects spam risk across platforms. "
             f"Link: {RAPIDAPI_URL}. Use 'mistake', 'proven', 'free'. Add #growthhack. 1 emoji. "
+            "Under 260 chars."
+        ),
+        (
+            "Write a tweet about how to write better Instagram and TikTok captions that drive engagement. "
+            "Mention ContentForge's free Caption Generator that writes hooks, hashtags, and CTAs instantly. "
+            f"Link: {RAPIDAPI_URL}. Use 'hack', 'free', 'instant'. Add #contentcreator. 1 emoji. "
+            "Under 260 chars."
+        ),
+        (
+            "Write a tweet about cracking the LinkedIn algorithm with great storytelling posts. "
+            "Mention ContentForge's free LinkedIn Post Generator that writes the whole post for you. "
+            f"Link: {RAPIDAPI_URL}. Use 'proven', 'strategy', 'free'. Add #linkedin. 1 emoji. "
             "Under 260 chars."
         ),
     ],
