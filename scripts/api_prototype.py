@@ -2804,6 +2804,14 @@ def _run_test():
         rv = c.post("/v1/score_email_subject", json={"subject": "{first_name}, your 3-step plan is ready", "preview_text": "Open to see the strategy top creators use"})
         pprint.pprint(rv.get_json())
 
+        print("\n=== Readability Scorer ===")
+        rv = c.post("/v1/score_readability", json={"text": "Short sentences work best. They keep the reader engaged. Use simple words too."})
+        pprint.pprint(rv.get_json())
+
+        print("\n=== Multi-Platform Scorer ===")
+        rv = c.post("/v1/score_multi", json={"text": "Just shipped v2 of my SaaS. Revenue hit $5K MRR in 90 days #buildinpublic"})
+        pprint.pprint(rv.get_json())
+
         print("\n=== Improve Headline ===")
         rv = c.post("/v1/improve_headline", json={"text": "How to make money online", "count": 3})
         pprint.pprint(rv.get_json())
