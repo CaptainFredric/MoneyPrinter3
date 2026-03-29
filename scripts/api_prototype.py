@@ -618,8 +618,30 @@ def score_tweet(text: str) -> dict:
     }
 
 
-@app.route("/v1/score_tweet", methods=["POST"])
+@app.route("/v1/score_tweet", methods=["GET", "POST"])
+@app.route("/score-tweet", methods=["GET", "POST"])
+@app.route("/score_tweet", methods=["GET", "POST"])
 def endpoint_score_tweet():
+    # GET requests: return helpful usage info instead of "Method Not Allowed"
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-tweet",
+            "method": "POST",
+            "description": "Score any tweet draft 0-100 with grade and improvement tips.",
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/score-tweet",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {"tweet": "your tweet text here"},
+            },
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/score-tweet '
+                '-H "Content-Type: application/json" '
+                '-d \'{"tweet": "Want to boost your headline? Try ContentForge free."}\''
+            ),
+            "note": "No API key needed for direct access. Free tier on RapidAPI: 50 calls/month.",
+        }), 200
+
     if not _verify_rapidapi_request():
         return jsonify({"error": "forbidden"}), 403
     allowed, remaining = _check_rate_limit()
@@ -628,10 +650,11 @@ def endpoint_score_tweet():
 
     start = time.time()
     payload = request.get_json(silent=True) or {}
-    text = payload.get("text", "").strip()
+    # Accept both "tweet" and "text" as parameter names
+    text = (payload.get("tweet") or payload.get("text") or "").strip()
 
     if not text:
-        return jsonify({"error": "missing 'text' parameter"}), 400
+        return jsonify({"error": "missing 'tweet' parameter. Send JSON body: {\"tweet\": \"your text\"}"}), 400
     if len(text) > 1000:
         return jsonify({"error": "text too long (max 1000 chars)"}), 400
 
