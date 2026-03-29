@@ -180,6 +180,14 @@ def _llm_generate(prompt: str) -> str:
             if text:
                 return text
         except Exception as e:
+            err_str = str(e).lower()
+            if "resource_exhausted" in err_str or "quota" in err_str:
+                raise RuntimeError(
+                    "Gemini API quota exhausted for today. "
+                    "The instant endpoints (analyze_headline, score_tweet, health) "
+                    "still work — they don't use AI. AI endpoints will resume "
+                    "when the quota resets (usually midnight Pacific)."
+                )
             raise RuntimeError(f"Gemini failed: {e}")
 
     raise RuntimeError(
