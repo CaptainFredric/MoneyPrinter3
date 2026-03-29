@@ -6,7 +6,7 @@ ContentForge Autopilot — fully autonomous promotional tweet scheduler.
 
 Runs in the background and posts ContentForge promotional tweets across
 both Twitter accounts on a randomized schedule.  It combines:
-  1. 35 hand-crafted, high-scoring templates (all verified 70+)
+  1. 36 hand-crafted, high-scoring templates (all verified 70+)
   2. AI-generated tweets (local Ollama -> Gemini fallback)
   3. Live scoring via ContentForge's own score_tweet() — eat the dog food
 
@@ -74,7 +74,7 @@ API_BASE = "https://contentforge-api-lpp9.onrender.com"
 MIN_SCORE = 70
 
 # ===========================================================================
-# Template library — 35 hand-crafted tweets
+# Template library — 36 hand-crafted tweets
 # Every template is engineered for 70+ score by including:
 #   - power words: free, proven, instant, hack, tip, strategy, secret, boost…
 #   - 1-2 hashtags
@@ -449,6 +449,16 @@ PROMO_TEMPLATES: list[dict] = [
             "hack: hashtags and links HURT reach on Threads — most creators don't know\n\n"
             "ContentForge's free Threads Scorer reveals your score instantly\n\n"
             f"{RAPIDAPI_URL} #growthhack"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "facebook_scorer_intro",
+        "text": (
+            "why are your Facebook posts getting no reach? proven answer 🔥\n\n"
+            "hack: 1-2 hashtags max + a question + 40-300 chars = instant boost\n\n"
+            "ContentForge's free Facebook Scorer reveals your score in seconds\n\n"
+            f"{RAPIDAPI_URL} #facebook #growthhack"
         ),
         "accounts": ["niche_launch_1", "EyeCatcher"],
     },

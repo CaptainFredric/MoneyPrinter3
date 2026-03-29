@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ContentForge API — Score Tweets, LinkedIn, Instagram, YouTube & Email Before You Post</title>
-  <meta name="description" content="ContentForge is a REST API that scores tweets, LinkedIn posts, Instagram captions, TikTok captions, YouTube titles, and email subjects before you post. 10 instant scorers + 9 AI endpoints. Free plan on RapidAPI.">
+  <meta name="description" content="ContentForge is a REST API that scores tweets, LinkedIn posts, Instagram captions, TikTok captions, Threads posts, Facebook posts, YouTube titles, and email subjects before you post. 12 instant scorers + 9 AI endpoints. Free plan on RapidAPI.">
   <link rel="canonical" href="https://contentforge-api-lpp9.onrender.com">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <!-- Open Graph -->
   <meta property="og:title" content="ContentForge API — Score Your Content Before You Post">
-  <meta property="og:description" content="10 instant content scoring endpoints + 9 AI generation endpoints. Score tweets, LinkedIn, Instagram, TikTok, YouTube, email in one API call. Free plan on RapidAPI.">
+  <meta property="og:description" content="12 instant content scoring endpoints + 9 AI generation endpoints. Score tweets, LinkedIn, Instagram, TikTok, Threads, Facebook, YouTube, email in one API call. Free plan on RapidAPI.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://contentforge-api-lpp9.onrender.com">
   <meta property="og:site_name" content="ContentForge">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="ContentForge — Score Your Content Before You Post">
-  <meta name="twitter:description" content="REST API: score tweets, LinkedIn, Instagram, YouTube titles & email subjects instantly. Free on RapidAPI. #buildinpublic">
+  <meta name="twitter:description" content="REST API: score tweets, LinkedIn, Instagram, TikTok, Threads &amp; YouTube titles instantly. Free on RapidAPI. #buildinpublic">
   <meta name="twitter:creator" content="@AdenCisneros">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -304,7 +304,7 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">⚡ 21 endpoints · Instant + AI</div>
+  <div class="badge">⚡ 22 endpoints · Instant + AI</div>
   <h1>Stop guessing.<br>Start <em>scoring</em> your content.</h1>
   <p class="hero-sub">
     ContentForge is a REST API that scores tweets, LinkedIn posts, Instagram captions, YouTube titles, and email subject lines before you post. Rewrite weak content with AI, and generate threads, calendars, and bios on demand.
@@ -454,17 +454,17 @@ data = r.json()
 
 <!-- STATS -->
 <div class="stats">
-  <div class="stat"><div class="stat-num">21</div><div class="stat-label">API Endpoints</div></div>
-  <div class="stat"><div class="stat-num">11</div><div class="stat-label">Instant (no AI)</div></div>
-  <div class="stat"><div class="stat-num">7</div><div class="stat-label">AI-powered</div></div>
+  <div class="stat"><div class="stat-num">22</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-num">12</div><div class="stat-label">Instant (no AI)</div></div>
+  <div class="stat"><div class="stat-num">9</div><div class="stat-label">AI-powered</div></div>
   <div class="stat"><div class="stat-num">100+</div><div class="stat-label">Tracked Power Words</div></div>
   <div class="stat"><div class="stat-num">Free</div><div class="stat-label">BASIC Plan</div></div>
 </div>
 
 <!-- ENDPOINTS -->
 <section id="endpoints">
-  <h2>All 21 Endpoints</h2>
-  <p class="section-sub">Eleven instant endpoints for zero-latency scoring across every major platform. Nine AI endpoints for generating and improving content across every format.</p>
+  <h2>All 22 Endpoints</h2>
+  <p class="section-sub">Twelve instant endpoints for zero-latency scoring across every major platform. Nine AI endpoints for generating and improving content across every format.</p>
   <div class="endpoints-grid">
 
     <div class="endpoint-card">
@@ -534,6 +534,13 @@ data = r.json()
       <div class="ep-method instant">POST</div>
       <div class="ep-path">/v1/score_threads</div>
       <div class="ep-desc">Score a Meta Threads post for reach. Threads rewards conversational hooks, personal voice, and questions — and penalizes hashtags and links.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">/v1/score_facebook</div>
+      <div class="ep-desc">Score a Facebook organic post for reach. Facebook rewards 40-300 char posts, emojis, questions, and 1-2 hashtags. Links receive a mild downrank penalty.</div>
       <span class="ep-badge fast">⚡ Instant</span>
     </div>
 
@@ -649,7 +656,7 @@ data = r.json()
     </div>
     <div class="faq-item">
       <div class="faq-q">How fast are the instant endpoints?</div>
-      <div class="faq-a">The 10 heuristic scoring endpoints (<code>score_tweet</code>, <code>score_linkedin_post</code>, <code>score_instagram</code>, <code>score_tiktok</code>, <code>score_youtube_title</code>, <code>score_email_subject</code>, <code>score_multi</code>, <code>score_readability</code>, <code>analyze_headline</code>, <code>analyze_hashtags</code>) run in &lt;5ms on the server. No AI call, no wait time.</div>
+      <div class="faq-a">The 12 heuristic scoring endpoints (<code>score_tweet</code>, <code>score_linkedin_post</code>, <code>score_instagram</code>, <code>score_tiktok</code>, <code>score_threads</code>, <code>score_facebook</code>, <code>score_youtube_title</code>, <code>score_email_subject</code>, <code>score_multi</code>, <code>score_readability</code>, <code>analyze_headline</code>, <code>analyze_hashtags</code>) run in &lt;5ms on the server. No AI call, no wait time.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">How does the scoring system work?</div>
@@ -657,7 +664,7 @@ data = r.json()
     </div>
     <div class="faq-item">
       <div class="faq-q">What does score_multi do?</div>
-      <div class="faq-a">It scores your text against up to 6 platforms (tweet, LinkedIn, Instagram, TikTok, YouTube, email) in a single API call. Useful for deciding which platform a particular piece of copy is best suited for before you start adapting or rewriting it.</div>
+      <div class="faq-a">It scores your text against up to 8 platforms (tweet, LinkedIn, Instagram, TikTok, Threads, Facebook, YouTube, email) in a single API call. Useful for deciding which platform a particular piece of copy is best suited for before you start adapting or rewriting it.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Can I integrate ContentForge with Zapier, Make, or n8n?</div>

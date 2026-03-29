@@ -740,6 +740,91 @@
         }
       }
     },
+    "/v1/score_facebook": {
+      "post": {
+        "summary": "Score a Facebook Post",
+        "description": "Score a Facebook organic post for reach and engagement potential 0-100. Facebook rewards conversational text (40-300 chars), 1-2 hashtags, emojis, question hooks, and CTAs like 'comment/share/tag'. External links receive a mild downrank penalty. Instant heuristic analysis, no AI needed.",
+        "operationId": "scoreFacebook",
+        "tags": ["Content Analysis"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "The Facebook post to score",
+                    "example": "We just hit 10,000 customers 🎉 and it's all because of you!\n\nWhat's one thing you want us to build next? Drop a comment below!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Facebook post score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {"type": "string"},
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+                    "char_count": {"type": "integer"},
+                    "word_count": {"type": "integer"},
+                    "hashtag_count": {"type": "integer"},
+                    "emoji_count": {"type": "integer"},
+                    "has_cta": {"type": "boolean"},
+                    "has_question": {"type": "boolean"},
+                    "has_number": {"type": "boolean"},
+                    "has_link": {"type": "boolean"},
+                    "has_personal_pronoun": {"type": "boolean"},
+                    "caps_abuse": {"type": "boolean"},
+                    "hashtags": {"type": "array", "items": {"type": "string"}},
+                    "power_words_found": {"type": "array", "items": {"type": "string"}},
+                    "caps_words": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "example": {
+                  "text": "We just hit 10,000 customers 🎉 and it's all because of you! What's one thing you want us to build next? Drop a comment!",
+                  "score": 86,
+                  "grade": "B",
+                  "char_count": 120,
+                  "word_count": 24,
+                  "hashtag_count": 0,
+                  "emoji_count": 1,
+                  "has_cta": true,
+                  "has_question": true,
+                  "has_number": true,
+                  "has_link": false,
+                  "has_personal_pronoun": true,
+                  "caps_abuse": false,
+                  "hashtags": [],
+                  "power_words_found": [],
+                  "caps_words": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid text parameter",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
+                "example": {"error": "missing 'text' parameter"}
+              }
+            }
+          },
+          "429": {"description": "Rate limit exceeded"}
+        }
+      }
+    },
     "/v1/score_tiktok": {
       "post": {
         "summary": "Score a TikTok Caption",
