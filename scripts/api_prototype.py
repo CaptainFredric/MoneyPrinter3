@@ -214,7 +214,7 @@ def _llm_generate(prompt: str) -> str:
                     return text
             except Exception as e:
                 err_str = str(e).lower()
-                if "resource_exhausted" in err_str or "quota" in err_str:
+                if "resource_exhausted" in err_str or "quota" in err_str or "not_found" in err_str or "404" in err_str:
                     last_quota_error = e
                     continue
                 raise RuntimeError(f"Gemini failed on {model_name}: {e}")
@@ -225,7 +225,6 @@ def _llm_generate(prompt: str) -> str:
                 "The instant endpoints still work -- they do not use AI. "
                 "AI endpoints will resume when the quota resets (usually midnight Pacific)."
             )
-            raise RuntimeError(f"Gemini failed: {e}")
 
     raise RuntimeError(
         "No LLM available. Set GEMINI_API_KEY for cloud deployment, "
