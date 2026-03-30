@@ -47,6 +47,7 @@ BACKFILL_SCRIPT = ROOT_DIR / "scripts" / "backfill_pending_twitter.py"
 SESSION_SCRIPT = ROOT_DIR / "scripts" / "check_x_session.py"
 CLEANUP_SCRIPT = ROOT_DIR / "scripts" / "cleanup_stale_locks.py"
 TEMP_CLEANUP_SCRIPT = ROOT_DIR / "scripts" / "cleanup_temp_space.py"
+PROMO_SCRIPT = ROOT_DIR / "scripts" / "promo_contentforge.py"
 
 RUNTIME_DIR = ROOT_DIR / ".mp" / "runtime"
 ACCOUNT_STATE_FILE = RUNTIME_DIR / "account_states.json"
@@ -188,6 +189,7 @@ def main() -> None:
     parser.add_argument("--cleanup-every", type=int, default=6, help="run stale lock cleanup every N cycles")
     parser.add_argument("--session-check-every", type=int, default=4, help="run session checks every N cycles")
     parser.add_argument("--verify-every", type=int, default=3, help="run verify/backfill every N cycles when no qualified post")
+    parser.add_argument("--promo-every", type=int, default=4, help="run ContentForge self-promo every N qualified posts (0 to disable)")
     parser.add_argument("--confidence-min-score", type=int, default=int(os.environ.get("MPV2_CONFIDENCE_MIN_SCORE", "80")))
     parser.add_argument("--fast-retry-minutes", type=int, default=4, help="short retry sleep when post confidence is below threshold")
     parser.add_argument(
@@ -350,6 +352,22 @@ def main() -> None:
             if args.session_check_every > 0 and cycle_index % args.session_check_every == 0:
                 session_cmd = [str(VENV_PYTHON), str(SESSION_SCRIPT), "all"]
                 _run_cmd(session_cmd, env)
+
+            # ContentForge self-promo injection: every N cycles after a qualified post
+            if (
+                args.promo_every > 0
+                and PROMO_SCRIPT.exists()
+                and cycle_index % args.promo_every == 0
+                and qualified_post
+            ):
+                print(f"[idle-p2] Promo cycle {cycle_index}: posting ContentForge self-promo for {best_account}")
+                promo_cmd = [
+                    str(VENV_PYTHON),
+                    str(PROMO_SCRIPT),
+                    "--account", best_account,
+                    "--headless",
+                ]
+                _run_cmd(promo_cmd, env, timeout_seconds=300)
 
             # Compute adaptive sleep
             base_sleep = random.randint(args.min_minutes, args.max_minutes)
