@@ -56,6 +56,31 @@ app = Flask(__name__)
 
 
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
+# Force-JSON Request class — parse body as JSON regardless of Content-Type
+# header.  RapidAPI Studio sometimes omits Content-Type when sending test
+# requests; without force=True, get_json(silent=True) returns None and all
+# POST endpoints fail with 400 "missing required parameter".
+# ---------------------------------------------------------------------------
+from flask import Request as _FlaskRequest
+
+
+class _ContentForgeRequest(_FlaskRequest):
+    """Override get_json so it always uses force=True.
+
+    This means the request body is parsed as JSON even when the caller
+    does not set Content-Type: application/json.  The silent flag passed
+    by endpoint code is preserved so invalid JSON still returns None.
+    """
+    def get_json(self, force: bool = False, silent: bool = False, cache: bool = True):
+        return super().get_json(force=True, silent=silent, cache=cache)
+
+
+app.request_class = _ContentForgeRequest
+
+
+# ---------------------------------------------------------------------------
+=======
 # Force-JSON Request class -- parse body as JSON regardless of Content-Type
 # header.  RapidAPI Studio sometimes omits Content-Type when sending test
 # requests; without force=True, get_json(silent=True) returns None and all
@@ -74,6 +99,7 @@ app.request_class = _ContentForgeRequest
 
 
 # ---------------------------------------------------------------------------
+>>>>>>> dcda800a6c8805a5e2d5f2ad15333646646fe27f
 # CORS — allow browser clients (RapidAPI playground, web apps)
 # ---------------------------------------------------------------------------
 @app.after_request
@@ -4895,10 +4921,9 @@ def health():
         except Exception as _e:
             err = str(_e).lower()
             if "quota" in err or "exhausted" in err:
-                ai_status_detail = "quota exhausted -- resets midnight Pacific"
+                ai_status_detail = "quota exhausted — resets midnight Pacific"
             else:
                 ai_status_detail = str(_e)[:120]
-
     return jsonify({
         "status": "ok",
         "service": "contentforge",
