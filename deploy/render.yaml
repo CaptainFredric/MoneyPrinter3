@@ -11,6 +11,6 @@ services:
       - key: RAPIDAPI_PROXY_SECRET
         sync: false   # set manually after listing on RapidAPI (Provider → My APIs → backend secret)
       - key: GEMINI_MODEL
-        value: gemini-2.0-flash
+        value: gemini-1.5-flash
       - key: PYTHONPATH
         value: /opt/render/project/src   # repo root — makes `scripts` and `src` importable

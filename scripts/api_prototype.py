@@ -178,30 +178,53 @@ def _llm_generate(prompt: str) -> str:
     except Exception:
         pass
 
-    # 3. Direct Gemini attempt (for cloud deployment where Ollama isn't available)
+    # 3. Direct Gemini attempt (for cloud deployment where Ollama is not available)
+    # Tries models in order so quota exhaustion on one automatically falls through
+    # to the next.  gemini-1.5-flash has 1500 RPD free vs 200 for 2.0-flash.
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if api_key:
         try:
             from google import genai
             from google.genai import types
-            client = genai.Client(api_key=api_key)
-            response = client.models.generate_content(
-                model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
-                contents=prompt,
-                config=types.GenerateContentConfig(temperature=0.9, max_output_tokens=300),
-            )
-            text = (response.text or "").strip()
-            if text:
-                return text
-        except Exception as e:
-            err_str = str(e).lower()
-            if "resource_exhausted" in err_str or "quota" in err_str:
-                raise RuntimeError(
-                    "Gemini API quota exhausted for today. "
-                    "The instant endpoints (analyze_headline, score_tweet, health) "
-                    "still work — they don't use AI. AI endpoints will resume "
-                    "when the quota resets (usually midnight Pacific)."
+        except ImportError as ie:
+            raise RuntimeError(f"google-genai package not installed: {ie}")
+
+        primary = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+        _fallback_order = [
+            primary,
+            "gemini-1.5-flash",
+            "gemini-2.0-flash",
+            "gemini-2.0-flash-lite",
+            "gemini-1.5-flash-8b",
+        ]
+        seen: set = set()
+        models_to_try = [m for m in _fallback_order if not (m in seen or seen.add(m))]
+
+        client = genai.Client(api_key=api_key)
+        last_quota_error = None
+        for model_name in models_to_try:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(temperature=0.9, max_output_tokens=300),
                 )
+                text = (response.text or "").strip()
+                if text:
+                    return text
+            except Exception as e:
+                err_str = str(e).lower()
+                if "resource_exhausted" in err_str or "quota" in err_str:
+                    last_quota_error = e
+                    continue
+                raise RuntimeError(f"Gemini failed on {model_name}: {e}")
+
+        if last_quota_error:
+            raise RuntimeError(
+                "Gemini API quota exhausted across all available models for today. "
+                "The instant endpoints still work -- they do not use AI. "
+                "AI endpoints will resume when the quota resets (usually midnight Pacific)."
+            )
             raise RuntimeError(f"Gemini failed: {e}")
 
     raise RuntimeError(
@@ -4843,16 +4866,31 @@ def health():
     except Exception:
         pass
 
+    # Quick LLM smoke-check so ai_endpoints_ready reflects actual availability
+    ai_ready = False
+    ai_status_detail = "no LLM configured"
+    if llm_backend != "none":
+        try:
+            _llm_generate("Reply with the single word: ok")
+            ai_ready = True
+            ai_status_detail = "ok"
+        except Exception as _e:
+            err = str(_e).lower()
+            if "quota" in err or "exhausted" in err:
+                ai_status_detail = "quota exhausted -- resets midnight Pacific"
+            else:
+                ai_status_detail = str(_e)[:120]
+
     return jsonify({
         "status": "ok",
         "service": "contentforge",
         "version": "1.0.0",
         "llm_backend": llm_backend,
-        "ai_endpoints_ready": llm_backend != "none",
+        "ai_endpoints_ready": ai_ready,
+        "ai_status": ai_status_detail,
         "total_requests_served": total_requests,
         "endpoint_usage": endpoint_counts,
     })
-
 
 @app.route("/", methods=["GET"])
 def root():
