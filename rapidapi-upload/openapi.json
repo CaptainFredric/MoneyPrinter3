@@ -1,0 +1,7 @@
+{
+  "_readme": "INSTRUCTIONS: This file is a placeholder. To upload to RapidAPI:",
+  "_step1": "Copy the file at: deploy/openapi.json",
+  "_step2": "Paste its contents here (replacing this entire file), OR",
+  "_step3": "In RapidAPI Studio: API Hub → Import Requests → Upload a File → navigate to: deploy/openapi.json",
+  "_tip": "If drag-and-drop fails (file disappears on drop), use the 'Upload a File' button instead."
+}

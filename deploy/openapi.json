@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. Score headlines instantly, score tweet drafts before posting, score LinkedIn posts for reach and engagement, score Instagram captions, score YouTube titles for CTR, score email subject lines for open rates, score text across all platforms in one call, analyze readability with Flesch-Kincaid metrics, score TikTok captions for engagement, analyze hashtags for platform fit and spam risk, generate scroll-stopping hooks, improve weak headlines with AI, rewrite text for any platform, get tweet ideas for any niche, generate full 7-day content calendars, build viral Twitter thread outlines, and generate optimized social media bios.",
+    "description": "AI-powered content toolkit for creators, marketers, and developers. 15 instant heuristic scorers (zero latency, no AI token cost): headlines, tweets, LinkedIn posts, Instagram captions, YouTube titles and descriptions, email subject lines, TikTok captions, Threads posts, Facebook posts, Pinterest pin descriptions, ad copy (Google/Meta), multi-platform in one call, readability, and hashtag analysis. 11 AI-powered generators: scroll-stopping hooks, headline improvements, platform rewrites, tweet ideas, 7-day content calendars, Twitter thread outlines, social media bios, Instagram/TikTok captions, LinkedIn posts, 3-email drip sequences, and full content briefs.",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
@@ -1804,7 +1804,7 @@
         "summary": "Score a Pinterest Pin Description",
         "description": "Score a Pinterest pin description 0-100 for reach and saves. Pinterest is a search engine — keyword density, description length (150-500 chars), CTA, and avoiding promotional language are the key signals. Instant heuristic, no AI.",
         "operationId": "scorePinterest",
-        "tags": ["Instant Content Scoring"],
+        "tags": ["Content Analysis"],
         "requestBody": {
           "required": true,
           "content": {
@@ -1856,7 +1856,7 @@
         "summary": "Score a YouTube Video Description",
         "description": "Score a YouTube video description 0-100 for SEO and viewer value. Checks description length (200-1000 chars ideal), first-125-char search hook, timestamps/chapters, CTA, links, hashtag count (3-5 at end), and keyword density. Instant heuristic, no AI.",
         "operationId": "scoreYouTubeDescription",
-        "tags": ["Instant Content Scoring"],
+        "tags": ["Content Analysis"],
         "requestBody": {
           "required": true,
           "content": {
@@ -1909,7 +1909,7 @@
         "summary": "Score Ad Copy (Google or Meta)",
         "description": "Score ad copy (headline + description) 0-100 for Google Ads or Meta Ads. Checks character limits (Google: 30-char headline, 90-char description; Meta: 27/125), CTA presence, number/stat usage, you-language, urgency words, and power words. Instant heuristic, no AI.",
         "operationId": "scoreAdCopy",
-        "tags": ["Instant Content Scoring"],
+        "tags": ["Content Analysis"],
         "requestBody": {
           "required": true,
           "content": {
