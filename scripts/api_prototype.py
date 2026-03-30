@@ -56,6 +56,24 @@ app = Flask(__name__)
 
 
 # ---------------------------------------------------------------------------
+# Force-JSON Request class -- parse body as JSON regardless of Content-Type
+# header.  RapidAPI Studio sometimes omits Content-Type when sending test
+# requests; without force=True, get_json(silent=True) returns None and all
+# POST endpoints fail with 400 "missing required parameter".
+# ---------------------------------------------------------------------------
+from flask import Request as _FlaskRequest
+
+
+class _ContentForgeRequest(_FlaskRequest):
+    """Override get_json so it always uses force=True."""
+    def get_json(self, force: bool = False, silent: bool = False, cache: bool = True):
+        return super().get_json(force=True, silent=silent, cache=cache)
+
+
+app.request_class = _ContentForgeRequest
+
+
+# ---------------------------------------------------------------------------
 # CORS — allow browser clients (RapidAPI playground, web apps)
 # ---------------------------------------------------------------------------
 @app.after_request
@@ -3940,6 +3958,7 @@ _PLATFORM_SCORERS = {
     "email": lambda text, opts: score_email_subject(
         text, opts.get("preview_text", "")
     ),
+    "readability": lambda text, _opts: score_readability(text),
 }
 
 

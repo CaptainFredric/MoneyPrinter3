@@ -2,12 +2,19 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "AI-powered content toolkit for creators, marketers, and developers. 15 instant heuristic scorers (zero latency, no AI token cost): headlines, tweets, LinkedIn posts, Instagram captions, YouTube titles and descriptions, email subject lines, TikTok captions, Threads posts, Facebook posts, Pinterest pin descriptions, ad copy (Google/Meta), multi-platform in one call, readability, and hashtag analysis. 11 AI-powered generators: scroll-stopping hooks, headline improvements, platform rewrites, tweet ideas, 7-day content calendars, Twitter thread outlines, social media bios, Instagram/TikTok captions, LinkedIn posts, 3-email drip sequences, and full content briefs.",
+    "description": "# ContentForge — AI Content Scoring & Generation API\n\n**27-endpoint REST API** for creators, marketers, and developers.\n\n## Instant Heuristic Scorers (15 endpoints — zero latency, no AI token cost)\n- **analyze_headline** — Score any headline 0-100 with grade and power word detection\n- **score_tweet** — Twitter/X post engagement score + improvement tips\n- **score_linkedin_post** — LinkedIn reach score with hook/paragraph/hashtag analysis\n- **score_instagram** — Instagram caption engagement score (hashtags, CTA, emojis)\n- **score_youtube_title** — YouTube CTR score + thumbnail text analysis\n- **score_youtube_description** — YouTube description SEO score (timestamps, links, keywords)\n- **score_email_subject** — Email open rate score with spam trigger detection\n- **score_tiktok** — TikTok caption engagement score (hashtags, hooks, CTA)\n- **score_threads** — Meta Threads post reach score (hashtag penalty, personal voice)\n- **score_facebook** — Facebook organic post reach score\n- **score_pinterest** — Pinterest pin description score (keywords, CTAs, spam detection)\n- **score_ad_copy** — Google Ads / Meta Ads copy score (char limits, CTA, you-language)\n- **score_readability** — Flesch-Kincaid readability score with grade level\n- **analyze_hashtags** — Hashtag quality analysis: platform fit, spam risk, specificity\n- **score_multi** — Score same text across all platforms in one call\n\n## AI Generators (11 endpoints — Gemini 2.0 Flash)\n- **improve_headline** — Rewrite weak headlines into scored better versions\n- **generate_hooks** — Scroll-stopping hooks for any topic (viral/professional/casual)\n- **rewrite** — Platform-optimized rewrite (Twitter, LinkedIn, Instagram, TikTok, email)\n- **tweet_ideas** — Tweet idea batch for any niche with hashtag options\n- **content_calendar** — Full 7-day content calendar with daily themes and drafts\n- **thread_outline** — Full Twitter thread: hook + numbered body tweets + CTA\n- **generate_bio** — Optimized social bio for Twitter (160), LinkedIn (300), or Instagram (150)\n- **generate_caption** — Instagram/TikTok caption with hashtags, emojis, and CTA\n- **generate_linkedin_post** — Full LinkedIn post (storytelling/professional/motivational)\n- **generate_email_sequence** — 3-email drip: welcome \u2192 value \u2192 CTA with subject + preview lines\n- **generate_content_brief** — Content research brief: audience, angle, outline, keywords, hooks\n\n## System\n- **GET /health** — Service status, LLM backend, and usage stats\n\n---\n\n**Base URL:** `https://contentforge-api-lpp9.onrender.com`\n\n**Rate Limits:** 30 req/min (FREE), 120/min (PRO), 300/min (ULTRA)\n\n**All instant endpoints** respond in <50ms. **AI endpoints** average 1-3s on Gemini 2.0 Flash.\n\n**CORS enabled** — works in browser JS, Zapier webhooks, and automation tools.\n\n**Website:** https://captainfredric.github.io/ContentForge/",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
-      "email": "captainarmoreddude@gmail.com"
-    }
+      "email": "captainarmoreddude@gmail.com",
+      "url": "https://captainfredric.github.io/ContentForge/"
+    },
+    "termsOfService": "https://captainfredric.github.io/ContentForge/",
+    "x-rapidapi-proxy-secret-header": "X-RapidAPI-Proxy-Secret"
+  },
+  "externalDocs": {
+    "description": "ContentForge Landing Page & Documentation",
+    "url": "https://captainfredric.github.io/ContentForge/"
   },
   "servers": [
     {
@@ -1537,6 +1544,11 @@
                     "example": "motivational"
                   }
                 }
+              },
+              "example": {
+                "topic": "how to build a micro-SaaS in a weekend",
+                "tweet_count": 7,
+                "tone": "informative"
               }
             }
           }
@@ -1619,6 +1631,13 @@
                     "example": "casual"
                   }
                 }
+              },
+              "example": {
+                "name": "Alex Rivera",
+                "niche": "indie developer building micro-SaaS tools",
+                "keywords": ["APIs", "side income", "buildinpublic"],
+                "platform": "twitter",
+                "tone": "casual"
               }
             }
           }
