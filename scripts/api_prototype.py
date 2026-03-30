@@ -1,29 +1,40 @@
 #!/usr/bin/env python3
 """ContentForge API — AI-powered content toolkit for creators and marketers.
 
-Endpoints:
-  POST /v1/analyze_headline    — Score & improve any headline (heuristic, instant)
-  POST /v1/score_tweet         — Score a tweet draft before posting (heuristic, instant)
-  POST /v1/score_linkedin_post — Score a LinkedIn post for reach/engagement (heuristic, instant)
-  POST /v1/score_instagram     — Score an Instagram caption for engagement (heuristic, instant)
-  POST /v1/score_youtube_title — Score a YouTube title for CTR (heuristic, instant)
-  POST /v1/score_email_subject — Score an email subject line for open rate (heuristic, instant)
-  POST /v1/score_multi         — Score text across multiple platforms in one call (heuristic, instant)
-  POST /v1/score_readability   — Score text for readability w/ Flesch-Kincaid (heuristic, instant)
-  POST /v1/score_tiktok        — Score a TikTok caption for engagement/reach (heuristic, instant)
-  POST /v1/score_threads       — Score a Meta Threads post for engagement (heuristic, instant)
-  POST /v1/score_facebook      — Score a Facebook post for organic reach (heuristic, instant)
-  POST /v1/analyze_hashtags    — Analyze hashtags for quality, spam risk, platform fit (heuristic, instant)
-  POST /v1/improve_headline    — AI-rewrites a headline into N better scored versions (AI)
-  POST /v1/generate_hooks      — Generate scroll-stopping hooks for a topic (AI)
-  POST /v1/rewrite             — Rewrite text for a target platform/tone (AI)
-  POST /v1/tweet_ideas         — Generate tweet ideas for a niche/topic (AI)
-  POST /v1/content_calendar    — AI-generated 7-day content calendar for any niche (AI)
-  POST /v1/thread_outline      — AI-generated Twitter thread outline (hook + body + CTA) (AI)
-  POST /v1/generate_bio        — AI-generated social media bio (Twitter/LinkedIn/Instagram) (AI)
-  POST /v1/generate_caption    — AI-generated Instagram or TikTok caption (AI)
-  POST /v1/generate_linkedin_post — AI-generated LinkedIn post (storytelling/professional/motivational) (AI)
-  GET  /health                 — Service health check
+Endpoints (28 total):
+  # Instant heuristic scorers (no AI, <50ms):
+  POST /v1/analyze_headline        — Score & grade any headline (power words, length, numbers)
+  POST /v1/score_tweet             — Score a tweet draft 0-100 (hashtags, emojis, hooks, char count)
+  POST /v1/score_linkedin_post     — LinkedIn reach score (hook, paragraphs, length, hashtags)
+  POST /v1/score_instagram         — Instagram caption score (hashtags, emojis, CTA)
+  POST /v1/score_youtube_title     — YouTube CTR score (brackets, numbers, power words, length)
+  POST /v1/score_youtube_description — YouTube description SEO score
+  POST /v1/score_email_subject     — Email open rate score (spam triggers, urgency, length)
+  POST /v1/score_tiktok            — TikTok caption engagement score
+  POST /v1/score_threads           — Meta Threads post reach score (hashtag penalty)
+  POST /v1/score_facebook          — Facebook organic post reach score
+  POST /v1/score_pinterest         — Pinterest pin description score (keywords, CTAs, spam)
+  POST /v1/score_ad_copy           — Google Ads / Meta Ads copy score (char limits, CTA, you-language)
+  POST /v1/score_readability       — Flesch-Kincaid readability score with grade level
+  POST /v1/analyze_hashtags        — Hashtag quality analysis: platform fit, spam risk, count check
+  POST /v1/score_multi             — Score one text across multiple platforms in one call
+  POST /v1/batch_score             — Score up to 20 drafts against one platform, return ranked best
+
+  # AI generators (Gemini 2.0 Flash, ~1-3s):
+  POST /v1/improve_headline        — Rewrite a weak headline into N better scored versions
+  POST /v1/generate_hooks          — Generate scroll-stopping hooks for any topic
+  POST /v1/rewrite                 — Platform-optimized rewrite (Twitter, LinkedIn, Instagram, TikTok, email)
+  POST /v1/tweet_ideas             — Tweet idea batch for any niche with hashtag options
+  POST /v1/content_calendar        — Full 7-day content calendar with daily themes and drafts
+  POST /v1/thread_outline          — Full Twitter thread: hook + numbered body tweets + CTA
+  POST /v1/generate_bio            — Optimized social bio for Twitter (160), LinkedIn (300), or Instagram (150)
+  POST /v1/generate_caption        — Instagram/TikTok caption with hashtags, emojis, and CTA
+  POST /v1/generate_linkedin_post  — Full LinkedIn post (storytelling/professional/motivational)
+  POST /v1/generate_email_sequence — 3-email drip: welcome → value → CTA with subject + preview lines
+  POST /v1/generate_content_brief  — Content research brief: audience, angle, outline, keywords, hooks
+
+  # System:
+  GET  /health                     — Service status, LLM backend, and usage stats
 
 Run smoke test:
   .runtime-venv/bin/python scripts/api_prototype.py --test
@@ -127,6 +138,26 @@ def _log_usage(endpoint: str, latency_ms: int):
         USAGE_LOG.write_text(json.dumps(entries))
     except Exception:
         pass
+
+
+def _count_emojis(s: str) -> int:
+    """Count emoji / symbol characters in *s*.
+
+    Covers the main Unicode emoji blocks that a plain ``ord(c) > 0x1F300``
+    check misses:
+    * U+1F300–U+1FAFF — emoticons, pictographs, transport, supplemental
+    * U+1F000–U+1F2FF — mahjong tiles, dominos, enclosed alphanumerics
+    * U+2600–U+27BF   — misc symbols (♥ ★ ☀ ✓) + dingbats (✂ ✈)
+    """
+    total = 0
+    for c in s:
+        cp = ord(c)
+        if (
+            0x1F000 <= cp <= 0x1FAFF   # all supplemental-symbol blocks
+            or 0x2600 <= cp <= 0x27BF  # misc symbols + dingbats
+        ):
+            total += 1
+    return total
 
 
 # ---------------------------------------------------------------------------
@@ -566,8 +597,8 @@ def score_tweet(text: str) -> dict:
     mentions = re.findall(r'@\w+', txt)
     urls = re.findall(r'https?://\S+', txt)
 
-    # Detect emojis (simple unicode range check)
-    emoji_count = sum(1 for c in txt if ord(c) > 0x1F300)
+    # Detect emojis
+    emoji_count = _count_emojis(txt)
 
     # Readability: avg word length
     clean_words = [re.sub(r'[^a-zA-Z0-9]', '', w) for w in words if w and not w.startswith(('#', '@', 'http'))]
@@ -597,11 +628,13 @@ def score_tweet(text: str) -> dict:
     elif char_count > 240:
         score -= 8
 
-    # Hashtags: 1-2 is optimal
+    # Hashtags: 1-2 is optimal, 3 is borderline, 4+ looks spammy
     if len(hashtags) == 1:
         score += 8
     elif len(hashtags) == 2:
         score += 6
+    elif len(hashtags) == 3:
+        score -= 3  # slightly over the recommended range
     elif len(hashtags) >= 4:
         score -= 12  # over-hashtagging looks spammy
 
@@ -748,7 +781,7 @@ def score_linkedin_post(text: str) -> dict:
     hashtags = re.findall(r'#\w+', txt)
     mentions = re.findall(r'@\w+', txt)
     urls = re.findall(r'https?://\S+', txt)
-    emoji_count = sum(1 for c in txt if ord(c) > 0x1F300)
+    emoji_count = _count_emojis(txt)
 
     # Paragraphs: split on double newlines
     paragraphs = [p.strip() for p in re.split(r'\n\s*\n', txt) if p.strip()]
@@ -1130,7 +1163,7 @@ def score_instagram_caption(text: str) -> dict:
     hashtags = re.findall(r'#\w+', txt)
     mentions = re.findall(r'@\w+', txt)
     urls = re.findall(r'https?://\S+', txt)
-    emoji_count = sum(1 for c in txt if ord(c) > 0x1F300)
+    emoji_count = _count_emojis(txt)
 
     # Hook: first line (before first newline, or first 125 chars)
     first_line = txt.split('\n')[0].strip()
@@ -1459,7 +1492,7 @@ def score_youtube_title(text: str, thumbnail_text: str = "") -> dict:
     pw_found = [w for w in power_word_set if w in title.lower().split()]
 
     # Emoji in title (generally discouraged on YT)
-    emoji_count = sum(1 for c in title if ord(c) > 0x1F300)
+    emoji_count = _count_emojis(title)
 
     # ALL CAPS analysis
     caps_words = [w for w in words if w.isupper() and len(w) > 1 and any(c.isalpha() for c in w)]
@@ -1749,7 +1782,7 @@ def score_email_subject(text: str, preview_text: str = "") -> dict:
     # ---- extract features ----
     has_number = bool(re.search(r'\d', subj))
     has_question = '?' in subj
-    emoji_count = sum(1 for c in subj if ord(c) > 0x1F300)
+    emoji_count = _count_emojis(subj)
 
     # Personalization tokens like {first_name}, {{name}}, [NAME]
     personalization_tokens = re.findall(
@@ -3183,7 +3216,7 @@ def score_pinterest_pin(text: str) -> dict:
     word_count = len(words)
     hashtags = re.findall(r'#\w+', text)
     hashtag_count = len(hashtags)
-    emoji_count = sum(1 for c in text if ord(c) > 0x1F300)
+    emoji_count = _count_emojis(text)
     has_number = bool(re.search(r'\d', text))
     has_link = bool(re.search(r'https?://', text, re.IGNORECASE))
 
@@ -3441,7 +3474,7 @@ def score_youtube_description(text: str) -> dict:
     word_count = len(words)
     hashtags = re.findall(r'#\w+', text)
     hashtag_count = len(hashtags)
-    emoji_count = sum(1 for c in text if ord(c) > 0x1F300)
+    emoji_count = _count_emojis(text)
 
     # First 125 chars (search snippet)
     first_line = text.split('\n')[0].strip()

@@ -47,10 +47,20 @@ if str(SCRIPTS_DIR) not in sys.path:
 
 # Import local functions from api_prototype (uses Ollama locally, Gemini in prod)
 try:
-    from api_prototype import score_tweet as _score_tweet_fn, _llm_generate
+    from api_prototype import (
+        score_tweet as _score_tweet_fn,
+        _llm_generate,
+        batch_score as _batch_score_fn,
+    )
     _LOCAL_API_AVAILABLE = True
 except ImportError:
-    _LOCAL_API_AVAILABLE = False
+    try:
+        from api_prototype import score_tweet as _score_tweet_fn, _llm_generate
+        _batch_score_fn = None
+        _LOCAL_API_AVAILABLE = True
+    except ImportError:
+        _LOCAL_API_AVAILABLE = False
+        _batch_score_fn = None
 
 # ---------------------------------------------------------------------------
 # ContentForge API client (direct HTTP — no external deps)
@@ -151,7 +161,10 @@ def _score_tweet(text: str) -> dict:
 
 
 def _pick_best_tweet(tweets: list[str], verbose: bool = True) -> tuple[str, int, str]:
-    """Score all tweets and return (best_text, best_score, best_grade)."""
+    """Score all tweets and return (best_text, best_score, best_grade).
+
+    Uses batch_score (one local call) when available; falls back to sequential scoring.
+    """
     best_text = ""
     best_score = -1
     best_grade = "D"
@@ -159,6 +172,24 @@ def _pick_best_tweet(tweets: list[str], verbose: bool = True) -> tuple[str, int,
     if verbose:
         print(f"\n  Scoring {len(tweets)} tweet drafts via ContentForge...\n")
 
+    # --- Fast path: local batch_score (one call) ---
+    if _LOCAL_API_AVAILABLE and _batch_score_fn is not None:
+        try:
+            results = _batch_score_fn(tweets)  # list of dicts with score/grade/text
+            if results:
+                # batch_score returns sorted best-first
+                top = results[0]
+                for i, r in enumerate(results):
+                    if verbose:
+                        grade = r.get("grade", "D")
+                        score = r.get("score", 0)
+                        preview = tweets[r.get("index", i)][:70]
+                        print(f"  [{r.get('index', i)+1:2d}] Grade {grade} | Score {score:3d} — {preview}...")
+                return tweets[top.get("index", 0)], top.get("score", 0), top.get("grade", "D")
+        except Exception as ex:
+            print(f"  batch_score failed ({ex}), falling back to sequential scoring...")
+
+    # --- Slow path: score one at a time ---
     for i, text in enumerate(tweets):
         if not text or len(text) < 10:
             continue
@@ -184,9 +215,19 @@ def _pick_best_tweet(tweets: list[str], verbose: bool = True) -> tuple[str, int,
 
 
 def _post_override(account: str, content: str, headless: bool) -> bool:
-    """Inject the chosen tweet as a forced post via cron.py with topic override."""
-    # We use cron.py with a monkey-patched topic that contains the exact tweet
-    # by prepending it as an override instruction
+    """Inject the chosen tweet as a forced post via smart_post_twitter.py."""
+    try:
+        from runtime_python import resolve_runtime_python
+        venv_python = Path(resolve_runtime_python())
+    except ImportError:
+        # Fallback to known venv locations, checked in priority order
+        candidates = [
+            ROOT / "venv" / "bin" / "python",
+            ROOT / ".runtime-venv" / "bin" / "python",
+            ROOT / ".venv" / "bin" / "python",
+        ]
+        venv_python = next((p for p in candidates if p.exists()), Path(sys.executable))
+
     try:
         from cache import get_twitter_cache_path
         import copy
@@ -210,7 +251,7 @@ def _post_override(account: str, content: str, headless: bool) -> bool:
         print(f"\n  Injected tweet for {account}. Posting via smart_post_twitter.py...")
 
         cmd = [
-            str(ROOT / ".runtime-venv" / "bin" / "python"),
+            str(venv_python),
             str(ROOT / "scripts" / "smart_post_twitter.py"),
         ]
         if headless:
