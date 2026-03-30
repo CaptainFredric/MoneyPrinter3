@@ -180,7 +180,7 @@ def _llm_generate(prompt: str) -> str:
 
     # 3. Direct Gemini attempt (for cloud deployment where Ollama is not available)
     # Tries models in order so quota exhaustion on one automatically falls through
-    # to the next.  gemini-1.5-flash has 1500 RPD free vs 200 for 2.0-flash.
+    # to the next.  gemini-2.5-flash is current best free-tier.
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if api_key:
         try:
@@ -189,13 +189,13 @@ def _llm_generate(prompt: str) -> str:
         except ImportError as ie:
             raise RuntimeError(f"google-genai package not installed: {ie}")
 
-        primary = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+        primary = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
         _fallback_order = [
             primary,
-            "gemini-1.5-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.5-flash",
             "gemini-2.0-flash",
             "gemini-2.0-flash-lite",
-            "gemini-1.5-flash-8b",
         ]
         seen: set = set()
         models_to_try = [m for m in _fallback_order if not (m in seen or seen.add(m))]
