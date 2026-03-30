@@ -1,4 +1,7 @@
-__pycache__
+__pycache__/
+*.pyc
+*.pyo
+nohup.out
 config.json
 .env
 .mp/

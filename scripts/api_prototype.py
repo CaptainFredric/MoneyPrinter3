@@ -4067,6 +4067,95 @@ def endpoint_score_multi():
 
 
 # ---------------------------------------------------------------------------
+# batch_score — score multiple texts in one call (no AI, instant)
+# ---------------------------------------------------------------------------
+@app.route("/v1/batch_score", methods=["GET", "POST"])
+@app.route("/batch_score", methods=["GET", "POST"])
+def endpoint_batch_score():
+    """Score up to 20 texts against a single platform scorer in one call."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "batch_score",
+            "method": "POST",
+            "description": (
+                "Score up to 20 texts against a single platform in one API call. "
+                "Useful for picking the best draft from a set of candidates. "
+                "Instant heuristic analysis, no AI needed."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/batch_score",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "texts": ["Draft A text", "Draft B text", "Draft C text"],
+                    "platform": "tweet",
+                },
+            },
+            "available_platforms": list(_PLATFORM_SCORERS.keys()),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    texts = payload.get("texts", [])
+    platform = (payload.get("platform") or "tweet").strip().lower()
+
+    if not texts or not isinstance(texts, list):
+        return jsonify({
+            "error": "missing 'texts' parameter — send a JSON array of strings"
+        }), 400
+    if len(texts) > 20:
+        return jsonify({"error": "too many texts — maximum 20 per call"}), 400
+
+    texts = [str(t).strip() for t in texts if str(t).strip()]
+    if not texts:
+        return jsonify({"error": "all texts were empty"}), 400
+
+    scorer = _PLATFORM_SCORERS.get(platform)
+    if scorer is None:
+        return jsonify({
+            "error": f"unknown platform '{platform}'. Available: {list(_PLATFORM_SCORERS.keys())}"
+        }), 400
+
+    results = []
+    for i, text in enumerate(texts):
+        if len(text) > 5000:
+            results.append({"index": i, "text_preview": text[:80] + "...", "error": "text too long (max 5000)"})
+            continue
+        try:
+            r = scorer(text, payload)
+            results.append({
+                "index": i,
+                "text_preview": text[:120] + ("..." if len(text) > 120 else ""),
+                "score": r["score"],
+                "grade": r["grade"],
+                "suggestions": r.get("suggestions", [])[:2],
+            })
+        except Exception as e:
+            results.append({"index": i, "text_preview": text[:80], "error": str(e)})
+
+    # Sort by score descending for easy best-pick
+    scored = [r for r in results if "score" in r]
+    errors = [r for r in results if "error" in r]
+    scored.sort(key=lambda r: r["score"], reverse=True)
+
+    best = scored[0] if scored else None
+
+    _log_usage("batch_score", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "platform": platform,
+        "count": len(texts),
+        "best": best,
+        "results": scored + errors,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 6. Content Calendar (AI-powered)
 # ---------------------------------------------------------------------------
 @app.route("/v1/content_calendar", methods=["POST"])

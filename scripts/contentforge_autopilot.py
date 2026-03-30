@@ -462,6 +462,100 @@ PROMO_TEMPLATES: list[dict] = [
         ),
         "accounts": ["niche_launch_1", "EyeCatcher"],
     },
+
+    # ── batch_score + score_multi ────────────────────────────────────────────
+    {
+        "id": "batch_score_intro",
+        "text": (
+            "stop guessing which draft to post 🎯\n\n"
+            "ContentForge's free batch_score: send up to 20 drafts at once\n"
+            "— get back scores + the #1 pick instantly\n\n"
+            "1 API call. zero guessing.\n\n"
+            f"{RAPIDAPI_URL} #buildinpublic #contentmarketing"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "batch_score_ab",
+        "text": (
+            "free A/B testing for any tweet draft 🔬\n\n"
+            "hack: ContentForge batch_score — drop all your drafts in, get\n"
+            "the highest-scoring one ranked #1\n\n"
+            "instant. no card. free.\n\n"
+            f"{RAPIDAPI_URL} #twittergrowth #growthhacking"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "score_multi_intro",
+        "text": (
+            "posting cross-platform? one tool, one call ✅\n\n"
+            "ContentForge's score_multi: paste your caption once\n"
+            "get scores for Twitter, LinkedIn, Instagram, TikTok — instantly\n\n"
+            "free API — no card, no signup\n\n"
+            f"{RAPIDAPI_URL} #socialmedia #contentmarketing"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+
+    # ── Email sequence + content brief ───────────────────────────────────────
+    {
+        "id": "email_sequence_gen",
+        "text": (
+            "still writing welcome email sequences by hand? 📧\n\n"
+            "ContentForge's free Email Sequence Generator:\n"
+            "welcome → value → CTA — 3 emails, subject lines, preview text, instant\n\n"
+            "proven structure, free to use, no card\n\n"
+            f"{RAPIDAPI_URL} #emailmarketing #buildinpublic"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "content_brief_gen",
+        "text": (
+            "the fastest way to brief a content writer? 📋\n\n"
+            "ContentForge's free Content Brief Generator:\n"
+            "audience, angle, outline, keywords, hooks — all in one API call\n\n"
+            "instant. free. proven format.\n\n"
+            f"{RAPIDAPI_URL} #contentmarketing #copywriting"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+
+    # ── Ad copy + Pinterest ──────────────────────────────────────────────────
+    {
+        "id": "ad_copy_scorer",
+        "text": (
+            "wasting ad budget on weak copy? 💸\n\n"
+            "proven fix: ContentForge's free Ad Copy Scorer\n\n"
+            "checks: char limits, CTA presence, you-language, spam flags\n"
+            "instant score before you spend a dollar\n\n"
+            f"{RAPIDAPI_URL} #googleads #metaads"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "pinterest_scorer_intro",
+        "text": (
+            "Pinterest is the most underrated traffic source in 2025 📌\n\n"
+            "hack: your pin description is 60% of your SEO reach\n\n"
+            "ContentForge's free Pinterest Scorer checks keywords, CTAs, spam — instantly\n\n"
+            f"{RAPIDAPI_URL} #pinterest #contentcreator"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
+    {
+        "id": "rewrite_endpoint",
+        "text": (
+            "the fastest way to repurpose any post 🔄\n\n"
+            "ContentForge's free Rewrite endpoint:\n"
+            "paste your LinkedIn post → get a Twitter thread version\n"
+            "paste your tweet → get the Instagram caption\n\n"
+            "one click. free. instant.\n\n"
+            f"{RAPIDAPI_URL} #repurposecontent #contentmarketing"
+        ),
+        "accounts": ["niche_launch_1", "EyeCatcher"],
+    },
 ]
 
 # ---------------------------------------------------------------------------

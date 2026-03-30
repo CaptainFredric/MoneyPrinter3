@@ -1,14 +1,164 @@
 # Next Session Handoff — ContentForge / MoneyPrinterV2
 
-**Last updated:** Phase 5 session (RapidAPI 400-fix + openapi.json update)
+**Last updated:** Autonomous work session (batch_score, CI, 44 promo templates)
 **Repo:** https://github.com/CaptainFredric/ContentForge (branch: `main`)
 **Contact email:** captainarmoreddude@gmail.com
 
 ---
 
-## CRITICAL USER ACTION REQUIRED BEFORE ANYTHING ELSE
+## CURRENT STATE SUMMARY
 
-The code is fixed. But you must **re-import openapi.json into RapidAPI Studio** and **re-deploy on Render** for the fixes to go live.
+Both Twitter bots are LIVE and posting. API is live on Render. This session added the
+`/v1/batch_score` endpoint, GitHub Actions CI, expanded promo templates (31 → 44),
+and updated the openapi.json to 28 endpoints.
+
+---
+
+## ACTION REQUIRED BEFORE NEXT SESSION
+
+1. **Re-import openapi.json to RapidAPI Studio** — new batch_score endpoint needs to be visible
+   - File is ready at `~/Desktop/rapidapi-upload/openapi.json`
+   - Go to https://rapidapi.com/provider/studio → ContentForge → API Definition → Import
+   
+2. **Update RapidAPI listing short description:**
+   ```
+   28-endpoint content API: 16 instant heuristic scorers + 12 Gemini AI generators for Twitter,
+   LinkedIn, Instagram, TikTok, YouTube, Pinterest, email & ad copy. Includes batch_score.
+   ```
+
+3. **Post the Show HN** — file at `~/Desktop/ShowHN_post.md`
+   - Best window: Tuesday or Wednesday, 9–11am EST
+   - Warm the server first: `curl https://contentforge-api-lpp9.onrender.com/health`
+
+---
+
+## What's Live and Working Right Now
+
+| System | Status | Notes |
+|---|---|---|
+| **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
+| **RapidAPI Listing** | ⚠️ Needs re-import for batch_score | openapi.json updated locally + on Desktop |
+| **Gemini backend** | ✅ Configured | gemini-2.0-flash via Render env var |
+| **Keep-warm cron** | ✅ Active | cron-job.org every 10min → /health |
+| **Landing Page** | ✅ Live | `https://captainfredric.github.io/ContentForge/` |
+| **Bot daemon** | ✅ Running | `money_idle_phase2.py --headless --promo-every 4` |
+| **niche_launch_1** | ✅ Active, health=100 | ready-cookie-auth, posted confidence=93 |
+| **EyeCatcher** | ✅ Active, health=100 | ready-cookie-auth, posted confidence=93 |
+| **venv** | ✅ At ContentForge/venv/ | Python 3.14, all core deps installed |
+| **config.json** | ✅ Exists | DO NOT COMMIT — .gitignore covers it |
+| **.mp/twitter.json** | ✅ Exists | Both accounts, health=100 |
+| **GitHub Actions CI** | ✅ Created | .github/workflows/smoke_test.yml |
+
+---
+
+## Complete Endpoint List — All 28
+
+```
+GET  /health                         — status, LLM backend, usage stats
+
+# Instant scoring (no AI, <50ms, always free):
+POST /v1/analyze_headline
+POST /v1/score_tweet
+POST /v1/score_linkedin_post
+POST /v1/score_instagram
+POST /v1/score_youtube_title
+POST /v1/score_youtube_description
+POST /v1/score_email_subject
+POST /v1/score_tiktok
+POST /v1/score_threads
+POST /v1/score_facebook
+POST /v1/score_pinterest
+POST /v1/score_ad_copy
+POST /v1/score_readability
+POST /v1/analyze_hashtags
+POST /v1/score_multi               — 12 platforms in one call
+POST /v1/batch_score               — score up to 20 drafts, return best + ranked list  ← NEW
+
+# AI generation (Gemini 2.0 Flash, ~1-3s):
+POST /v1/improve_headline
+POST /v1/generate_hooks
+POST /v1/rewrite
+POST /v1/tweet_ideas
+POST /v1/content_calendar
+POST /v1/thread_outline
+POST /v1/generate_bio
+POST /v1/generate_caption
+POST /v1/generate_linkedin_post
+POST /v1/generate_email_sequence
+POST /v1/generate_content_brief
+```
+
+---
+
+## Important URLs
+
+| Resource | URL |
+|---|---|
+| API Base | `https://contentforge-api-lpp9.onrender.com` |
+| RapidAPI Proxy | `https://contentforge1.p.rapidapi.com` |
+| RapidAPI Listing | `https://rapidapi.com/captainarmoreddude/api/contentforge1` |
+| RapidAPI Studio | `https://rapidapi.com/provider/studio` |
+| Landing Page | `https://captainfredric.github.io/ContentForge/` |
+| Render Dashboard | `https://dashboard.render.com` |
+
+---
+
+## File State
+
+| File | Status | Notes |
+|---|---|---|
+| `scripts/api_prototype.py` | ✅ Clean | 28 endpoints, batch_score added, py_compile OK |
+| `deploy/openapi.json` | ✅ Updated | 28 paths, batch_score spec, description updated |
+| `~/Desktop/rapidapi-upload/openapi.json` | ✅ Ready | Copy of deploy/openapi.json for import |
+| `~/Desktop/ShowHN_post.md` | ✅ Ready | Final HN post + 5 pre-written comment replies |
+| `scripts/contentforge_autopilot.py` | ✅ 44 templates | +13 new covering batch_score, email, ad copy, etc. |
+| `scripts/money_idle_phase2.py` | ✅ Active | --promo-every 4, promo injection wired |
+| `.github/workflows/smoke_test.yml` | ✅ Created | Tests /health + score_tweet + analyze_headline + batch_score |
+| `.gitignore` | ✅ Fixed | Added __pycache__/, *.pyc, *.pyo, nohup.out |
+| `requirements.txt` | ✅ Py3.14 compatible | kittentts moved to requirements-youtube.txt |
+| `requirements-youtube.txt` | ✅ Created | kittentts + moviepy<2.0 isolated here |
+| `config.json` | ✅ Exists, gitignored | Firefox profile, ollama settings, headless=true |
+| `.mp/twitter.json` | ✅ Exists, gitignored | Both accounts, health=100 |
+
+---
+
+## Bot Quick-Start (if daemon died)
+
+```bash
+cd /Users/erendiracisneros/Documents/GitHub/PromisesFrontend/MoneyPrinterV2/ContentForge
+source venv/bin/activate
+nohup python3 scripts/money_idle_phase2.py --headless --promo-every 4 > nohup.out 2>&1 &
+```
+
+Check status:
+```bash
+tail -20 nohup.out
+python3 scripts/check_x_session.py
+```
+
+---
+
+## Key Technical Notes
+
+- **Base URL typo trap:** `contentforge-api-lpp9` — letter L not digit 1
+- **Gemini daily quota:** 1,500 req/day. 503 RESOURCE_EXHAUSTED = wait until midnight Pacific
+- **CORS:** enabled on every response — browser clients work directly
+- **LLM fallback:** Gemini 2.0-flash → 2.5-flash → 2.5-flash-lite → 2.0-flash-lite → Ollama
+- **RapidAPI Studios 400s:** Fixed via `_ContentForgeRequest` forcing `get_json(force=True)`
+- **Python 3.14 on macOS:** kittentts/misaki won't install — use requirements-youtube.txt only for YouTube features
+
+---
+
+## Remaining Improvements (Priority Order)
+
+1. Re-import openapi.json to RapidAPI (batch_score needs to be visible in Studio)
+2. Post Show HN (Tuesday/Wednesday 9-11am EST)
+3. Push all changes to GitHub (`git add -A && git commit -m "Add batch_score, CI, 44 promo templates" && git push`)
+4. Verify GitHub Actions CI passes on push
+5. Update index.html endpoint count: 27 → 28
+6. Render redeploy (if not auto-deploying from push)
+7. Zapier template for batch_score use case
+8. Train scoring weights on real engagement data (future)
 
 ### Step 1 — Pull latest openapi.json to Desktop
 

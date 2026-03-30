@@ -1,0 +1,67 @@
+name: Smoke Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install core dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate openapi.json
+        run: python3 -c "import json; d=json.load(open('deploy/openapi.json')); print(f'{len(d[\"paths\"])} paths OK')"
+
+      - name: Lint api_prototype
+        run: python3 -m py_compile scripts/api_prototype.py && echo "api_prototype.py OK"
+
+      - name: Start Flask server (instant endpoints only)
+        run: |
+          # Minimal config — no real API keys needed for instant/heuristic endpoints
+          echo '{"gemini_api_key":"","ollama_model":"","ollama_base_url":"http://127.0.0.1:11434","firefox_profile":"","headless":true}' > config.json
+          mkdir -p .mp
+          python3 scripts/api_prototype.py &
+          sleep 4
+
+      - name: Hit /health
+        run: |
+          curl -sf http://127.0.0.1:5000/health | python3 -c "import sys,json; d=json.load(sys.stdin); print('health:', d.get('status','?'))"
+
+      - name: Hit /v1/score_tweet (instant — no AI needed)
+        run: |
+          curl -sf -X POST http://127.0.0.1:5000/v1/score_tweet \
+            -H "Content-Type: application/json" \
+            -d '{"text":"Just launched ContentForge! Score your tweets for free at contentforge1.p.rapidapi.com #buildinpublic"}' \
+          | python3 -c "import sys,json; d=json.load(sys.stdin); print('score_tweet score:', d.get('score','?'))"
+
+      - name: Hit /v1/analyze_headline (instant — no AI needed)
+        run: |
+          curl -sf -X POST http://127.0.0.1:5000/v1/analyze_headline \
+            -H "Content-Type: application/json" \
+            -d '{"headline":"Why Nobody Reads Your Twitter Profile (And How to Fix It in 10 Minutes)"}' \
+          | python3 -c "import sys,json; d=json.load(sys.stdin); print('analyze_headline score:', d.get('score','?'))"
+
+      - name: Hit /v1/batch_score (instant — no AI needed)
+        run: |
+          curl -sf -X POST http://127.0.0.1:5000/v1/batch_score \
+            -H "Content-Type: application/json" \
+            -d '{"texts":["Draft A: Big news in tech today","Draft B: I built a tool that scores your tweets before you post — try it free"],"platform":"twitter"}' \
+          | python3 -c "import sys,json; d=json.load(sys.stdin); print('batch_score best score:', d.get('best',{}).get('score','?'))"

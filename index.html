@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ContentForge — 27-Endpoint AI Content Scoring API for Creators</title>
-  <meta name="description" content="27-endpoint REST API for creators &amp; marketers. 15 instant heuristic scorers (headlines, tweets, LinkedIn, Instagram, TikTok, YouTube, Pinterest, email subjects, ad copy, readability) plus 11 AI generators. Zero latency scoring, no API key needed for the demo.">
+  <title>ContentForge — 28-Endpoint AI Content Scoring API for Creators</title>
+  <meta name="description" content="28-endpoint REST API for creators &amp; marketers. 16 instant heuristic scorers (headlines, tweets, LinkedIn, Instagram, TikTok, YouTube, Pinterest, email subjects, ad copy, readability, batch scoring) plus 12 AI generators. Zero latency scoring, no API key needed for the demo.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-  <meta property="og:title" content="ContentForge — 27-Endpoint Content Scoring &amp; AI Generation API">
-  <meta property="og:description" content="Score content for Twitter, LinkedIn, Instagram, TikTok, YouTube, Pinterest, email &amp; ad copy — instant, zero latency. Plus 11 AI generators. Free tier on RapidAPI.">
+  <meta property="og:title" content="ContentForge — 28-Endpoint Content Scoring &amp; AI Generation API">
+  <meta property="og:description" content="Score content for Twitter, LinkedIn, Instagram, TikTok, YouTube, Pinterest, email &amp; ad copy — instant, zero latency. Plus 12 AI generators. Free tier on RapidAPI.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://captainfredric.github.io/ContentForge/">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="ContentForge — 27-Endpoint Content API">
-  <meta name="twitter:description" content="15 instant platform scorers + 11 AI generators. Score tweets, LinkedIn, Instagram, TikToks, YouTube titles and more. Free tier on RapidAPI.">
+  <meta name="twitter:title" content="ContentForge — 28-Endpoint Content API">
+  <meta name="twitter:description" content="16 instant platform scorers + 12 AI generators. Score tweets, LinkedIn, Instagram, TikToks, YouTube titles and more. Free tier on RapidAPI.">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -551,7 +551,7 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">⚡ 27 endpoints · 15 instant · 11 AI · Free tier</div>
+  <div class="badge">⚡ 28 endpoints · 16 instant · 12 AI · Free tier</div>
   <h1>Stop guessing.<br>Start <em>scoring</em> your content.</h1>
   <p class="hero-sub">
     ContentForge is a REST API that scores content for every major platform before you post — Twitter, LinkedIn, Instagram, TikTok, YouTube, Pinterest, email, and ad copy — then rewrites and generates on demand with AI.
@@ -654,22 +654,22 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 
 <!-- STATS -->
 <div class="stats reveal">
-  <div class="stat"><div class="stat-num" data-count="27">0</div><div class="stat-label">API Endpoints</div></div>
-  <div class="stat"><div class="stat-num" data-count="15">0</div><div class="stat-label">Instant (no AI)</div></div>
-  <div class="stat"><div class="stat-num" data-count="11">0</div><div class="stat-label">AI-powered</div></div>
+  <div class="stat"><div class="stat-num" data-count="28">0</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-num" data-count="16">0</div><div class="stat-label">Instant (no AI)</div></div>
+  <div class="stat"><div class="stat-num" data-count="12">0</div><div class="stat-label">AI-powered</div></div>
   <div class="stat"><div class="stat-num" data-count="100">0</div><div class="stat-label">Power Words Tracked</div></div>
   <div class="stat"><div class="stat-num" style="font-size:1.8rem">Free</div><div class="stat-label">BASIC Plan</div></div>
 </div>
 
 <!-- ENDPOINTS -->
 <section id="endpoints" class="reveal">
-  <h2>All 27 Endpoints</h2>
-  <p class="section-sub">15 instant heuristic scorers (zero latency, no AI cost) and 11 AI-powered generators covering every major platform and content type.</p>
+  <h2>All 28 Endpoints</h2>
+  <p class="section-sub">16 instant heuristic scorers (zero latency, no AI cost) and 12 AI-powered generators covering every major platform and content type.</p>
 
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;">
-    <button class="ep-filter-btn active" data-filter="all" onclick="filterEndpoints('all',this)">All 27</button>
-    <button class="ep-filter-btn" data-filter="instant" onclick="filterEndpoints('instant',this)">⚡ Instant (15)</button>
-    <button class="ep-filter-btn" data-filter="ai" onclick="filterEndpoints('ai',this)">✦ AI Generation (11)</button>
+    <button class="ep-filter-btn active" data-filter="all" onclick="filterEndpoints('all',this)">All 28</button>
+    <button class="ep-filter-btn" data-filter="instant" onclick="filterEndpoints('instant',this)">⚡ Instant (16)</button>
+    <button class="ep-filter-btn" data-filter="ai" onclick="filterEndpoints('ai',this)">✦ AI Generation (12)</button>
     <button class="ep-filter-btn" data-filter="system" onclick="filterEndpoints('system',this)">⬡ System (1)</button>
   </div>
 
@@ -917,7 +917,23 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
       </div></div>
     </div>
 
-    <!-- ✦ AI GENERATORS (11) -->
+    <div class="endpoint-card" data-ep="batch_score" data-kind="instant">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/batch_score</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/batch_score')">copy</span>
+      </div>
+      <div class="ep-desc">Score up to 20 content drafts against one platform in a single call. Returns all scores ranked best-first — perfect for A/B testing drafts before posting.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"texts": ["Draft A: Big news in tech today", "Draft B: I built a tool that scores your tweets before you post — try it free"], "platform": "twitter"}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
+    </div>
+
+    <!-- ✦ AI GENERATORS (12) -->
 
     <div class="endpoint-card" data-ep="improve_headline" data-kind="ai">
       <div class="ep-method">POST</div>
