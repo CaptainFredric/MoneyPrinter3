@@ -6,9 +6,6 @@
 
 ---
 
-<<<<<<< HEAD
-## ⚠️ CRITICAL USER ACTION REQUIRED BEFORE ANYTHING ELSE
-=======
 ## CRITICAL USER ACTION REQUIRED BEFORE ANYTHING ELSE
 
 The code is fixed. But you must **re-import openapi.json into RapidAPI Studio** and **re-deploy on Render** for the fixes to go live.
@@ -43,11 +40,8 @@ Go to https://dashboard.render.com -> ContentForge -> **Manual Deploy -> Deploy 
 ---
 
 ## What's Live and Working Right Now
->>>>>>> dcda800a6c8805a5e2d5f2ad15333646646fe27f
 
-<<<<<<< HEAD
 The code is fixed. But you must **re-import openapi.json into RapidAPI Studio** and **re-deploy on Render** for the fixes to go live.
-=======
 | System | Status | URL |
 |---|---|---|
 | **ContentForge API** | Live on Render | `https://contentforge-api-lpp9.onrender.com` |
@@ -206,7 +200,6 @@ python3 scripts/contentforge_autopilot.py --verify
 | **Twitter: niche_launch_1** | ✅ Active | Firefox Dev profile |
 | **Twitter: EyeCatcher** | ✅ Active | Firefox regular profile |
 | **Ollama local** | ✅ Running | `llama3.2:3b` at `http://127.0.0.1:11434` |
->>>>>>> dcda800a6c8805a5e2d5f2ad15333646646fe27f
 
 ### Step 1 — Pull latest openapi.json to Desktop
 

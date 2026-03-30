@@ -1,14 +1,15 @@
+# Core dependencies — bots, API, affiliate, outreach
+# Install with: pip install -r requirements.txt
+# For YouTube Shorts generation (TTS/video), also run: pip install -r requirements-youtube.txt
 wheel
 termcolor
 schedule
-kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl
 soundfile
 prettytable
 webdriver_manager
 selenium
 ollama
 google-genai>=1.0
-moviepy<2.0
 Pillow>=10.0.0
 yagmail
 assemblyai
