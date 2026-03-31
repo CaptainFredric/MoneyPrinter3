@@ -115,8 +115,8 @@ for i in range(28):
     _ORBS.append((base, spd, rad, sz, teal))
 ORBITERS = _ORBS
 
-# Crystal position
-CX = W // 2 - 310
+# Crystal position  (shifted 160 px left — centres group in YT safe zone)
+CX = W // 2 - 470
 CY = H // 2 + 8
 
 # Crystal spin: π per GIF cycle.  At f=0 and f=FRAMES the diamond looks IDENTICAL
@@ -268,7 +268,7 @@ def gen_frame(f):
     draw_crystal(d, f)
 
     # ── 7. Static title + subtle pulsing glow ──
-    tx, ty = W // 2 - 55, H // 2 - 112
+    tx, ty = W // 2 - 215, H // 2 - 112
     glow_a = int(18 + 8 * lsin(f, cycles=1))
     for gdx in range(-6, 7, 3):
         for gdy in range(-6, 7, 3):
@@ -281,10 +281,10 @@ def gen_frame(f):
     # ── 9. Static stats bar — kept within all-devices safe zone (y ≤ 889) ──
     st_y = H // 2 + 130   # = 850, box spans y=841–889
     d.rounded_rectangle(
-        [W//2 - 455, st_y - 9, W//2 + 605, st_y + 39],
+        [W//2 - 615, st_y - 9, W//2 + 445, st_y + 39],
         radius=6, fill=ac(DARK_CARD, 122), outline=ac(CARD_EDGE, 52), width=1
     )
-    d.text((W//2 - 434, st_y), STATS, fill=ac(PURPLE, 200), font=_stats_f)
+    d.text((W//2 - 594, st_y), STATS, fill=ac(PURPLE, 200), font=_stats_f)
 
     # ── 10. Scan line — single sweep, off-screen at loop boundary ──
     # At f=0:  scan_y ≈ -200  (above screen, invisible)
@@ -297,7 +297,7 @@ def gen_frame(f):
             d.line([(0, yy), (W, yy)], fill=ac(PURPLE, sa))
 
     # ── 11. Static gradient accent bar — just below stats, within desktop safe zone ──
-    bar_y, bar_h, bar_x, bar_w = H // 2 + 178, 4, W//2 - 455, 1060
+    bar_y, bar_h, bar_x, bar_w = H // 2 + 178, 4, W//2 - 615, 1060
     for bx in range(bar_w):
         c = lerp(PURPLE, TEAL, bx / bar_w)
         d.line([(bar_x+bx, bar_y), (bar_x+bx, bar_y+bar_h)], fill=ac(c, 200))
@@ -310,7 +310,7 @@ def gen_frame(f):
         d.line([(bx, by), (bx, by + ys*cl)], fill=cc, width=lw)
 
     # ── 13. Static URL watermark — right-aligned inside stats box row ──
-    d.text((W//2 + 380, H // 2 + 132), "captainfredric.github.io/ContentForge",
+    d.text((W//2 + 220, H // 2 + 132), "captainfredric.github.io/ContentForge",
            fill=ac((140, 135, 180), 130), font=_wm_f)
 
     return img.convert("RGB")
