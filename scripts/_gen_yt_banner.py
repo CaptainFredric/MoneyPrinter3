@@ -207,7 +207,7 @@ def draw_halo_and_beams(d, f):
 #  FRAME GENERATOR
 # ─────────────────────────────────────────────────────
 TITLE   = "DAN DeBUGGER"
-TAGLINE = "builds things  ·  ships in public  ·  sometimes extra fries"
+TAGLINE = "builds things  ·  debugs stuff  ·  sometimes extra fries"
 STATS   = "28 ENDPOINTS  ·  16 SCORERS  ·  12 AI TOOLS  ·  9+ PLATFORMS"
 
 _title_f = None
@@ -278,8 +278,8 @@ def gen_frame(f):
     # ── 8. Static tagline ──
     d.text((tx + 12, ty + 158), TAGLINE, fill=TEAL, font=_tag_f)
 
-    # ── 9. Static stats bar ──
-    st_y = H - 142
+    # ── 9. Static stats bar — kept within all-devices safe zone (y ≤ 889) ──
+    st_y = H // 2 + 130   # = 850, box spans y=841–889
     d.rounded_rectangle(
         [W//2 - 455, st_y - 9, W//2 + 605, st_y + 39],
         radius=6, fill=ac(DARK_CARD, 122), outline=ac(CARD_EDGE, 52), width=1
@@ -296,8 +296,8 @@ def gen_frame(f):
             sa = int(26 * (1 - abs(dy) / 14))
             d.line([(0, yy), (W, yy)], fill=ac(PURPLE, sa))
 
-    # ── 11. Static gradient accent bar ──
-    bar_y, bar_h, bar_x, bar_w = H - 66, 5, W//2 - 200, 900
+    # ── 11. Static gradient accent bar — just below stats, within desktop safe zone ──
+    bar_y, bar_h, bar_x, bar_w = H // 2 + 178, 4, W//2 - 455, 1060
     for bx in range(bar_w):
         c = lerp(PURPLE, TEAL, bx / bar_w)
         d.line([(bar_x+bx, bar_y), (bar_x+bx, bar_y+bar_h)], fill=ac(c, 200))
@@ -309,9 +309,9 @@ def gen_frame(f):
         d.line([(bx, by), (bx + xs*cl, by)], fill=cc, width=lw)
         d.line([(bx, by), (bx, by + ys*cl)], fill=cc, width=lw)
 
-    # ── 13. Static URL watermark ──
-    d.text((W-572, H-52), "captainfredric.github.io/ContentForge",
-           fill=ac((140, 135, 180), 140), font=_wm_f)
+    # ── 13. Static URL watermark — right-aligned inside stats box row ──
+    d.text((W//2 + 380, H // 2 + 132), "captainfredric.github.io/ContentForge",
+           fill=ac((140, 135, 180), 130), font=_wm_f)
 
     return img.convert("RGB")
 
