@@ -1,6 +1,6 @@
 # Next Session Handoff — ContentForge / MoneyPrinterV2
 
-**Last updated:** Autonomous work session (batch_score, CI, 44 promo templates)
+**Last updated:** Session ending commit b06ef90 (March 30 2026)
 **Repo:** https://github.com/CaptainFredric/ContentForge (branch: `main`)
 **Contact email:** captainarmoreddude@gmail.com
 
@@ -8,9 +8,173 @@
 
 ## CURRENT STATE SUMMARY
 
-Both Twitter bots are LIVE and posting. API is live on Render. This session added the
-`/v1/batch_score` endpoint, GitHub Actions CI, expanded promo templates (31 → 44),
-and updated the openapi.json to 28 endpoints.
+Both Twitter bots are LIVE and posting. API is live on Render. Recent sessions added:
+- `/v1/batch_score` endpoint (28th endpoint)
+- GitHub Actions CI smoke test
+- Expanded promo templates (31 → 44)
+- Fixed emoji detection across all 7 scorers (`_count_emojis()` helper)
+- Fixed `promo_contentforge.py` venv path bug + batch_score fast path
+- Interruptible `_run_cmd()` in `money_idle_phase2.py` (Popen + 1s poll)
+- Expanded `_PLATFORM_SCORERS` to include `ad_copy`, `headline`, `email_subject`
+
+---
+
+## ACTION REQUIRED (MANUAL — cannot be automated)
+
+1. **Re-import openapi.json to RapidAPI Studio** — batch_score endpoint needs to be visible
+   - File is ready at `~/Desktop/rapidapi-upload/openapi.json`
+   - Go to https://rapidapi.com/provider/studio → ContentForge → API Definition → Import
+
+2. **Update RapidAPI listing short description:**
+   ```
+   28-endpoint content API: 16 instant heuristic scorers + 12 Gemini AI generators for Twitter,
+   LinkedIn, Instagram, TikTok, YouTube, Pinterest, email & ad copy. Includes batch_score.
+   ```
+
+3. **Post the Show HN** — file at `~/Desktop/ShowHN_post.md`
+   - Best window: Tuesday or Wednesday, 9–11am EST
+   - Warm the server first: `curl https://contentforge-api-lpp9.onrender.com/health`
+
+---
+
+## What's Live and Working Right Now
+
+| System | Status | Notes |
+|---|---|---|
+| **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
+| **RapidAPI Listing** | ⚠️ Needs re-import for batch_score | openapi.json updated locally + on Desktop |
+| **Gemini backend** | ✅ Configured | gemini-2.0-flash via Render env var |
+| **Keep-warm cron** | ✅ Active | cron-job.org every 10min → /health |
+| **Landing Page** | ✅ Live | `https://captainfredric.github.io/ContentForge/` |
+| **Bot daemon** | ✅ Running | `money_idle_phase2.py --headless --promo-every 4` |
+| **niche_launch_1** | ✅ Active, health=100 | ready-cookie-auth, posted confidence=93 |
+| **EyeCatcher** | ✅ Active, health=100 | ready-cookie-auth, posted confidence=93 |
+| **venv** | ✅ At ContentForge/venv/ | Python 3.14, all core deps installed |
+| **config.json** | ✅ Exists | DO NOT COMMIT — .gitignore covers it |
+| **.mp/twitter.json** | ✅ Exists | Both accounts, health=100 |
+| **GitHub Actions CI** | ✅ Created | .github/workflows/smoke_test.yml |
+
+---
+
+## Complete Endpoint List — All 28
+
+```
+GET  /health                         — status, LLM backend, usage stats
+
+# Instant scoring (no AI, <50ms, always free):
+POST /v1/analyze_headline
+POST /v1/score_tweet
+POST /v1/score_linkedin_post
+POST /v1/score_instagram
+POST /v1/score_youtube_title
+POST /v1/score_youtube_description
+POST /v1/score_email_subject
+POST /v1/score_tiktok
+POST /v1/score_threads
+POST /v1/score_facebook
+POST /v1/score_pinterest
+POST /v1/score_ad_copy
+POST /v1/score_readability
+POST /v1/analyze_hashtags
+POST /v1/score_multi               — 14 platforms in one call (tweet/linkedin/instagram/tiktok/
+                                     threads/facebook/pinterest/youtube/youtube_description/
+                                     email/email_subject/readability/ad_copy/headline)
+POST /v1/batch_score               — score up to 20 drafts, return best + ranked list
+
+# AI generation (Gemini 2.0 Flash, ~1-3s):
+POST /v1/improve_headline
+POST /v1/generate_hooks
+POST /v1/rewrite
+POST /v1/tweet_ideas
+POST /v1/content_calendar
+POST /v1/thread_outline
+POST /v1/generate_bio
+POST /v1/generate_caption
+POST /v1/generate_linkedin_post
+POST /v1/generate_email_sequence
+POST /v1/generate_content_brief
+```
+
+---
+
+## Important URLs
+
+| Resource | URL |
+|---|---|
+| API Base | `https://contentforge-api-lpp9.onrender.com` |
+| RapidAPI Proxy | `https://contentforge1.p.rapidapi.com` |
+| RapidAPI Listing | `https://rapidapi.com/captainarmoreddude/api/contentforge1` |
+| RapidAPI Studio | `https://rapidapi.com/provider/studio` |
+| Landing Page | `https://captainfredric.github.io/ContentForge/` |
+| Render Dashboard | `https://dashboard.render.com` |
+
+---
+
+## File State
+
+| File | Status | Notes |
+|---|---|---|
+| `scripts/api_prototype.py` | ✅ Clean | 28 endpoints, all scorers fixed, py_compile OK |
+| `scripts/money_idle_phase2.py` | ✅ Fixed | Interruptible _run_cmd, --promo-every 4 |
+| `scripts/promo_contentforge.py` | ✅ Fixed | resolve_runtime_python(), batch_score fast path |
+| `scripts/smart_post_twitter.py` | ✅ Solid | No issues found |
+| `deploy/openapi.json` | ✅ Updated | 28 paths, batch_score spec |
+| `~/Desktop/rapidapi-upload/openapi.json` | ✅ Ready | Copy for RapidAPI import |
+| `~/Desktop/ShowHN_post.md` | ✅ Ready | Final HN post + 5 pre-written comment replies |
+| `scripts/contentforge_autopilot.py` | ✅ 44 templates | Covers batch_score, email, ad copy, etc. |
+| `.github/workflows/smoke_test.yml` | ✅ Active | Tests /health + score_tweet + analyze_headline + batch_score |
+| `index.html` | ✅ 28 endpoints | All counts updated (28/16/12), batch_score card added |
+
+---
+
+## Recent Commits (latest first)
+
+| Commit | Summary |
+|---|---|
+| `b06ef90` | Interruptible _run_cmd daemon, expand _PLATFORM_SCORERS (ad_copy, headline, email_subject) |
+| `e250d36` | Fix emoji detection range, promo venv path bug, score_tweet 3-hashtag penalty |
+| `09667e5` | index.html 27→28, batch_score card, smoke_test CI, 44 promo templates |
+
+---
+
+## Bot Quick-Start (if daemon died)
+
+```bash
+cd /Users/erendiracisneros/Documents/GitHub/PromisesFrontend/MoneyPrinterV2/ContentForge
+source venv/bin/activate
+nohup python3 scripts/money_idle_phase2.py --headless --promo-every 4 > nohup.out 2>&1 &
+```
+
+Check status:
+```bash
+tail -20 nohup.out
+python3 scripts/check_x_session.py
+```
+
+---
+
+## Key Technical Notes
+
+- **Base URL typo trap:** `contentforge-api-lpp9` — letter L not digit 1
+- **Gemini daily quota:** 1,500 req/day. 503 RESOURCE_EXHAUSTED = wait until midnight Pacific
+- **CORS:** enabled on every response — browser clients work directly
+- **LLM fallback:** Gemini 2.0-flash → 2.5-flash → 2.5-flash-lite → 2.0-flash-lite → Ollama
+- **Python 3.14 on macOS:** kittentts/misaki won't install — use requirements-youtube.txt only for YouTube features
+- **venv path:** `ContentForge/venv/` (NOT `.runtime-venv/`) — `resolve_runtime_python()` handles this
+- **_PLATFORM_SCORERS:** now 14 platforms — tweet/twitter/linkedin/instagram/tiktok/threads/
+  facebook/pinterest/youtube/youtube_description/email/email_subject/readability/ad_copy/headline
+- **ad_copy in batch_score:** send `"ad_platform": "google"` or `"meta"` alongside `"platform": "ad_copy"`
+
+---
+
+## Remaining Improvements (Priority Order)
+
+1. **Re-import openapi.json to RapidAPI** (batch_score needs to be visible in Studio)
+2. **Post Show HN** (Tuesday/Wednesday 9-11am EST)
+3. **Render redeploy** if not auto-deploying — go to dashboard.render.com → Manual Deploy
+4. Score weighting improvements based on real engagement data (future)
+5. Zapier/Make template for batch_score use case (future)
+
 
 ---
 
