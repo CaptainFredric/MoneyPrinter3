@@ -3,6 +3,7 @@ Generate Product Hunt gallery images for ContentForge.
 Theme: matches the live website — dark #0f0f11 bg, purple #7c6af7, teal #5ec8a0.
 Output: ~/Desktop/ContentForge-PH-Assets/
 """
+import math
 import os
 import pathlib
 
@@ -645,35 +646,68 @@ def make_github_card():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 00  Thumbnail  240×240
+# 00  Thumbnail  240×240  — prism-cube logo, website-themed
 # ─────────────────────────────────────────────────────────────────────────────
 def make_thumbnail():
     S = 240
     img = Image.new("RGB", (S, S), BG_PAGE)
-    draw = ImageDraw.Draw(img)
 
-    # Subtle radial glow
+    # Soft radial purple glow behind circle
     overlay = Image.new("RGBA", (S, S), (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
-    for radius in range(90, 0, -3):
-        alpha = int(30 * (1 - radius / 90))
-        od.ellipse((S//2-radius*2, S//2-radius, S//2+radius*2, S//2+radius),
+    for radius in range(100, 0, -3):
+        alpha = int(32 * (1 - radius / 100))
+        od.ellipse((S//2-radius, S//2-80-radius//2, S//2+radius, S//2-80+radius*1.4),
                    fill=(124, 106, 247, alpha))
     img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
     draw = ImageDraw.Draw(img)
 
-    # ContentForge logotype
-    logo_text(draw, S // 2, 102, size=24)
-    draw.line([(S//2 - 66, 116), (S//2 + 66, 116)], fill=BORDER, width=1)
-    draw.text((S // 2, 132), "Content Scoring API",
-              font=_font(13), fill=TEXT_SUB, anchor="mm")
+    cx = S // 2; cy = 82; r = 62
 
-    # Small badge
-    badge_pill(draw, S // 2, 162,
-               "28 endpoints",
-               font=_font(12, bold=True), pad_x=10, pad_y=4)
+    # Main purple circle (logo background)
+    draw.ellipse((cx-r, cy-r, cx+r, cy+r), fill=PURPLE)
 
-    # Accent bar top/bottom
+    # Teal sparkle rays — 10 spokes emanating from behind the gem
+    for i in range(10):
+        angle = math.radians(i * 36 - 90)
+        x1 = cx + (r - 6) * math.cos(angle)
+        y1 = cy + (r - 6) * math.sin(angle)
+        x2 = cx + (r + 26) * math.cos(angle)
+        y2 = cy + (r + 26) * math.sin(angle)
+        draw.line([(x1, y1), (x2, y2)], fill=TEAL, width=2)
+    # Dot tips
+    for i in range(10):
+        angle = math.radians(i * 36 - 90 + 18)
+        dist = r + 30
+        xd = cx + dist * math.cos(angle)
+        yd = cy + dist * math.sin(angle)
+        draw.ellipse((xd-2, yd-2, xd+2, yd+2), fill=TEAL)
+
+    # Prism / diamond cube — faceted with teal + lighter highlights
+    gs = 26  # gem size
+    top   = (cx, cy - gs)
+    right = (cx + int(gs*0.82), cy - 2)
+    bot   = (cx, cy + int(gs*0.72))
+    left  = (cx - int(gs*0.82), cy - 2)
+    mid   = (cx, cy - 4)
+    # Main body (teal)
+    draw.polygon([top, right, bot, left], fill=TEAL)
+    # Upper-right highlight face (lighter, almost white-teal)
+    draw.polygon([top, right, mid], fill="#9efce0")
+    # Lower-right shadow face
+    draw.polygon([mid, right, bot], fill="#3d9c7a")
+    # Lower-left shadow face (darkest)
+    draw.polygon([mid, bot, left], fill="#2d7a5e")
+    # Upper-left face (mid-brightness)
+    draw.polygon([top, mid, left], fill="#5ec8a0")
+
+    # CONTENT white / FORGE purple wordmark
+    draw.text((cx, cy + r + 14), "CONTENT", font=_font(17, bold=True), fill="#f0f0f5", anchor="mm")
+    draw.text((cx, cy + r + 33), "FORGE",   font=_font(17, bold=True), fill=PURPLE,   anchor="mm")
+    draw.line([(cx-46, cy+r+43), (cx+46, cy+r+43)], fill=BORDER, width=1)
+    draw.text((cx, cy + r + 54), "AI Content API", font=_font(10), fill=TEXT_SUB, anchor="mm")
+
+    # Purple-to-teal accent bars top + bottom
     for x in range(S):
         t = x / S
         r1, g1, b1 = hex_rgb(PURPLE); r2, g2, b2 = hex_rgb(TEAL)
@@ -688,18 +722,129 @@ def make_thumbnail():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 09  Audience — "Built For" grid (mirrors website section)
+# ─────────────────────────────────────────────────────────────────────────────
+def make_audience():
+    img, draw = new_canvas()
+    accent_bar(img, 0)
+
+    draw.text((W // 2, 66),  "Built For Creators & Developers",
+              font=_font(50, bold=True), fill=WHITE, anchor="mm")
+    draw.text((W // 2, 110), "Solo creator or a full agency — ContentForge fits every workflow",
+              font=_font(20), fill=TEXT_SUB, anchor="mm")
+
+    cards = [
+        ("🐦", "Twitter Growth Hackers",
+         "Score every tweet before posting.\nOnly publish A-grade content."),
+        ("✍️", "Bloggers & Newsletter Writers",
+         "Test 10 headlines in a loop.\nPick the best open-rate signal."),
+        ("🚀", "Indie Hackers",
+         "Build-in-public on autopilot.\nThread outlines, tweet ideas via API."),
+        ("📢", "Marketers & Ad Teams",
+         "Score ad copy before spend.\nAIDA analysis on every draft."),
+        ("🏢", "Content Agencies",
+         "Batch score 100 pieces at once.\nDeliver better copy, faster."),
+        ("⚙️", "Developers & SaaS Builders",
+         "One POST request to score anything.\nNo SDK. No setup. Free tier."),
+    ]
+
+    cols = 3; col_pad = 28
+    cw = (W - col_pad * (cols + 1)) // cols
+    ch = 210; sy = 148
+    for idx, (icon, title, body) in enumerate(cards):
+        col = idx % cols; row = idx // cols
+        cx2 = col_pad + col * (cw + col_pad)
+        cy2 = sy + row * (ch + 18)
+        feat = idx in (0, 5)
+        rr(draw, (cx2, cy2, cx2+cw, cy2+ch), r=12, fill=BG_CARD,
+           outline=PURPLE if feat else BORDER, w=(2 if feat else 1))
+        # Left accent tab
+        tab_col = PURPLE if feat else TEAL
+        rr(draw, (cx2, cy2, cx2+4, cy2+ch), r=2, fill=tab_col)
+
+        draw.text((cx2 + 22, cy2 + 36),  icon,  font=_font(30), fill=WHITE,    anchor="lm")
+        draw.text((cx2 + 22, cy2 + 78),  title, font=_font(20, bold=True), fill=WHITE, anchor="lm")
+        for j, line in enumerate(body.split("\n")):
+            draw.text((cx2 + 22, cy2 + 112 + j * 28), line,
+                      font=_font(16), fill=TEXT_SUB, anchor="lm")
+
+    badge_pill(draw, W // 2, H - 46,
+               "Free tier · No credit card · Start scoring today",
+               font=_font(16, bold=True), fg=TEAL, bg=FAST_BG, border=TEAL)
+    accent_bar(img, H - 3)
+    return save(img, "09_audience.png")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 10  Cross-Platform Score — same post, 4 platforms, one request
+# ─────────────────────────────────────────────────────────────────────────────
+def make_cross_platform():
+    img, draw = new_canvas()
+    accent_bar(img, 0)
+
+    draw.text((W // 2, 66), "One Text. Every Platform. Instantly.",
+              font=_font(50, bold=True), fill=WHITE, anchor="mm")
+    draw.text((W // 2, 110), "Same post scored against Twitter, LinkedIn, Instagram & TikTok — single /batch_score request",
+              font=_font(19), fill=TEXT_SUB, anchor="mm")
+
+    # Input text card
+    rr(draw, (48, 140, W-48, 196), r=10, fill=BG_CARD, outline=BORDER)
+    draw.text((70, 168), "POST text →", font=_font(15), fill=TEXT_DIM, anchor="lm")
+    input_text = '"Just shipped ContentForge — 28 endpoints live. Free tier always free 🚀"'
+    draw.text((178, 168), input_text, font=_font(17, bold=True), fill=TEXT_MAIN, anchor="lm")
+
+    # Platform score columns
+    results = [
+        ("Twitter / X",  82, "B+", PURPLE,    ["Strong hook", "Emoji ✓",         "CTA present",       "Add 1-2 hashtags"]),
+        ("LinkedIn",     64, "C+", "#9999aa",  ["Too casual",  "No question hook", "Good length",       "Add prof. CTA"]),
+        ("Instagram",    75, "B",  TEAL,       ["Emoji use ✓", "Strong hook ✓",   "Needs hashtags",    "30 tags allowed"]),
+        ("TikTok",       70, "B-", "#c8b4f7",  ["Trend: low",  "No CTA",          "Length OK ✓",       "Add trend hook"]),
+    ]
+    gap = 20; cw2 = (W - 80 - gap * 3) // 4; sy = 212
+    card_h = H - sy - 44
+    for i, (platform, score, grade, col, tips) in enumerate(results):
+        cx2 = 40 + i * (cw2 + gap)
+        rr(draw, (cx2, sy, cx2+cw2, sy+card_h), r=12, fill=BG_CARD, outline=col, w=2)
+        # Platform name
+        draw.text((cx2 + cw2//2, sy + 28), platform,
+                  font=_font(17, bold=True), fill=col, anchor="mm")
+        # Score circle
+        ccx = cx2 + cw2//2; ccy = sy + 108; cr = 46
+        draw.ellipse((ccx-cr-3, ccy-cr-3, ccx+cr+3, ccy+cr+3), fill=col)
+        draw.ellipse((ccx-cr,   ccy-cr,   ccx+cr,   ccy+cr),   fill=BG_CARD)
+        draw.text((ccx, ccy - 8),  str(score), font=_font(36, bold=True), fill=col, anchor="mm")
+        draw.text((ccx, ccy + 30), grade,      font=_font(20, bold=True), fill=col, anchor="mm")
+        # Tip bullets
+        draw.line([(cx2+10, sy+160), (cx2+cw2-10, sy+160)], fill=BORDER)
+        for j, tip in enumerate(tips):
+            has_check = "✓" in tip
+            tip_clean = tip.replace(" ✓", "").replace("✓", "").strip()
+            bullet = "✓" if has_check else "·"
+            tip_col = TEAL if has_check else TEXT_DIM
+            draw.text((cx2 + 12, sy + 182 + j * 36),
+                      f"{bullet}  {tip_clean[:26]}", font=_font(14), fill=tip_col, anchor="lm")
+
+    draw.text((W // 2, H - 22), "All 4 results returned in a single /batch_score call  ·  <50 ms",
+              font=_font(15), fill=TEXT_DIM, anchor="mm")
+    accent_bar(img, H - 3)
+    return save(img, "10_cross_platform.png")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     print(f"\nGenerating ContentForge PH assets (website theme) -> {OUT_DIR}\n")
     steps = [
-        ("01  Hero",           make_hero),
-        ("02  How it works",   make_how_it_works),
-        ("03  Platforms",      make_platforms),
-        ("04  AI generators",  make_ai_endpoints),
-        ("05  Quick start",    make_quickstart),
-        ("06  Pricing",        make_pricing),
-        ("07  Score demo",     make_score_demo),
-        ("08  GitHub card",    make_github_card),
-        ("00  Thumbnail",      make_thumbnail),
+        ("01  Hero",             make_hero),
+        ("02  How it works",     make_how_it_works),
+        ("03  Platforms",        make_platforms),
+        ("04  AI generators",    make_ai_endpoints),
+        ("05  Quick start",      make_quickstart),
+        ("06  Pricing",          make_pricing),
+        ("07  Score demo",       make_score_demo),
+        ("08  GitHub card",      make_github_card),
+        ("09  Audience",         make_audience),
+        ("10  Cross-platform",   make_cross_platform),
+        ("00  Thumbnail",        make_thumbnail),
     ]
     ok = []
     for label, fn in steps:
@@ -708,5 +853,5 @@ if __name__ == "__main__":
             ok.append(fn())
         except Exception as e:
             print(f"  ERROR: {e}")
-    print(f"\n Done! {len(ok)}/9  ->  {OUT_DIR}")
-    print("  All 1270x760  |  Thumbnail 240x240  |  Under 2000px\n")
+    print(f"\n Done! {len(ok)}/11  ->  {OUT_DIR}")
+    print("  Gallery 1270x760  |  Thumbnail 240x240  |  Under 2000px\n")
