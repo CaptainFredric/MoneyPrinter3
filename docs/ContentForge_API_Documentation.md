@@ -1,6 +1,6 @@
 # ContentForge API — Documentation
 
-**ContentForge** is a 28-endpoint REST API for scoring and generating content across every major platform. Score any draft before you post — get a 0–100 score, a letter grade, and specific improvement tips in under 50ms. Use the AI endpoints to generate content from scratch when needed.
+**ContentForge** is a 28-endpoint REST API for scoring and generating content across every major platform. Score any draft before you post—get a 0–100 score, a letter grade, and specific improvement tips in under 50ms. Use the AI endpoints to generate content from scratch when needed.
 
 ---
 
@@ -29,7 +29,7 @@ These endpoints use a pure heuristic engine — no AI, no latency, no AI call qu
 
 ### 1. `POST /v1/score_tweet` — Score a Tweet Draft
 
-Score any tweet 0–100 fScore any tweet 0–100 before you post.
+Score any tweet 0–100 for engagement potential before you post.
 
 **Request:**
 ```json
@@ -85,21 +85,21 @@ Score any headline 0–100 with a letter grade and actionable tips. **Instant re
   "word_count": 9,
   "has_number": true,
   "question_mark": false,
-  "power_words_found": ["money", "sleep  "powesuggesti  "power_words
+  "power_words_found": ["money", "sleep"],
+  "suggestions": []
+}
+```
 
-
- "power_words_fou** "power_words_fou** 0–80 chars)
+**Scoring signals:**
+- Optimal length (30–80 chars)
 - Power words (60+ tracked: urgency, money, social proof, curiosity, ease)
 - Specific numbers boost credibility
 - Question marks as engagement hooks
-- Emotional triggers and exclamations
 - ALL CAPS overuse penalty
 
 ---
 
 ### 3. `POST /v1/score_linkedin_post` — Score a LinkedIn Post
-
-Checks hook strength, paragraph structure, professional tone, hashtag count, and CTA presence.
 
 **Request:**
 ```json
@@ -121,7 +121,8 @@ Checks hook strength, paragraph structure, professional tone, hashtag count, and
 - Hook strength (first line quality)
 - Paragraph structure and white space
 - Professional tone signals
-------------------------------------------------------ence
+- Hashtag count (3–5 optimal on LinkedIn)
+- CTA presence
 
 ---
 
@@ -130,7 +131,19 @@ Checks hook strength, paragraph structure, professional tone, hashtag count, and
 **Request:**
 ```json
 {
-  "text": "Life update 🌿\n\nQuit my job. Built an API. Now 200 users in 30 days.\n\nFu  "text": "Life update 🌿\n\nQuit my job. Built aou  "text": "Life update 🌿\n\nQuit my job. Built an API. Now 200 users ima  "text": "Life update 🌿\n\nne bre  "text": "Life update 🌿\n\nQui- O  "text": "Life update 🌿\n\nQuit --  "text": "Life update �_youtube_title` — Score a YouTube Title
+  "text": "Quit my job. Built an API. Now 200 users in 30 days.\n\nFull story 👇\n\n#indiehacker #buildinpublic #solofounder #saas #api"
+}
+```
+
+**Scoring signals:**
+- Hashtag count (5–15 optimal)
+- Emojis and line breaks
+- Opening hook quality
+- CTA presence
+
+---
+
+### 5. `POST /v1/score_youtube_title` — Score a YouTube Title
 
 **Request:**
 ```json
@@ -141,10 +154,8 @@ Checks hook strength, paragraph structure, professional tone, hashtag count, and
 
 **Scoring signals:**
 - Optimal length (40–60 chars for CTR)
-- Numbers in title
-- Brackets or parentheses (adds context, boosts CTR)
-- Power words
-- Curiosity gap signals
+- Numbers and brackets or parentheses
+- Power words and curiosity gap
 
 ---
 
@@ -152,10 +163,9 @@ Checks hook strength, paragraph structure, professional tone, hashtag count, and
 
 **Scoring signals:**
 - SEO keyword density in first 150 chars
-- Timestamps / chapter marks present
-- External links
+- Timestamps / chapter marks
+- External links and subscribe CTA
 - CTA placement
-- Subscribe prompt
 
 ---
 
@@ -164,11 +174,28 @@ Checks hook strength, paragraph structure, professional tone, hashtag count, and
 **Request:**
 ```json
 {
-  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  "tex  "tex  "teate  "tex  "teiche + trend  "tex  "tex  "teft  "texhing  "tex  "tex  "teft  "texhing  chars
+  "text": "You left something behind 👀"
+}
+```
+
+**Scoring signals:**
+- Curiosity gap, urgency, personalization
+- Spam trigger words (penalized)
+- Optimal length (30–50 chars)
+- Question marks and numbers
 
 ---
 
-### 9. `POST /v1/s### 9. `POST /v1/s### 9. `POST /v1/ost
+### 8. `POST /v1/score_tiktok` — Score a TikTok Caption
+
+**Scoring signals:**
+- Hook speed (first 3 words)
+- Hashtag strategy (3–5 niche + trending mix)
+- Ideal length ≤150 chars
+
+---
+
+### 9. `POST /v1/score_threads` — Score a Threads Post
 
 **Scoring signals:**
 - Conversational tone
@@ -191,9 +218,35 @@ Checks hook strength, paragraph structure, professional tone, hashtag count, and
 ### 11. `POST /v1/score_pinterest` — Score a Pinterest Description
 
 **Scoring signals:**
-- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor-rat-  gr- Keywor- Keywor- Keywor- Keywor- Keywor- Keywor- Keyw**
-`````````````````ch_re`````````````````c
-  "  "  "  "  "id_gr  "  "  "  "  "id_gr  "  "  "  "  "id_gr  "  "  "  "  "id_":  "  "  "  "de":  B"
+- Keyword density
+- Instructional language ("how to", "step-by-step")
+- Spam signal detection
+
+---
+
+### 12. `POST /v1/score_ad_copy` — Score Ad Copy
+
+**Scoring signals:**
+- Headline length and clarity
+- Benefit-forward language
+- Urgency signals
+- CTA strength
+- Compliance red flags
+
+---
+
+### 13. `POST /v1/score_readability` — Readability Score
+
+Returns Flesch-Kincaid reading ease, grade level, and structural stats.
+
+**Response:**
+```json
+{
+  "flesch_reading_ease": 68.4,
+  "flesch_kincaid_grade": 7.2,
+  "avg_sentence_length": 14,
+  "avg_word_length": 4.3,
+  "grade": "B"
 }
 ```
 
@@ -201,7 +254,8 @@ Checks hook strength, paragraph structure, professional tone, hashtag count, and
 
 ### 14. `POST /v1/analyze_hashtags` — Analyze Hashtags
 
-Check a list of hashtags for spam risk, overuse, uniqueness, and per-Check a list o
+Check hashtags for spam risk, overuse, and per-platform fit.
+
 **Request:**
 ```json
 {
@@ -222,16 +276,9 @@ Check a list of hashtags for spam risk, overuse, uniqueness, and per-Check a lis
 
 ---
 
-### 15. `POST /v1/score_multi` — Score Across All Platforms at Once
+### 15. `POST /v1/score_multi` — Score Across All Platforms
 
-Send one piece of text, get scores for every platform in a single call.
-
-**Request:**
-```json
-{
-  "text": "Built a tool that scores your content before you post. 28 endpoints, free tier. 🔗"
-}
-```
+One piece of text, scores for every platform in a single call.
 
 **Response:**
 ```json
@@ -247,8 +294,17 @@ Send one piece of text, get scores for every platform in a single call.
 
 ---
 
-### 16. `POST /v1/batch_score` — Batch Score Multiple Dra### 16. `POST /v1/batch_score` — Batch Score Multiple Dra### 16. `POST /v1/batches### 1st — g###  for A### 16. `POST /v1/batch_score` — Batch Score Multiple Dra### 16. `POST /v1Bui### 16. `POST /v1/batc",
-    "I    "I  n API    48 hour    "I    "s th    "I    "I  n API    48 hour    "I    "s th    "I    "I  n API    48 houw I did it."
+### 16. `POST /v1/batch_score` — Batch Score Multiple Drafts
+
+Score up to 20 draft texts against one platform, returned best-first.
+
+**Request:**
+```json
+{
+  "texts": [
+    "Built an API in 48 hours.",
+    "I built an API in 48 hours — here's the full breakdown 🧵",
+    "48 hours. 1 API. 200 users. Here's exactly how I did it."
   ],
   "platform": "twitter"
 }
@@ -269,13 +325,13 @@ Send one piece of text, get scores for every platform in a single call.
 
 ## ✦ AI Generators — Gemini 2.5 Flash
 
-These endpoints calThesmini 2.5 Flash and respond in 1–4 seconds. They **consume AI call quota** from yoThese endpoints calThesmini 2.5 Flash and rest AI quota.
+These endpoints call Gemini 2.5 Flash and respond in 1–4 seconds. They **consume AI call quota** from your plan.
 
 ---
 
 ### 17. `POST /v1/improve_headline` — Improve a Headline with AI
 
-Takes a weakTaeadlTne, identifies its problems, and generates N better AI-written versions — each scored and sorted best-first.
+Generates N better AI-written versions of a weak headline — each pre-scored and sorted best-first.
 
 **Request:**
 ```json
@@ -303,26 +359,39 @@ Takes a weakTaeadlTne, identifies its problems, and generates N better AI-writte
     "Add a number for specificity (e.g. '5 ways', '$6K/mo')."
   ],
   "improved_versions": [
-    { "text": "Can You Really Earn $5,000 a Month Online? Discover the Secrets", "score":  00, "grad    { "text": "Can You Really Earn $5,s to     { "text": "Can You Really Earn $5,000 a Month Online? Discover the Secrets", "score":  00, "grad    { "text": "Can You Really Earn $5,s to     { "text": "Can`
+    { "text": "Can You Really Earn $5,000 a Month Online? Discover the Secrets", "score": 100, "grade": "A" },
+    { "text": "7 Proven Ways to Make Money Online in 2024", "score": 87, "grade": "A" },
+    { "text": "Make Money Online: 5 Strategies That Actually Work", "score": 82, "grade": "A" }
+  ]
+}
+```
 
 **Recommended workflow:**
 1. Call `analyze_headline` → get score + suggestions
-2. If score < 80, call `improve_headline` → get 3 better versions
+2. If score < 80, call `improve_headline` → get N better versions
 3. Pick the top-scored version → publish
 
 ---
 
-### 18### 18### 1/generate_ho### 18### 18### 1/generate_ho### 18#at### 18###stopping op### 18### 1ny top### 18### 18### 1/generate_ho### 1s.
+### 18. `POST /v1/generate_hooks` — Generate Viral Hooks
 
+Returns scroll-stopping openers in multiple styles: viral, professional, casual, bold.
 
-## 18### 18###`js## 18### 18###`js## 18#ng a SaaS while working a full-time job",
+**Request:**
+```json
+{
+  "topic": "building a SaaS while working a full-time job",
   "count": 4
 }
 ```
 
-**Response:***Response:***Response:***Res"Nobody tells you how hard it is to ship at midnight when your 9–5 drained you dry.",
+**Response:**
+```json
+{
+  "hooks": [
+    "Nobody tells you how hard it is to ship at midnight when your 9–5 drained you dry.",
     "I built a SaaS between 10pm and 1am for 6 months. Here's the honest truth.",
-    "Most 'side project' advice is wri    "Most 'side project their job first.",
+    "Most 'side project' advice is written by people who quit their job first.",
     "72 hours a week. 1 product. Zero regrets."
   ]
 }
@@ -334,14 +403,32 @@ Takes a weakTaeadlTne, identifies its problems, and generates N better AI-writte
 
 Platform-optimized rewrite. Respects each platform's character limits automatically.
 
+**Parameters:**
+
+| Field | Type | Required | Options |
+|---|---|---|---|
+| `text` | string | ✅ | — |
+| `platform` | string | ✅ | `twitter`, `linkedin`, `instagram`, `tiktok`, `email`, `blog` |
+
+---
+
+### 20. `POST /v1/tweet_ideas` — Generate Tweet Ideas
+
+5–10 tweet angles for any niche with hashtag suggestions.
+
 **Request:**
 ```json
 {
-  "text": "I launched a content scoring API and got 200 use  "text": "I launched a 
-                                                    ield | Type | Required | Options |
-|---|---|---|---|
-| `text` | string | ✅ | — |
-| `platform` | string | ✅ | `twitt| `platform` | string | ✅ | `twitt| `platform` | string | ✅ | `twitt| `platform` | string | ✅ | `twitt| `platform` | string | ✅ | `s fo| `platform` | string | ✅ | `twitt| `platform` | string | ✅ | `twitt| `platfns| `play hooks, | d l| `platform` | string | ✅ | `twitt| `platform` | string | ✅ | `twitt| `platform` | string | ✅ | `twitt| `platform` | str Ge| `platform` | string | ✅ | `twitt| `platform` | string | ✅ | `twitt| `platfst drafts.
+  "niche": "indie hacking",
+  "count": 5
+}
+```
+
+---
+
+### 21. `POST /v1/content_calendar` — Generate a 7-Day Content Calendar
+
+Full calendar with daily themes and ready-to-post drafts.
 
 **Request:**
 ```json
@@ -354,9 +441,18 @@ Platform-optimized rewrite. Respects each platform's character limits automatica
 **Response:**
 ```json
 {
-  "ca  ndar": [
-    { "day": "Monday", "theme": "Mindset", "draft":    { "day": "Monday", "theme": "Mindset", "draft":    { "day": "Monday", "theme": ��"    { "da "da    { uesday", "theme": "Quick Win", "draft": "One thing you can do today to save $200/month..    { "day": "Monday", "theme": "Mindset", "draft":    { "day": "Monday", "theme": "M
-CCCCCCCCCCCCCCCCCthCCCCCCCCCCCCCCCCCthCCCCCCCCCCnumbered body + CTA.
+  "calendar": [
+    { "day": "Monday", "theme": "Mindset", "draft": "The most expensive thing you own isn't your house. It's your bad money habits. 🧠" },
+    { "day": "Tuesday", "theme": "Quick Win", "draft": "One thing you can do today to save $200/month..." }
+  ]
+}
+```
+
+---
+
+### 22. `POST /v1/thread_outline` — Generate a Twitter Thread
+
+Complete thread: scroll-stopping hook + numbered body tweets + CTA.
 
 **Request:**
 ```json
@@ -375,11 +471,26 @@ CCCCCCCCCCCCCCCCCthCCCCCCCCCCCCCCCCCthCCCCCCCCCCnumbered body + CTA.
     "3/ Post about building it before it's finished. Document, don't just ship.",
     "4/ Give the free tier real value. Don't cripple it."
   ],
-  "cta": "Follow for weekly API build breakdowns. Bookmark this if you're planning to   "cta": "Follow for weekly API build breakdonerate_bio` — Generate a Social  "cta Bio
+  "cta": "Follow for weekly API build breakdowns. Bookmark this if you're planning to launch 🔖"
+}
+```
 
-Optimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimize |Optimized biOptimized brrectOptimized biOptimized brrectOptimized b150 chars) |
+---
 
-**Response:***Response:***Response:***Response:***Responso-**Response:***Res, si** in**Response:*ng**Respblic | Follow for weekly breakdowns",
+### 23. `POST /v1/generate_bio` — Generate a Social Media Bio
+
+**Parameters:**
+
+| Field | Type | Required | Options |
+|---|---|---|---|
+| `name` | string | ✅ | — |
+| `role` | string | ✅ | — |
+| `platform` | string | ✅ | `twitter` (160 chars), `linkedin` (300 chars), `instagram` (150 chars) |
+
+**Response:**
+```json
+{
+  "bio": "Indie dev building micro-SaaS tools | APIs, side income, shipping in public | Follow for weekly breakdowns",
   "char_count": 104,
   "char_limit": 160
 }
@@ -389,8 +500,21 @@ Optimized biOptimized brrectOptimized biOptimized brrectOptimized biOptimized br
 
 ### 24. `POST /v1/generate_caption` — Generate a Social Caption
 
-IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIest:**
-IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIatform"IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIatform"IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIatform"IIIIIIIIIIIIIIIIIIIIIIIIIIIIA. Formatted for the platform's algorithm.
+Instagram or TikTok caption with hashtags, emojis, and CTA included.
+
+**Request:**
+```json
+{
+  "topic": "launched my first paid API",
+  "platform": "instagram"
+}
+```
+
+---
+
+### 25. `POST /v1/generate_linkedin_post` — Generate a LinkedIn Post
+
+Full post: hook + personal story + insight + CTA. Formatted for LinkedIn's algorithm.
 
 **Request:**
 ```json
@@ -403,28 +527,78 @@ IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIatform"IIIIIIIIIIIIIIIII
 
 ### 26. `POST /v1/generate_email_sequence` — Generate a 3-Email Drip Sequence
 
-Returns a 3-part email drip: welcome → value → pitch. Subject lines included for each.
-
-**Request:**
-```json
-{
-  "product": "ContentForge API",
-  "audience": "indie hackers and content creators"
-}
-```
+Returns a 3-part drip: welcome → value → pitch. Subject lines included for each.
 
 **Response:**
 ```json
 {
-  "emails": [  "emails": [  "emails": [  "emails": [  "emails": [  "emails": [  "emails": [  "emails": [  "emails": [  "emails": [  "emails": [  "emails":ni  "emails": [  "em     "emails": [ence": 2,
-      "subject": "The one thing most creators skip before posting",
-      "body": "Most people post and hope. Here's a better way..."
-    },
-    {
-      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      "seque      rge   udience, c       angle, SEO keyword suggestions, outline, and 5 hook options.
+  "emails": [
+    { "sequence": 1, "subject": "Welcome — here's how to get the most out of ContentForge", "body": "..." },
+    { "sequence": 2, "subject": "The one thing most creators skip before posting", "body": "..." },
+    { "sequence": 3, "subject": "Ready to go deeper? Here's what PRO unlocks", "body": "..." }
+  ]
+}
+```
 
-***equ*st:****equ*st:****equ*st:****equ*st:****equ*st:****equ*st:****equ*st:****equ*st:*ndie***equ*st:****equ*st:****equ*st:****equ*st:****equ*st:****equ*st:****equ*st:****equ*st:*rm a***equ*st:iants for Facebook, Google, and Twitter/X.
+---
 
-*****************************duct": "ContentForge",
-  "benef  "be"score yo  "content  "benef  "be"score yo  "content  "benef  "be"score yo  "content  "benef  "be"score yo  "content  "benef  "be"score yo  "content  "benef  "be"score yo  "content  "benef  "be"score yo  "content  "bent   "benef  "be"score yo  "content  "benef  "be"score yo  "content  Li  "benef  "be"score yo  "content  "benef  "be"score yo  "contenteq  "be|
-| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **on | **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR|//c| **PR| **PR| **PR| **PR| **PR| **PR| **PR| **PR:** https://github.com/CaptainFredric/ContentForge
+### 27. `POST /v1/generate_content_brief` — Generate a Content Brief
+
+Research brief: target audience, content angle, SEO keywords, outline, and 5 hook options.
+
+**Request:**
+```json
+{
+  "topic": "content scoring for Twitter growth",
+  "audience": "indie hackers"
+}
+```
+
+---
+
+### 28. `POST /v1/generate_ad_copy` — Generate Ad Copy
+
+Short-form ad copy variants for Facebook, Google, and Twitter/X.
+
+**Request:**
+```json
+{
+  "product": "ContentForge",
+  "benefit": "score your content before posting — stop publishing underperforming posts",
+  "platform": "facebook"
+}
+```
+
+---
+
+## Plans
+
+Instant endpoints (`score_*`, `analyze_*`, `batch_score`, `/health`) **never** count against AI call quota.
+
+| Plan | Price | AI Calls/mo | Requests/mo | Rate Limit |
+|---|---|---|---|---|
+| **BASIC** | Free | 50 | 300 | 30 req/min |
+| **PRO** | $9.99/mo | 750 | 1,000 | 30 req/min |
+| **ULTRA** | $29.99/mo | 3,000 | 4,000 | 30 req/min |
+| **MEGA** | $99/mo | 18,000 | 20,000 | 30 req/min |
+
+No credit card required for BASIC. Every endpoint is included on the free tier.
+
+---
+
+## Error Reference
+
+| Status | Meaning |
+|---|---|
+| `400` | Missing or invalid request body |
+| `422` | Validation error (e.g. text too long) |
+| `429` | Rate limit exceeded |
+| `503` | AI provider temporarily unavailable |
+
+---
+
+## Support
+
+- **Email:** captainarmoreddude@gmail.com
+- **Live demo (no API key needed):** https://captainfredric.github.io/ContentForge/
+- **GitHub:** https://github.com/CaptainFredric/ContentForge
