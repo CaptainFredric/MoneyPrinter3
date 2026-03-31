@@ -3,8 +3,25 @@ name: Smoke Test
 on:
   push:
     branches: [main]
+    # Only run when API code or dependencies actually change.
+    # Commits that touch only docs/, scripts/gen_*, assets/, fonts/,
+    # *.md files, or gallery images will not trigger a CI run.
+    paths:
+      - "scripts/api_prototype.py"
+      - "deploy/**"
+      - "src/**"
+      - "requirements.txt"
+      - "requirements-*.txt"
+      - ".github/workflows/smoke_test.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "scripts/api_prototype.py"
+      - "deploy/**"
+      - "src/**"
+      - "requirements.txt"
+      - "requirements-*.txt"
+      - ".github/workflows/smoke_test.yml"
 
 jobs:
   smoke:

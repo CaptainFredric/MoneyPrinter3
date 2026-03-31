@@ -1,0 +1,14 @@
+# Netlify configuration
+# The canonical frontend is GitHub Pages (captainfredric.github.io/ContentForge).
+# The backend is Render. Netlify is not the primary host for this project.
+#
+# To stop burning Netlify build minutes while keeping the site launchable
+# manually, we set the ignore command to exit 0 (always skip auto-builds).
+# Remove or change this line when you want Netlify auto-deploys back on.
+
+[build]
+  publish = "."
+  command = "echo 'static site — no build step'"
+  # Exit 0 = Netlify interprets this as "nothing changed, skip the build."
+  # This prevents every git push from consuming build minutes.
+  ignore = "exit 0"

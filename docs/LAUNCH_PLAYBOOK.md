@@ -8,6 +8,12 @@
 
 ---
 
+> **⚠ HN Note:** Hacker News requires a minimum karma threshold (roughly 25–50 points from commenting) before you can submit a "Show HN" post. Until then, comment on 5–10 existing threads in topics you know — startup launches, API design, indie hacking, Python. Earn ~30 points, then submit. The post text is ready in Section 1 below.
+>
+> **Plan B while building HN karma:** Post to [Lobste.rs](https://lobste.rs) (can request an invite, or ask someone) — it has a strong dev audience and no karma gate for submissions. Also post to [dev.to](https://dev.to) as a crosspost — dev.to posts index on Google and drive long-tail traffic.
+
+---
+
 ## Table of Contents
 
 1. [Show HN Post (corrected URL)](#1-show-hn-post-corrected-url)
