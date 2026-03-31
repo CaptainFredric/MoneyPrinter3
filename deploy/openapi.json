@@ -2,15 +2,14 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "# ContentForge — AI Content Scoring & Generation API\n\n**28-endpoint REST API** for creators, marketers, and developers.\n\n## Instant Heuristic Scorers (16 endpoints — zero latency, no AI token cost)\n- **analyze_headline** — Score any headline 0-100 with grade and power word detection\n- **score_tweet** — Twitter/X post engagement score + improvement tips\n- **score_linkedin_post** — LinkedIn reach score with hook/paragraph/hashtag analysis\n- **score_instagram** — Instagram caption engagement score (hashtags, CTA, emojis)\n- **score_youtube_title** — YouTube CTR score + thumbnail text analysis\n- **score_youtube_description** — YouTube description SEO score (timestamps, links, keywords)\n- **score_email_subject** — Email open rate score with spam trigger detection\n- **score_tiktok** — TikTok caption engagement score (hashtags, hooks, CTA)\n- **score_threads** — Meta Threads post reach score (hashtag penalty, personal voice)\n- **score_facebook** — Facebook organic post reach score\n- **score_pinterest** — Pinterest pin description score (keywords, CTAs, spam detection)\n- **score_ad_copy** — Google Ads / Meta Ads copy score (char limits, CTA, you-language)\n- **score_readability** — Flesch-Kincaid readability score with grade level\n- **analyze_hashtags** — Hashtag quality analysis: platform fit, spam risk, specificity\n- **score_multi** — Score same text across all platforms in one call\n- **batch_score** — Score up to 20 draft texts against one platform and return the best pick\n\n## AI Generators (11 endpoints — Gemini 2.0 Flash)\n- **improve_headline** — Rewrite weak headlines into scored better versions\n- **generate_hooks** — Scroll-stopping hooks for any topic (viral/professional/casual)\n- **rewrite** — Platform-optimized rewrite (Twitter, LinkedIn, Instagram, TikTok, email)\n- **tweet_ideas** — Tweet idea batch for any niche with hashtag options\n- **content_calendar** — Full 7-day content calendar with daily themes and drafts\n- **thread_outline** — Full Twitter thread: hook + numbered body tweets + CTA\n- **generate_bio** — Optimized social bio for Twitter (160), LinkedIn (300), or Instagram (150)\n- **generate_caption** — Instagram/TikTok caption with hashtags, emojis, and CTA\n- **generate_linkedin_post** — Full LinkedIn post (storytelling/professional/motivational)\n- **generate_email_sequence** — 3-email drip: welcome \u2192 value \u2192 CTA with subject + preview lines\n- **generate_content_brief** — Content research brief: audience, angle, outline, keywords, hooks\n\n## System\n- **GET /health** — Service status, LLM backend, and usage stats\n\n---\n\n**Base URL:** `https://contentforge-api-lpp9.onrender.com`\n\n**Rate Limits:** 30 req/min (FREE), 120/min (PRO), 300/min (ULTRA)\n\n**All instant endpoints** respond in <50ms. **AI endpoints** average 1-3s on Gemini 2.0 Flash.\n\n**CORS enabled** — works in browser JS, Zapier webhooks, and automation tools.\n\n**Website:** https://captainfredric.github.io/ContentForge/",
+    "description": "# ContentForge — AI Content Scoring & Generation API\n\n**28-endpoint REST API** for creators, marketers, and developers.\n\n## Instant Heuristic Scorers (16 endpoints — zero latency, no AI token cost)\n- **analyze_headline** — Score any headline 0-100 with grade and power word detection\n- **score_tweet** — Twitter/X post engagement score + improvement tips\n- **score_linkedin_post** — LinkedIn reach score with hook/paragraph/hashtag analysis\n- **score_instagram** — Instagram caption engagement score (hashtags, CTA, emojis)\n- **score_youtube_title** — YouTube CTR score + thumbnail text analysis\n- **score_youtube_description** — YouTube description SEO score (timestamps, links, keywords)\n- **score_email_subject** — Email open rate score with spam trigger detection\n- **score_tiktok** — TikTok caption engagement score (hashtags, hooks, CTA)\n- **score_threads** — Meta Threads post reach score (hashtag penalty, personal voice)\n- **score_facebook** — Facebook organic post reach score\n- **score_pinterest** — Pinterest pin description score (keywords, CTAs, spam detection)\n- **score_ad_copy** — Google Ads / Meta Ads copy score (char limits, CTA, you-language)\n- **score_readability** — Flesch-Kincaid readability score with grade level\n- **analyze_hashtags** — Hashtag quality analysis: platform fit, spam risk, specificity\n- **score_multi** — Score same text across all platforms in one call\n- **batch_score** — Score up to 20 draft texts against one platform and return the best pick\n\n## AI Generators (11 endpoints — Gemini 2.0 Flash)\n- **improve_headline** — Rewrite weak headlines into scored better versions\n- **generate_hooks** — Scroll-stopping hooks for any topic (viral/professional/casual)\n- **rewrite** — Platform-optimized rewrite (Twitter, LinkedIn, Instagram, TikTok, email)\n- **tweet_ideas** — Tweet idea batch for any niche with hashtag options\n- **content_calendar** — Full 7-day content calendar with daily themes and drafts\n- **thread_outline** — Full Twitter thread: hook + numbered body tweets + CTA\n- **generate_bio** — Optimized social bio for Twitter (160), LinkedIn (300), or Instagram (150)\n- **generate_caption** — Instagram/TikTok caption with hashtags, emojis, and CTA\n- **generate_linkedin_post** — Full LinkedIn post (storytelling/professional/motivational)\n- **generate_email_sequence** — 3-email drip: welcome → value → CTA with subject + preview lines\n- **generate_content_brief** — Content research brief: audience, angle, outline, keywords, hooks\n\n## System\n- **GET /health** — Service status, LLM backend, and usage stats\n\n---\n\n**Base URL:** `https://contentforge-api-lpp9.onrender.com`\n\n**Rate Limits:** 30 req/min (FREE), 120/min (PRO), 300/min (ULTRA)\n\n**All instant endpoints** respond in <50ms. **AI endpoints** average 1-3s on Gemini 2.0 Flash.\n\n**CORS enabled** — works in browser JS, Zapier webhooks, and automation tools.\n\n**Website:** https://captainfredric.github.io/ContentForge/",
     "version": "1.0.0",
     "contact": {
       "name": "Aden Cisneros",
       "email": "captainarmoreddude@gmail.com",
       "url": "https://captainfredric.github.io/ContentForge/"
     },
-    "termsOfService": "https://captainfredric.github.io/ContentForge/",
-    "x-rapidapi-proxy-secret-header": "X-RapidAPI-Proxy-Secret"
+    "termsOfService": "https://captainfredric.github.io/ContentForge/"
   },
   "externalDocs": {
     "description": "ContentForge Landing Page & Documentation",
@@ -23,40 +22,37 @@
     }
   ],
   "tags": [
-    {"name": "Content Analysis", "description": "Instant heuristic scoring — zero latency, no AI token cost"},
-    {"name": "AI Content Generation", "description": "AI-powered endpoints for generating and improving content"},
-    {"name": "System", "description": "Health and service status"}
-  ],
-  "components": {
-    "headers": {
-      "X-RateLimit-Limit": {
-        "description": "Maximum requests per minute for your plan.",
-        "schema": {"type": "integer"}
-      },
-      "X-RateLimit-Remaining": {
-        "description": "Requests remaining in the current 60-second window.",
-        "schema": {"type": "integer"}
-      },
-      "X-RateLimit-Window": {
-        "description": "Rate limit window duration.",
-        "schema": {"type": "string", "example": "60s"}
-      }
+    {
+      "name": "Content Analysis",
+      "description": "Instant heuristic scoring — zero latency, no AI token cost"
+    },
+    {
+      "name": "AI Content Generation",
+      "description": "AI-powered endpoints for generating and improving content"
+    },
+    {
+      "name": "System",
+      "description": "Health and service status"
     }
-  },
+  ],
   "paths": {
     "/v1/score_tweet": {
       "post": {
         "summary": "Score a Tweet Draft",
         "description": "Score any tweet draft 0-100 for engagement potential before you post. Heuristic analysis — instant, no AI needed. Evaluates character count, hashtag usage, emoji presence, power words, and readability. Returns a grade (A-D) plus actionable improvement tips.",
         "operationId": "scoreTweet",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -77,18 +73,59 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D"]},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"},
-                    "hashtag_count": {"type": "integer"},
-                    "hashtags": {"type": "array", "items": {"type": "string"}},
-                    "mention_count": {"type": "integer"},
-                    "emoji_count": {"type": "integer"},
-                    "has_url": {"type": "boolean"},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                    "text": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "hashtag_count": {
+                      "type": "integer"
+                    },
+                    "hashtags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "mention_count": {
+                      "type": "integer"
+                    },
+                    "emoji_count": {
+                      "type": "integer"
+                    },
+                    "has_url": {
+                      "type": "boolean"
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -98,12 +135,19 @@
                   "char_count": 91,
                   "word_count": 16,
                   "hashtag_count": 2,
-                  "hashtags": ["#indiehacker", "#buildinpublic"],
+                  "hashtags": [
+                    "#indiehacker",
+                    "#buildinpublic"
+                  ],
                   "mention_count": 0,
                   "emoji_count": 1,
                   "has_url": false,
-                  "power_words_found": ["hack"],
-                  "suggestions": ["Try starting with a number or a question for a stronger hook."]
+                  "power_words_found": [
+                    "hack"
+                  ],
+                  "suggestions": [
+                    "Try starting with a number or a question for a stronger hook."
+                  ]
                 }
               }
             }
@@ -112,12 +156,23 @@
             "description": "Missing or invalid text parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'text' parameter"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'text' parameter"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -126,14 +181,18 @@
         "summary": "Score a LinkedIn Post Draft",
         "description": "Score any LinkedIn post draft 0-100 for reach and engagement before you publish. Heuristic analysis, instant, no AI needed. Evaluates post length, hook strength (first paragraph preview), paragraph structure, hashtag count, list/bullet detection, call-to-action presence, URL penalty, emoji usage, and power words. Returns a grade (A-F) plus actionable improvement tips tailored to LinkedIn best practices.",
         "operationId": "scoreLinkedInPost",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["post"],
+                "required": [
+                  "post"
+                ],
                 "properties": {
                   "post": {
                     "type": "string",
@@ -154,28 +213,96 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "platform": {"type": "string", "enum": ["linkedin"]},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"},
-                    "paragraph_count": {"type": "integer"},
-                    "avg_paragraph_length": {"type": "integer"},
-                    "hook_length": {"type": "integer"},
-                    "hook_preview": {"type": "string", "description": "First 150 chars of the opening paragraph"},
-                    "has_list": {"type": "boolean"},
-                    "list_items_detected": {"type": "integer"},
-                    "hashtag_count": {"type": "integer"},
-                    "hashtags": {"type": "array", "items": {"type": "string"}},
-                    "mention_count": {"type": "integer"},
-                    "emoji_count": {"type": "integer"},
-                    "has_url": {"type": "boolean"},
-                    "url_penalty_applied": {"type": "boolean", "description": "True if an external URL was found (LinkedIn suppresses these)"},
-                    "has_cta": {"type": "boolean", "description": "True if a call-to-action phrase was detected near the end"},
-                    "has_question_at_end": {"type": "boolean"},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                    "text": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "linkedin"
+                      ]
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "paragraph_count": {
+                      "type": "integer"
+                    },
+                    "avg_paragraph_length": {
+                      "type": "integer"
+                    },
+                    "hook_length": {
+                      "type": "integer"
+                    },
+                    "hook_preview": {
+                      "type": "string",
+                      "description": "First 150 chars of the opening paragraph"
+                    },
+                    "has_list": {
+                      "type": "boolean"
+                    },
+                    "list_items_detected": {
+                      "type": "integer"
+                    },
+                    "hashtag_count": {
+                      "type": "integer"
+                    },
+                    "hashtags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "mention_count": {
+                      "type": "integer"
+                    },
+                    "emoji_count": {
+                      "type": "integer"
+                    },
+                    "has_url": {
+                      "type": "boolean"
+                    },
+                    "url_penalty_applied": {
+                      "type": "boolean",
+                      "description": "True if an external URL was found (LinkedIn suppresses these)"
+                    },
+                    "has_cta": {
+                      "type": "boolean",
+                      "description": "True if a call-to-action phrase was detected near the end"
+                    },
+                    "has_question_at_end": {
+                      "type": "boolean"
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -192,15 +319,24 @@
                   "has_list": true,
                   "list_items_detected": 3,
                   "hashtag_count": 3,
-                  "hashtags": ["#contentcreation", "#linkedin", "#buildinpublic"],
+                  "hashtags": [
+                    "#contentcreation",
+                    "#linkedin",
+                    "#buildinpublic"
+                  ],
                   "mention_count": 0,
                   "emoji_count": 0,
                   "has_url": false,
                   "url_penalty_applied": false,
                   "has_cta": false,
                   "has_question_at_end": true,
-                  "power_words_found": ["changed", "learned"],
-                  "suggestions": ["Add 1-2 emojis to break up the text and draw the eye."]
+                  "power_words_found": [
+                    "changed",
+                    "learned"
+                  ],
+                  "suggestions": [
+                    "Add 1-2 emojis to break up the text and draw the eye."
+                  ]
                 }
               }
             }
@@ -209,12 +345,23 @@
             "description": "Missing or invalid post parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'post' parameter. Send JSON body: {\"post\": \"your linkedin post text\"}"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'post' parameter. Send JSON body: {\"post\": \"your linkedin post text\"}"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -223,14 +370,18 @@
         "summary": "Score an Instagram Caption",
         "description": "Score any Instagram caption draft 0-100 for engagement potential before you post. Heuristic analysis, instant, no AI needed. Evaluates caption length, hashtag count (5-15 optimal), emoji usage, hook strength (first 125 chars), call-to-action detection, line breaks, power words, and URL penalties. Returns a grade (A-F) plus actionable improvement tips tailored to Instagram best practices.",
         "operationId": "scoreInstagram",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["caption"],
+                "required": [
+                  "caption"
+                ],
                 "properties": {
                   "caption": {
                     "type": "string",
@@ -251,24 +402,82 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "platform": {"type": "string", "enum": ["instagram"]},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"},
-                    "hook_length": {"type": "integer"},
-                    "hook_preview": {"type": "string", "description": "First 125 chars of the caption"},
-                    "line_break_count": {"type": "integer"},
-                    "hashtag_count": {"type": "integer"},
-                    "hashtags": {"type": "array", "items": {"type": "string"}},
-                    "mention_count": {"type": "integer"},
-                    "emoji_count": {"type": "integer"},
-                    "has_url": {"type": "boolean"},
-                    "has_cta": {"type": "boolean"},
-                    "has_question": {"type": "boolean"},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                    "text": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "instagram"
+                      ]
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "hook_length": {
+                      "type": "integer"
+                    },
+                    "hook_preview": {
+                      "type": "string",
+                      "description": "First 125 chars of the caption"
+                    },
+                    "line_break_count": {
+                      "type": "integer"
+                    },
+                    "hashtag_count": {
+                      "type": "integer"
+                    },
+                    "hashtags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "mention_count": {
+                      "type": "integer"
+                    },
+                    "emoji_count": {
+                      "type": "integer"
+                    },
+                    "has_url": {
+                      "type": "boolean"
+                    },
+                    "has_cta": {
+                      "type": "boolean"
+                    },
+                    "has_question": {
+                      "type": "boolean"
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -282,13 +491,22 @@
                   "hook_preview": "Stop scrolling. This changed everything.",
                   "line_break_count": 4,
                   "hashtag_count": 5,
-                  "hashtags": ["#morningroutine", "#coldshower", "#productivity", "#selfimprovement", "#lifehacks"],
+                  "hashtags": [
+                    "#morningroutine",
+                    "#coldshower",
+                    "#productivity",
+                    "#selfimprovement",
+                    "#lifehacks"
+                  ],
                   "mention_count": 0,
                   "emoji_count": 3,
                   "has_url": false,
                   "has_cta": true,
                   "has_question": false,
-                  "power_words_found": ["secret", "transform"],
+                  "power_words_found": [
+                    "secret",
+                    "transform"
+                  ],
                   "suggestions": []
                 }
               }
@@ -298,12 +516,23 @@
             "description": "Missing or invalid caption parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'caption' parameter. Send JSON body: {\"caption\": \"your instagram caption text\"}"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'caption' parameter. Send JSON body: {\"caption\": \"your instagram caption text\"}"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -312,14 +541,18 @@
         "summary": "Score a YouTube Title",
         "description": "Score a YouTube title (and optional thumbnail text) 0-100 for click-through rate potential. Heuristic analysis, instant, no AI needed. Evaluates title length (40-60 chars optimal), numbers, power words, brackets/parentheses, question format, CAPS emphasis, and thumbnail text complementarity. Returns a grade (A-F) plus actionable CTR improvement tips.",
         "operationId": "scoreYoutubeTitle",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["title"],
+                "required": [
+                  "title"
+                ],
                 "properties": {
                   "title": {
                     "type": "string",
@@ -346,25 +579,84 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "platform": {"type": "string", "enum": ["youtube"]},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"},
-                    "has_number": {"type": "boolean"},
-                    "has_year": {"type": "boolean"},
-                    "has_bracket": {"type": "boolean"},
-                    "has_question": {"type": "boolean"},
-                    "caps_words": {"type": "integer"},
-                    "emoji_count": {"type": "integer"},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "thumbnail_text": {"type": "string"},
-                    "thumbnail_word_count": {"type": "integer"},
-                    "thumbnail_char_count": {"type": "integer"},
-                    "thumbnail_title_overlap": {"type": "array", "items": {"type": "string"}},
-                    "thumbnail_bonus": {"type": "integer"},
-                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                    "text": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "youtube"
+                      ]
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "has_number": {
+                      "type": "boolean"
+                    },
+                    "has_year": {
+                      "type": "boolean"
+                    },
+                    "has_bracket": {
+                      "type": "boolean"
+                    },
+                    "has_question": {
+                      "type": "boolean"
+                    },
+                    "caps_words": {
+                      "type": "integer"
+                    },
+                    "emoji_count": {
+                      "type": "integer"
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "thumbnail_text": {
+                      "type": "string"
+                    },
+                    "thumbnail_word_count": {
+                      "type": "integer"
+                    },
+                    "thumbnail_char_count": {
+                      "type": "integer"
+                    },
+                    "thumbnail_title_overlap": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "thumbnail_bonus": {
+                      "type": "integer"
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -380,11 +672,18 @@
                   "has_question": false,
                   "caps_words": 0,
                   "emoji_count": 0,
-                  "power_words_found": ["tried", "honest", "making", "results"],
+                  "power_words_found": [
+                    "tried",
+                    "honest",
+                    "making",
+                    "results"
+                  ],
                   "thumbnail_text": "$1K IN 24H??",
                   "thumbnail_word_count": 3,
                   "thumbnail_bonus": 7,
-                  "suggestions": ["Try phrasing as a question for a curiosity-driven hook."]
+                  "suggestions": [
+                    "Try phrasing as a question for a curiosity-driven hook."
+                  ]
                 }
               }
             }
@@ -393,12 +692,23 @@
             "description": "Missing or invalid title parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'title' parameter. Send JSON body: {\"title\": \"your youtube title\"}"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'title' parameter. Send JSON body: {\"title\": \"your youtube title\"}"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -407,14 +717,18 @@
         "summary": "Score an Email Subject Line",
         "description": "Score an email subject line (and optional preview/preheader text) 0-100 for open rate potential. Heuristic analysis, instant, no AI needed. Evaluates length (30-50 chars optimal), personalization tokens, numbers, power words, urgency words, spam trigger detection, ALL CAPS penalty, punctuation abuse, emoji usage, and preview text quality. Returns a grade (A-F) plus deliverability and engagement tips.",
         "operationId": "scoreEmailSubject",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["subject"],
+                "required": [
+                  "subject"
+                ],
                 "properties": {
                   "subject": {
                     "type": "string",
@@ -441,26 +755,93 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "platform": {"type": "string", "enum": ["email"]},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"},
-                    "has_number": {"type": "boolean"},
-                    "has_question": {"type": "boolean"},
-                    "has_personalization": {"type": "boolean"},
-                    "personalization_tokens": {"type": "array", "items": {"type": "string"}},
-                    "emoji_count": {"type": "integer"},
-                    "urgency_words_found": {"type": "array", "items": {"type": "string"}},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "spam_triggers_found": {"type": "array", "items": {"type": "string"}},
-                    "caps_word_count": {"type": "integer"},
-                    "exclamation_count": {"type": "integer"},
-                    "preview_text": {"type": "string"},
-                    "preview_char_count": {"type": "integer"},
-                    "preview_bonus": {"type": "integer"},
-                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                    "text": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "email"
+                      ]
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "has_number": {
+                      "type": "boolean"
+                    },
+                    "has_question": {
+                      "type": "boolean"
+                    },
+                    "has_personalization": {
+                      "type": "boolean"
+                    },
+                    "personalization_tokens": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "emoji_count": {
+                      "type": "integer"
+                    },
+                    "urgency_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "spam_triggers_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "caps_word_count": {
+                      "type": "integer"
+                    },
+                    "exclamation_count": {
+                      "type": "integer"
+                    },
+                    "preview_text": {
+                      "type": "string"
+                    },
+                    "preview_char_count": {
+                      "type": "integer"
+                    },
+                    "preview_bonus": {
+                      "type": "integer"
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -473,17 +854,23 @@
                   "has_number": true,
                   "has_question": false,
                   "has_personalization": true,
-                  "personalization_tokens": ["{first_name}"],
+                  "personalization_tokens": [
+                    "{first_name}"
+                  ],
                   "emoji_count": 0,
                   "urgency_words_found": [],
-                  "power_words_found": ["your"],
+                  "power_words_found": [
+                    "your"
+                  ],
                   "spam_triggers_found": [],
                   "caps_word_count": 0,
                   "exclamation_count": 0,
                   "preview_text": "Open to see the strategy top creators use",
                   "preview_char_count": 42,
                   "preview_bonus": 5,
-                  "suggestions": ["Consider adding one emoji to boost mobile open rates."]
+                  "suggestions": [
+                    "Consider adding one emoji to boost mobile open rates."
+                  ]
                 }
               }
             }
@@ -492,12 +879,23 @@
             "description": "Missing or invalid subject parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'subject' parameter. Send JSON body: {\"subject\": \"your email subject line\"}"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'subject' parameter. Send JSON body: {\"subject\": \"your email subject line\"}"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -506,26 +904,45 @@
         "summary": "Score Text Across Multiple Platforms",
         "description": "Score the same text across every supported platform (tweet, LinkedIn, Instagram, TikTok, YouTube, email) in a single call. Returns per-platform scores, grades, and suggestions plus the best-fit platform. Heuristic analysis, instant, no AI needed.",
         "operationId": "scoreMulti",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
                     "maxLength": 5000,
                     "description": "The text to score across platforms",
-                    "example": "Just shipped v2 of my SaaS \ud83d\ude80 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic"
+                    "example": "Just shipped v2 of my SaaS 🚀 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic"
                   },
                   "platforms": {
                     "type": "array",
-                    "items": {"type": "string", "enum": ["tweet", "twitter", "linkedin", "instagram", "tiktok", "youtube", "email"]},
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "tweet",
+                        "twitter",
+                        "linkedin",
+                        "instagram",
+                        "tiktok",
+                        "youtube",
+                        "email"
+                      ]
+                    },
                     "description": "Optional list of platforms to score. Defaults to tweet/linkedin/instagram if omitted.",
-                    "example": ["tweet", "linkedin", "instagram"]
+                    "example": [
+                      "tweet",
+                      "linkedin",
+                      "instagram"
+                    ]
                   }
                 }
               }
@@ -540,32 +957,79 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "platforms_scored": {"type": "integer"},
+                    "text": {
+                      "type": "string"
+                    },
+                    "platforms_scored": {
+                      "type": "integer"
+                    },
                     "results": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
                         "properties": {
-                          "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                          "grade": {"type": "string"},
-                          "suggestions": {"type": "array", "items": {"type": "string"}}
+                          "score": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          "grade": {
+                            "type": "string"
+                          },
+                          "suggestions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
                         }
                       }
                     },
-                    "best_platform": {"type": "string"},
-                    "best_score": {"type": "integer"}
+                    "best_platform": {
+                      "type": "string"
+                    },
+                    "best_score": {
+                      "type": "integer"
+                    }
                   }
                 },
                 "example": {
-                  "text": "Just shipped v2 of my SaaS \ud83d\ude80 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic",
+                  "text": "Just shipped v2 of my SaaS 🚀 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic",
                   "platforms_scored": 5,
                   "results": {
-                    "tweet": {"score": 85, "grade": "A", "suggestions": []},
-                    "linkedin": {"score": 62, "grade": "B", "suggestions": ["Consider adding a call-to-action."]},
-                    "instagram": {"score": 58, "grade": "C", "suggestions": ["Add 5-15 hashtags for better reach."]},
-                    "youtube": {"score": 40, "grade": "C", "suggestions": ["Keep title between 40-60 characters."]},
-                    "email": {"score": 35, "grade": "D", "suggestions": ["Too long for a subject line."]}
+                    "tweet": {
+                      "score": 85,
+                      "grade": "A",
+                      "suggestions": []
+                    },
+                    "linkedin": {
+                      "score": 62,
+                      "grade": "B",
+                      "suggestions": [
+                        "Consider adding a call-to-action."
+                      ]
+                    },
+                    "instagram": {
+                      "score": 58,
+                      "grade": "C",
+                      "suggestions": [
+                        "Add 5-15 hashtags for better reach."
+                      ]
+                    },
+                    "youtube": {
+                      "score": 40,
+                      "grade": "C",
+                      "suggestions": [
+                        "Keep title between 40-60 characters."
+                      ]
+                    },
+                    "email": {
+                      "score": 35,
+                      "grade": "D",
+                      "suggestions": [
+                        "Too long for a subject line."
+                      ]
+                    }
                   },
                   "best_platform": "tweet",
                   "best_score": 85
@@ -577,12 +1041,23 @@
             "description": "Missing or invalid parameters",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'text' parameter. Send JSON body: {\"text\": \"your content\"}"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'text' parameter. Send JSON body: {\"text\": \"your content\"}"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -591,14 +1066,18 @@
         "summary": "Score Text Readability",
         "description": "Score any text for readability 0-100 using Flesch-Kincaid metrics. Returns Flesch Reading Ease, Flesch-Kincaid Grade Level, reading level label (elementary through graduate), sentence and word statistics, and actionable improvement suggestions. Heuristic analysis, instant, no AI needed.",
         "operationId": "scoreReadability",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -618,18 +1097,61 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "flesch_reading_ease": {"type": "number"},
-                    "flesch_kincaid_grade": {"type": "number"},
-                    "reading_level": {"type": "string", "enum": ["elementary", "middle school", "high school", "college", "graduate"]},
-                    "avg_sentence_length": {"type": "number"},
-                    "avg_syllables_per_word": {"type": "number"},
-                    "sentence_count": {"type": "integer"},
-                    "word_count": {"type": "integer"},
-                    "char_count": {"type": "integer"},
-                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                    "text": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "flesch_reading_ease": {
+                      "type": "number"
+                    },
+                    "flesch_kincaid_grade": {
+                      "type": "number"
+                    },
+                    "reading_level": {
+                      "type": "string",
+                      "enum": [
+                        "elementary",
+                        "middle school",
+                        "high school",
+                        "college",
+                        "graduate"
+                      ]
+                    },
+                    "avg_sentence_length": {
+                      "type": "number"
+                    },
+                    "avg_syllables_per_word": {
+                      "type": "number"
+                    },
+                    "sentence_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -644,7 +1166,9 @@
                   "sentence_count": 3,
                   "word_count": 13,
                   "char_count": 77,
-                  "suggestions": ["Readability is acceptable. Minor simplification could improve clarity."]
+                  "suggestions": [
+                    "Readability is acceptable. Minor simplification could improve clarity."
+                  ]
                 }
               }
             }
@@ -653,12 +1177,23 @@
             "description": "Missing or invalid text parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'text' parameter. Send JSON body: {\"text\": \"your content to analyze\"}"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'text' parameter. Send JSON body: {\"text\": \"your content to analyze\"}"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -667,14 +1202,18 @@
         "summary": "Score a Meta Threads Post",
         "description": "Score a Meta Threads post for engagement and reach potential 0-100. Threads rewards conversational short-form text (50-250 chars), personal voice (I/me/my), question hooks, and CTAs (agree/thoughts/comment). Unlike other platforms, hashtags penalize Threads reach and links are stripped by Meta. Instant heuristic analysis, no AI needed.",
         "operationId": "scoreThreads",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -695,22 +1234,72 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"},
-                    "hashtag_count": {"type": "integer"},
-                    "emoji_count": {"type": "integer"},
-                    "has_cta": {"type": "boolean"},
-                    "has_question": {"type": "boolean"},
-                    "has_number": {"type": "boolean"},
-                    "has_link": {"type": "boolean"},
-                    "has_personal_pronoun": {"type": "boolean"},
-                    "caps_abuse": {"type": "boolean"},
-                    "hashtags": {"type": "array", "items": {"type": "string"}},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "caps_words": {"type": "array", "items": {"type": "string"}}
+                    "text": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "hashtag_count": {
+                      "type": "integer"
+                    },
+                    "emoji_count": {
+                      "type": "integer"
+                    },
+                    "has_cta": {
+                      "type": "boolean"
+                    },
+                    "has_question": {
+                      "type": "boolean"
+                    },
+                    "has_number": {
+                      "type": "boolean"
+                    },
+                    "has_link": {
+                      "type": "boolean"
+                    },
+                    "has_personal_pronoun": {
+                      "type": "boolean"
+                    },
+                    "caps_abuse": {
+                      "type": "boolean"
+                    },
+                    "hashtags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "caps_words": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -738,12 +1327,23 @@
             "description": "Missing or invalid text parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'text' parameter"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'text' parameter"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -752,14 +1352,18 @@
         "summary": "Score a Facebook Post",
         "description": "Score a Facebook organic post for reach and engagement potential 0-100. Facebook rewards conversational text (40-300 chars), 1-2 hashtags, emojis, question hooks, and CTAs like 'comment/share/tag'. External links receive a mild downrank penalty. Instant heuristic analysis, no AI needed.",
         "operationId": "scoreFacebook",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -780,22 +1384,72 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"},
-                    "hashtag_count": {"type": "integer"},
-                    "emoji_count": {"type": "integer"},
-                    "has_cta": {"type": "boolean"},
-                    "has_question": {"type": "boolean"},
-                    "has_number": {"type": "boolean"},
-                    "has_link": {"type": "boolean"},
-                    "has_personal_pronoun": {"type": "boolean"},
-                    "caps_abuse": {"type": "boolean"},
-                    "hashtags": {"type": "array", "items": {"type": "string"}},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "caps_words": {"type": "array", "items": {"type": "string"}}
+                    "text": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "hashtag_count": {
+                      "type": "integer"
+                    },
+                    "emoji_count": {
+                      "type": "integer"
+                    },
+                    "has_cta": {
+                      "type": "boolean"
+                    },
+                    "has_question": {
+                      "type": "boolean"
+                    },
+                    "has_number": {
+                      "type": "boolean"
+                    },
+                    "has_link": {
+                      "type": "boolean"
+                    },
+                    "has_personal_pronoun": {
+                      "type": "boolean"
+                    },
+                    "caps_abuse": {
+                      "type": "boolean"
+                    },
+                    "hashtags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "caps_words": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -823,12 +1477,23 @@
             "description": "Missing or invalid text parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'text' parameter"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'text' parameter"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -837,14 +1502,18 @@
         "summary": "Score a TikTok Caption",
         "description": "Score a TikTok caption for engagement and reach potential 0-100. Evaluates hashtag count (3-6 is ideal), emoji usage (1-3 ideal), CTA keywords (follow/save/share/duet/stitch), TikTok power words (viral/pov/hack/trending), hook strength, number usage, and caps abuse. Instant heuristic analysis, no AI needed.",
         "operationId": "scoreTiktok",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -864,21 +1533,69 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string"},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"},
-                    "hashtag_count": {"type": "integer"},
-                    "emoji_count": {"type": "integer"},
-                    "has_cta": {"type": "boolean"},
-                    "has_question": {"type": "boolean"},
-                    "has_number": {"type": "boolean"},
-                    "caps_abuse": {"type": "boolean"},
-                    "hook_length": {"type": "integer"},
-                    "hashtags": {"type": "array", "items": {"type": "string"}},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "caps_words": {"type": "array", "items": {"type": "string"}}
+                    "text": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "hashtag_count": {
+                      "type": "integer"
+                    },
+                    "emoji_count": {
+                      "type": "integer"
+                    },
+                    "has_cta": {
+                      "type": "boolean"
+                    },
+                    "has_question": {
+                      "type": "boolean"
+                    },
+                    "has_number": {
+                      "type": "boolean"
+                    },
+                    "caps_abuse": {
+                      "type": "boolean"
+                    },
+                    "hook_length": {
+                      "type": "integer"
+                    },
+                    "hashtags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "caps_words": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -894,8 +1611,15 @@
                   "has_number": false,
                   "caps_abuse": false,
                   "hook_length": 22,
-                  "hashtags": ["#tiktok", "#viral", "#contentcreator"],
-                  "power_words_found": ["pov", "viral"],
+                  "hashtags": [
+                    "#tiktok",
+                    "#viral",
+                    "#contentcreator"
+                  ],
+                  "power_words_found": [
+                    "pov",
+                    "viral"
+                  ],
                   "caps_words": []
                 }
               }
@@ -905,12 +1629,23 @@
             "description": "Missing or invalid text parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'text' parameter"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'text' parameter"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -919,25 +1654,44 @@
         "summary": "Analyze Hashtags for Platform Fit",
         "description": "Analyze a list of hashtags for quality, spam risk, duplicates, and platform suitability 0-100. Supports twitter, instagram, tiktok, linkedin, and youtube with platform-specific ideal count ranges. Detects spam/banned tags (f4f, followme, likeforlike etc.), duplicate tags, overly long/short tags, caps abuse, and specificity variety (broad/niche/micro). Instant heuristic analysis, no AI needed.",
         "operationId": "analyzeHashtags",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["hashtags"],
+                "required": [
+                  "hashtags"
+                ],
                 "properties": {
                   "hashtags": {
                     "oneOf": [
-                      {"type": "string", "description": "Space or comma-separated hashtags, e.g. '#coding #python #buildinpublic'"},
-                      {"type": "array", "items": {"type": "string"}, "description": "Array of hashtag strings"}
+                      {
+                        "type": "string",
+                        "description": "Space or comma-separated hashtags, e.g. '#coding #python #buildinpublic'"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Array of hashtag strings"
+                      }
                     ],
                     "example": "#coding #python #buildinpublic"
                   },
                   "platform": {
                     "type": "string",
-                    "enum": ["twitter", "instagram", "tiktok", "linkedin", "youtube"],
+                    "enum": [
+                      "twitter",
+                      "instagram",
+                      "tiktok",
+                      "linkedin",
+                      "youtube"
+                    ],
                     "default": "twitter",
                     "description": "Target platform for ideal range evaluation"
                   }
@@ -954,30 +1708,91 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "hashtags": {"type": "array", "items": {"type": "string"}},
-                    "platform": {"type": "string"},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "count": {"type": "integer"},
-                    "platform_ideal_range": {"type": "string"},
-                    "count_in_ideal_range": {"type": "boolean"},
-                    "duplicates": {"type": "array", "items": {"type": "string"}},
-                    "spam_risk_tags": {"type": "array", "items": {"type": "string"}},
-                    "long_tags": {"type": "array", "items": {"type": "string"}},
-                    "caps_tags": {"type": "array", "items": {"type": "string"}},
-                    "camel_case_tags": {"type": "array", "items": {"type": "string"}},
+                    "hashtags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "platform": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "platform_ideal_range": {
+                      "type": "string"
+                    },
+                    "count_in_ideal_range": {
+                      "type": "boolean"
+                    },
+                    "duplicates": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "spam_risk_tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "long_tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "caps_tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "camel_case_tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "specificity": {
                       "type": "object",
                       "properties": {
-                        "broad": {"type": "integer"},
-                        "niche": {"type": "integer"},
-                        "micro": {"type": "integer"}
+                        "broad": {
+                          "type": "integer"
+                        },
+                        "niche": {
+                          "type": "integer"
+                        },
+                        "micro": {
+                          "type": "integer"
+                        }
                       }
                     }
                   }
                 },
                 "example": {
-                  "hashtags": ["#coding", "#python", "#buildinpublic"],
+                  "hashtags": [
+                    "#coding",
+                    "#python",
+                    "#buildinpublic"
+                  ],
                   "platform": "twitter",
                   "score": 75,
                   "grade": "B",
@@ -988,8 +1803,14 @@
                   "spam_risk_tags": [],
                   "long_tags": [],
                   "caps_tags": [],
-                  "camel_case_tags": ["#buildinpublic"],
-                  "specificity": {"broad": 1, "niche": 1, "micro": 0}
+                  "camel_case_tags": [
+                    "#buildinpublic"
+                  ],
+                  "specificity": {
+                    "broad": 1,
+                    "niche": 1,
+                    "micro": 0
+                  }
                 }
               }
             }
@@ -998,12 +1819,23 @@
             "description": "Missing or invalid hashtags parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'hashtags' parameter"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'hashtags' parameter"
+                }
               }
             }
           },
-          "429": {"description": "Rate limit exceeded"}
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -1012,18 +1844,24 @@
         "summary": "Batch Score Multiple Texts",
         "description": "Score up to 20 text drafts against a single platform scorer in one API call. Returns all results ranked best-first plus a top-level 'best' pick. Instant heuristic analysis — no AI token cost. Perfect for picking the strongest draft from a set of AI-generated candidates.",
         "operationId": "batchScore",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["texts"],
+                "required": [
+                  "texts"
+                ],
                 "properties": {
                   "texts": {
                     "type": "array",
-                    "items": {"type": "string"},
+                    "items": {
+                      "type": "string"
+                    },
                     "maxItems": 20,
                     "description": "Array of draft texts to score (max 20)",
                     "example": [
@@ -1051,16 +1889,33 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "platform": {"type": "string"},
-                    "count": {"type": "integer"},
+                    "platform": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
                     "best": {
                       "type": "object",
                       "properties": {
-                        "index": {"type": "integer"},
-                        "text_preview": {"type": "string"},
-                        "score": {"type": "integer"},
-                        "grade": {"type": "string"},
-                        "suggestions": {"type": "array", "items": {"type": "string"}}
+                        "index": {
+                          "type": "integer"
+                        },
+                        "text_preview": {
+                          "type": "string"
+                        },
+                        "score": {
+                          "type": "integer"
+                        },
+                        "grade": {
+                          "type": "string"
+                        },
+                        "suggestions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "results": {
@@ -1068,11 +1923,24 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "index": {"type": "integer"},
-                          "text_preview": {"type": "string"},
-                          "score": {"type": "integer"},
-                          "grade": {"type": "string"},
-                          "suggestions": {"type": "array", "items": {"type": "string"}}
+                          "index": {
+                            "type": "integer"
+                          },
+                          "text_preview": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "integer"
+                          },
+                          "grade": {
+                            "type": "string"
+                          },
+                          "suggestions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
                         }
                       }
                     }
@@ -1081,18 +1949,39 @@
                 "example": {
                   "platform": "tweet",
                   "count": 3,
-                  "best": {"index": 2, "text_preview": "5 lessons from shipping...", "score": 81, "grade": "A"},
+                  "best": {
+                    "index": 2,
+                    "text_preview": "5 lessons from shipping...",
+                    "score": 81,
+                    "grade": "A"
+                  },
                   "results": [
-                    {"index": 2, "score": 81, "grade": "A"},
-                    {"index": 0, "score": 74, "grade": "B"},
-                    {"index": 1, "score": 32, "grade": "D"}
+                    {
+                      "index": 2,
+                      "score": 81,
+                      "grade": "A"
+                    },
+                    {
+                      "index": 0,
+                      "score": 74,
+                      "grade": "B"
+                    },
+                    {
+                      "index": 1,
+                      "score": 32,
+                      "grade": "D"
+                    }
                   ]
                 }
               }
             }
           },
-          "400": {"description": "Missing texts or invalid platform"},
-          "429": {"description": "Rate limit exceeded"}
+          "400": {
+            "description": "Missing texts or invalid platform"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -1101,14 +1990,18 @@
         "summary": "Generate a 7-Day Content Calendar",
         "description": "AI-powered content calendar generator. Give it a niche and get a ready-to-use multi-day posting plan with daily themes and pre-written post drafts. Supports Twitter, LinkedIn, and more. Ideal for content creators, social media managers, and indie hackers.",
         "operationId": "contentCalendar",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["niche"],
+                "required": [
+                  "niche"
+                ],
                 "properties": {
                   "niche": {
                     "type": "string",
@@ -1125,13 +2018,23 @@
                   },
                   "platform": {
                     "type": "string",
-                    "enum": ["twitter", "linkedin", "instagram", "blog"],
+                    "enum": [
+                      "twitter",
+                      "linkedin",
+                      "instagram",
+                      "blog"
+                    ],
                     "default": "twitter",
                     "description": "Target platform"
                   },
                   "tone": {
                     "type": "string",
-                    "enum": ["engaging", "professional", "casual", "humorous"],
+                    "enum": [
+                      "engaging",
+                      "professional",
+                      "casual",
+                      "humorous"
+                    ],
                     "default": "engaging",
                     "description": "Content tone"
                   }
@@ -1154,18 +2057,35 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "niche": {"type": "string"},
-                    "platform": {"type": "string"},
-                    "tone": {"type": "string"},
-                    "days": {"type": "integer"},
+                    "niche": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "days": {
+                      "type": "integer"
+                    },
                     "calendar": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "day": {"type": "string", "description": "Day of the week"},
-                          "theme": {"type": "string", "description": "Content theme for the day"},
-                          "draft": {"type": "string", "description": "Ready-to-post draft"}
+                          "day": {
+                            "type": "string",
+                            "description": "Day of the week"
+                          },
+                          "theme": {
+                            "type": "string",
+                            "description": "Content theme for the day"
+                          },
+                          "draft": {
+                            "type": "string",
+                            "description": "Ready-to-post draft"
+                          }
                         }
                       }
                     }
@@ -1177,17 +2097,35 @@
                   "tone": "engaging",
                   "days": 3,
                   "calendar": [
-                    {"day": "Monday", "theme": "Motivation Monday", "draft": "Your first $1 online proves the model works. The next $1,000 is just systems. What's your system? #indiehackers"},
-                    {"day": "Tuesday", "theme": "Tip Tuesday", "draft": "3 tools every solo founder needs: 1/ Stripe for payments 2/ Notion for docs 3/ Plausible for analytics. All under $50/mo. #buildinpublic"},
-                    {"day": "Wednesday", "theme": "Story Hook", "draft": "6 months ago I had 0 users. Today I have 847. The only thing I changed: I started shipping every week. Thread 🧵"}
+                    {
+                      "day": "Monday",
+                      "theme": "Motivation Monday",
+                      "draft": "Your first $1 online proves the model works. The next $1,000 is just systems. What's your system? #indiehackers"
+                    },
+                    {
+                      "day": "Tuesday",
+                      "theme": "Tip Tuesday",
+                      "draft": "3 tools every solo founder needs: 1/ Stripe for payments 2/ Notion for docs 3/ Plausible for analytics. All under $50/mo. #buildinpublic"
+                    },
+                    {
+                      "day": "Wednesday",
+                      "theme": "Story Hook",
+                      "draft": "6 months ago I had 0 users. Today I have 847. The only thing I changed: I started shipping every week. Thread 🧵"
+                    }
                   ]
                 }
               }
             }
           },
-          "400": {"description": "Missing niche parameter"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "AI generation temporarily unavailable"}
+          "400": {
+            "description": "Missing niche parameter"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "AI generation temporarily unavailable"
+          }
         }
       }
     },
@@ -1196,14 +2134,18 @@
         "summary": "Improve a Headline with AI",
         "description": "Analyze a weak headline and generate N better versions using AI. First scores the original, identifies weaknesses, then rewrites it into improved versions — each one scored and graded. Perfect for the analyze → improve workflow. Returns versions sorted by score descending.",
         "operationId": "improveHeadline",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -1235,19 +2177,41 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "original": {"type": "string"},
-                    "original_score": {"type": "integer"},
-                    "original_grade": {"type": "string"},
-                    "original_suggestions": {"type": "array", "items": {"type": "string"}},
+                    "original": {
+                      "type": "string"
+                    },
+                    "original_score": {
+                      "type": "integer"
+                    },
+                    "original_grade": {
+                      "type": "string"
+                    },
+                    "original_suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "improved_versions": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "text": {"type": "string"},
-                          "score": {"type": "integer"},
-                          "grade": {"type": "string"},
-                          "power_words_found": {"type": "array", "items": {"type": "string"}}
+                          "text": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "integer"
+                          },
+                          "grade": {
+                            "type": "string"
+                          },
+                          "power_words_found": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
                         }
                       }
                     }
@@ -1257,19 +2221,49 @@
                   "original": "How to make money online",
                   "original_score": 49,
                   "original_grade": "C",
-                  "original_suggestions": ["Make the headline longer and more specific.", "Add a number for specificity (e.g. '5 ways', '$6K/mo')."],
+                  "original_suggestions": [
+                    "Make the headline longer and more specific.",
+                    "Add a number for specificity (e.g. '5 ways', '$6K/mo')."
+                  ],
                   "improved_versions": [
-                    {"text": "Can You Really Earn $5,000 a Month Online? Discover the Secrets", "score": 100, "grade": "A", "power_words_found": ["earn", "secret", "discover"]},
-                    {"text": "Unlock $6,000/month: 7 Proven Strategies for Online Success", "score": 85, "grade": "A", "power_words_found": ["proven"]},
-                    {"text": "5 Lucrative Ways to Make $10K/Mo Online", "score": 80, "grade": "A", "power_words_found": []}
+                    {
+                      "text": "Can You Really Earn $5,000 a Month Online? Discover the Secrets",
+                      "score": 100,
+                      "grade": "A",
+                      "power_words_found": [
+                        "earn",
+                        "secret",
+                        "discover"
+                      ]
+                    },
+                    {
+                      "text": "Unlock $6,000/month: 7 Proven Strategies for Online Success",
+                      "score": 85,
+                      "grade": "A",
+                      "power_words_found": [
+                        "proven"
+                      ]
+                    },
+                    {
+                      "text": "5 Lucrative Ways to Make $10K/Mo Online",
+                      "score": 80,
+                      "grade": "A",
+                      "power_words_found": []
+                    }
                   ]
                 }
               }
             }
           },
-          "400": {"description": "Missing text parameter"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "AI generation temporarily unavailable"}
+          "400": {
+            "description": "Missing text parameter"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "AI generation temporarily unavailable"
+          }
         }
       }
     },
@@ -1278,14 +2272,18 @@
         "summary": "Analyze & Score a Headline",
         "description": "Instantly scores any headline 0-100 with a letter grade and actionable improvement suggestions. Uses heuristic analysis (no AI) — responses are instant (<50ms). Evaluates length, power words, numbers, capitalization, punctuation, and curiosity factors.",
         "operationId": "analyzeHeadline",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -1306,16 +2304,60 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "text": {"type": "string", "description": "The analyzed headline"},
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100, "description": "Overall headline score"},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D"], "description": "Letter grade"},
-                    "length": {"type": "integer", "description": "Character count"},
-                    "word_count": {"type": "integer", "description": "Word count"},
-                    "has_number": {"type": "boolean", "description": "Whether the headline contains a number"},
-                    "question_mark": {"type": "boolean", "description": "Whether it's a question"},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}, "description": "Power words detected"},
-                    "caps_ratio": {"type": "number", "description": "Ratio of ALL-CAPS words"},
-                    "suggestions": {"type": "array", "items": {"type": "string"}, "description": "Actionable improvement tips"}
+                    "text": {
+                      "type": "string",
+                      "description": "The analyzed headline"
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "description": "Overall headline score"
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D"
+                      ],
+                      "description": "Letter grade"
+                    },
+                    "length": {
+                      "type": "integer",
+                      "description": "Character count"
+                    },
+                    "word_count": {
+                      "type": "integer",
+                      "description": "Word count"
+                    },
+                    "has_number": {
+                      "type": "boolean",
+                      "description": "Whether the headline contains a number"
+                    },
+                    "question_mark": {
+                      "type": "boolean",
+                      "description": "Whether it's a question"
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Power words detected"
+                    },
+                    "caps_ratio": {
+                      "type": "number",
+                      "description": "Ratio of ALL-CAPS words"
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Actionable improvement tips"
+                    }
                   }
                 },
                 "example": {
@@ -1328,7 +2370,9 @@
                   "question_mark": false,
                   "power_words_found": [],
                   "caps_ratio": 0.11,
-                  "suggestions": ["Add a power word (e.g. 'proven', 'secret', 'simple')."]
+                  "suggestions": [
+                    "Add a power word (e.g. 'proven', 'secret', 'simple')."
+                  ]
                 }
               }
             }
@@ -1337,8 +2381,17 @@
             "description": "Missing or invalid text parameter",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "missing 'text' parameter"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "missing 'text' parameter"
+                }
               }
             }
           },
@@ -1346,8 +2399,17 @@
             "description": "Rate limit exceeded",
             "content": {
               "application/json": {
-                "schema": {"type": "object", "properties": {"error": {"type": "string"}}},
-                "example": {"error": "rate limit exceeded (30/min)"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "rate limit exceeded (30/min)"
+                }
               }
             }
           }
@@ -1359,14 +2421,18 @@
         "summary": "Generate Scroll-Stopping Hooks",
         "description": "Uses AI to generate attention-grabbing hooks and headlines for any topic. Perfect for social media posts, email subject lines, ad copy, and blog titles. Choose from viral, professional, or casual styles.",
         "operationId": "generateHooks",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["topic"],
+                "required": [
+                  "topic"
+                ],
                 "properties": {
                   "topic": {
                     "type": "string",
@@ -1383,7 +2449,11 @@
                   },
                   "style": {
                     "type": "string",
-                    "enum": ["viral", "professional", "casual"],
+                    "enum": [
+                      "viral",
+                      "professional",
+                      "casual"
+                    ],
                     "default": "viral",
                     "description": "Hook style/tone"
                   }
@@ -1405,9 +2475,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "topic": {"type": "string"},
-                    "style": {"type": "string"},
-                    "hooks": {"type": "array", "items": {"type": "string"}}
+                    "topic": {
+                      "type": "string"
+                    },
+                    "style": {
+                      "type": "string"
+                    },
+                    "hooks": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -1422,9 +2501,15 @@
               }
             }
           },
-          "400": {"description": "Missing topic parameter"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "AI generation temporarily unavailable"}
+          "400": {
+            "description": "Missing topic parameter"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "AI generation temporarily unavailable"
+          }
         }
       }
     },
@@ -1433,14 +2518,18 @@
         "summary": "Rewrite Text for Any Platform",
         "description": "AI-powered text rewriting optimized for specific platforms (Twitter, LinkedIn, Instagram, TikTok, email, blog) and tones (engaging, professional, casual, humorous). Automatically respects character limits for each platform.",
         "operationId": "rewriteText",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -1450,13 +2539,25 @@
                   },
                   "platform": {
                     "type": "string",
-                    "enum": ["twitter", "linkedin", "instagram", "tiktok", "email", "blog"],
+                    "enum": [
+                      "twitter",
+                      "linkedin",
+                      "instagram",
+                      "tiktok",
+                      "email",
+                      "blog"
+                    ],
                     "default": "twitter",
                     "description": "Target platform (adjusts length and style). Character limits: twitter=280, linkedin=700, instagram=2200, tiktok=150, email=500, blog=1000"
                   },
                   "tone": {
                     "type": "string",
-                    "enum": ["engaging", "professional", "casual", "humorous"],
+                    "enum": [
+                      "engaging",
+                      "professional",
+                      "casual",
+                      "humorous"
+                    ],
                     "default": "engaging",
                     "description": "Desired tone of the rewrite"
                   }
@@ -1478,11 +2579,21 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "original": {"type": "string"},
-                    "rewritten": {"type": "string"},
-                    "platform": {"type": "string"},
-                    "tone": {"type": "string"},
-                    "char_count": {"type": "integer"}
+                    "original": {
+                      "type": "string"
+                    },
+                    "rewritten": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    }
                   }
                 },
                 "example": {
@@ -1495,9 +2606,15 @@
               }
             }
           },
-          "400": {"description": "Missing text parameter"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "AI generation temporarily unavailable"}
+          "400": {
+            "description": "Missing text parameter"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "AI generation temporarily unavailable"
+          }
         }
       }
     },
@@ -1506,14 +2623,18 @@
         "summary": "Generate Tweet Ideas for Any Niche",
         "description": "AI-generated tweet ideas tailored to your niche. Returns a mix of formats: hot takes, tips, questions, story hooks, and lists. Optionally includes relevant hashtags. Great for content calendars and social media scheduling.",
         "operationId": "tweetIdeas",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["niche"],
+                "required": [
+                  "niche"
+                ],
                 "properties": {
                   "niche": {
                     "type": "string",
@@ -1551,9 +2672,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "niche": {"type": "string"},
-                    "count": {"type": "integer"},
-                    "tweets": {"type": "array", "items": {"type": "string"}}
+                    "niche": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "tweets": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -1568,9 +2698,15 @@
               }
             }
           },
-          "400": {"description": "Missing niche parameter"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "AI generation temporarily unavailable"}
+          "400": {
+            "description": "Missing niche parameter"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "AI generation temporarily unavailable"
+          }
         }
       }
     },
@@ -1579,7 +2715,9 @@
         "summary": "Health Check",
         "description": "Returns service status. Use this to verify the API is online before making other requests.",
         "operationId": "healthCheck",
-        "tags": ["System"],
+        "tags": [
+          "System"
+        ],
         "responses": {
           "200": {
             "description": "Service is healthy",
@@ -1588,12 +2726,32 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {"type": "string"},
-                    "service": {"type": "string"},
-                    "version": {"type": "string"}
+                    "status": {
+                      "type": "string"
+                    },
+                    "service": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
                   }
                 },
-                "example": {"status": "ok", "service": "contentforge", "version": "1.0.0", "llm_backend": "gemini", "ai_endpoints_ready": true, "total_requests_served": 42, "endpoint_usage": {"analyze_headline": 15, "generate_hooks": 10, "rewrite": 8, "tweet_ideas": 7, "score_tweet": 2}}
+                "example": {
+                  "status": "ok",
+                  "service": "contentforge",
+                  "version": "1.0.0",
+                  "llm_backend": "gemini",
+                  "ai_endpoints_ready": true,
+                  "total_requests_served": 42,
+                  "endpoint_usage": {
+                    "analyze_headline": 15,
+                    "generate_hooks": 10,
+                    "rewrite": 8,
+                    "tweet_ideas": 7,
+                    "score_tweet": 2
+                  }
+                }
               }
             }
           }
@@ -1605,14 +2763,18 @@
         "summary": "Generate Twitter Thread Outline",
         "description": "Generate a complete Twitter thread outline for any topic. Returns a hook tweet (scroll-stopping opener), numbered body tweets with key insights, and a CTA closing tweet — all ready to post. Configurable tweet count (3-10) and tone.",
         "operationId": "threadOutline",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["topic"],
+                "required": [
+                  "topic"
+                ],
                 "properties": {
                   "topic": {
                     "type": "string",
@@ -1650,13 +2812,33 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "topic": {"type": "string"},
-                    "tone": {"type": "string"},
-                    "total_tweets": {"type": "integer"},
-                    "hook": {"type": "string"},
-                    "tweets": {"type": "array", "items": {"type": "string"}},
-                    "cta": {"type": "string"},
-                    "full_thread": {"type": "array", "items": {"type": "string"}}
+                    "topic": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "total_tweets": {
+                      "type": "integer"
+                    },
+                    "hook": {
+                      "type": "string"
+                    },
+                    "tweets": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "cta": {
+                      "type": "string"
+                    },
+                    "full_thread": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "example": {
@@ -1664,16 +2846,30 @@
                   "tone": "motivational",
                   "total_tweets": 5,
                   "hook": "Want to build a micro-SaaS in just one weekend? It's possible. Here's how: 🧵",
-                  "tweets": ["2/ Pick a pain you've lived. Not an imaginary problem — YOUR problem.", "3/ Build the smallest version that solves it. No fancy features. Just the core."],
+                  "tweets": [
+                    "2/ Pick a pain you've lived. Not an imaginary problem — YOUR problem.",
+                    "3/ Build the smallest version that solves it. No fancy features. Just the core."
+                  ],
                   "cta": "Follow me for weekly micro-SaaS breakdowns. Bookmark this thread 🔖",
-                  "full_thread": ["Want to build a micro-SaaS in just one weekend? ...", "2/ Pick a pain you've lived...", "3/ Build the smallest version...", "Follow me for weekly micro-SaaS breakdowns..."]
+                  "full_thread": [
+                    "Want to build a micro-SaaS in just one weekend? ...",
+                    "2/ Pick a pain you've lived...",
+                    "3/ Build the smallest version...",
+                    "Follow me for weekly micro-SaaS breakdowns..."
+                  ]
                 }
               }
             }
           },
-          "400": {"description": "Missing or invalid parameters"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "LLM backend unavailable"}
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "LLM backend unavailable"
+          }
         }
       }
     },
@@ -1682,14 +2878,19 @@
         "summary": "Generate Social Media Bio",
         "description": "Generate an optimized social media bio for Twitter, LinkedIn, or Instagram. Supply a name, niche, optional keywords, platform, and tone — get back a punchy, professional bio that stays within platform character limits.",
         "operationId": "generateBio",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name", "niche"],
+                "required": [
+                  "name",
+                  "niche"
+                ],
                 "properties": {
                   "name": {
                     "type": "string",
@@ -1703,15 +2904,25 @@
                   },
                   "keywords": {
                     "type": "array",
-                    "items": {"type": "string"},
+                    "items": {
+                      "type": "string"
+                    },
                     "description": "Keywords or topics to weave into the bio (up to 10).",
-                    "example": ["APIs", "side income", "buildinpublic"]
+                    "example": [
+                      "APIs",
+                      "side income",
+                      "buildinpublic"
+                    ]
                   },
                   "platform": {
                     "type": "string",
                     "description": "Target platform: twitter (160 chars), linkedin (300 chars), instagram (150 chars).",
                     "default": "twitter",
-                    "enum": ["twitter", "linkedin", "instagram"]
+                    "enum": [
+                      "twitter",
+                      "linkedin",
+                      "instagram"
+                    ]
                   },
                   "tone": {
                     "type": "string",
@@ -1724,7 +2935,11 @@
               "example": {
                 "name": "Alex Rivera",
                 "niche": "indie developer building micro-SaaS tools",
-                "keywords": ["APIs", "side income", "buildinpublic"],
+                "keywords": [
+                  "APIs",
+                  "side income",
+                  "buildinpublic"
+                ],
                 "platform": "twitter",
                 "tone": "casual"
               }
@@ -1739,13 +2954,27 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "name": {"type": "string"},
-                    "platform": {"type": "string"},
-                    "tone": {"type": "string"},
-                    "bio": {"type": "string"},
-                    "char_count": {"type": "integer"},
-                    "char_limit": {"type": "integer"},
-                    "is_valid_length": {"type": "boolean"}
+                    "name": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "bio": {
+                      "type": "string"
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "char_limit": {
+                      "type": "integer"
+                    },
+                    "is_valid_length": {
+                      "type": "boolean"
+                    }
                   }
                 },
                 "example": {
@@ -1760,9 +2989,15 @@
               }
             }
           },
-          "400": {"description": "Missing or invalid parameters"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "LLM backend unavailable"}
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "LLM backend unavailable"
+          }
         }
       }
     },
@@ -1771,14 +3006,18 @@
         "summary": "Generate an Instagram or TikTok Caption",
         "description": "AI-generated caption for Instagram or TikTok. Automatically applies platform-specific rules: Instagram gets a hook, 3-5 body lines, 5-10 hashtags, emojis, and a CTA. TikTok gets a hook under 150 characters, 3-5 hashtags, 1-2 emojis, and a follow/save CTA. Returns the caption text ready to copy-paste.",
         "operationId": "generateCaption",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["topic"],
+                "required": [
+                  "topic"
+                ],
                 "properties": {
                   "topic": {
                     "type": "string",
@@ -1788,13 +3027,21 @@
                   },
                   "platform": {
                     "type": "string",
-                    "enum": ["instagram", "tiktok"],
+                    "enum": [
+                      "instagram",
+                      "tiktok"
+                    ],
                     "default": "instagram",
                     "description": "Target platform"
                   },
                   "tone": {
                     "type": "string",
-                    "enum": ["engaging", "inspirational", "educational", "humorous"],
+                    "enum": [
+                      "engaging",
+                      "inspirational",
+                      "educational",
+                      "humorous"
+                    ],
                     "default": "engaging",
                     "description": "Desired tone of the caption"
                   }
@@ -1816,28 +3063,46 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "topic": {"type": "string"},
-                    "platform": {"type": "string"},
-                    "tone": {"type": "string"},
-                    "caption": {"type": "string"},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"}
+                    "topic": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "caption": {
+                      "type": "string"
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    }
                   }
                 },
                 "example": {
                   "topic": "morning productivity routine",
                   "platform": "instagram",
                   "tone": "inspirational",
-                  "caption": "Your morning decides your day. \ud83c\udf05\n\nI wasted years hitting snooze. Then I built a 5-step routine that changed everything.\n\nHere's what works:\n- 5 min journal\n- No phone for 30 min\n- Move your body\n\nWhat does your morning look like? Drop it below \ud83d\udc47\n\n#morningroutine #productivity #selfimprovement #motivation #morningmindset",
+                  "caption": "Your morning decides your day. 🌅\n\nI wasted years hitting snooze. Then I built a 5-step routine that changed everything.\n\nHere's what works:\n- 5 min journal\n- No phone for 30 min\n- Move your body\n\nWhat does your morning look like? Drop it below 👇\n\n#morningroutine #productivity #selfimprovement #motivation #morningmindset",
                   "char_count": 312,
                   "word_count": 54
                 }
               }
             }
           },
-          "400": {"description": "Missing or invalid parameters"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "LLM backend unavailable"}
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "LLM backend unavailable"
+          }
         }
       }
     },
@@ -1846,14 +3111,18 @@
         "summary": "Generate a LinkedIn Post",
         "description": "AI-generated LinkedIn post for any topic. Returns a full post with scroll-stopping hook, story or insight body paragraphs, and a closing CTA — formatted in LinkedIn's proven short-paragraph style with hashtags. Supports three tones: storytelling (personal story + lesson), professional (data-driven + 3-point structure), and motivational (inspirational + empowering CTA).",
         "operationId": "generateLinkedInPost",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["topic"],
+                "required": [
+                  "topic"
+                ],
                 "properties": {
                   "topic": {
                     "type": "string",
@@ -1863,7 +3132,11 @@
                   },
                   "tone": {
                     "type": "string",
-                    "enum": ["storytelling", "professional", "motivational"],
+                    "enum": [
+                      "storytelling",
+                      "professional",
+                      "motivational"
+                    ],
                     "default": "storytelling",
                     "description": "Tone and structure of the post"
                   }
@@ -1884,11 +3157,21 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "topic": {"type": "string"},
-                    "tone": {"type": "string"},
-                    "post": {"type": "string"},
-                    "char_count": {"type": "integer"},
-                    "word_count": {"type": "integer"}
+                    "topic": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "post": {
+                      "type": "string"
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    }
                   }
                 },
                 "example": {
@@ -1901,9 +3184,15 @@
               }
             }
           },
-          "400": {"description": "Missing or invalid parameters"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "LLM backend unavailable"}
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "LLM backend unavailable"
+          }
         }
       }
     },
@@ -1912,14 +3201,18 @@
         "summary": "Score a Pinterest Pin Description",
         "description": "Score a Pinterest pin description 0-100 for reach and saves. Pinterest is a search engine — keyword density, description length (150-500 chars), CTA, and avoiding promotional language are the key signals. Instant heuristic, no AI.",
         "operationId": "scorePinterest",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -1940,22 +3233,62 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "char_count": {"type": "integer"},
-                    "hashtag_count": {"type": "integer"},
-                    "has_cta": {"type": "boolean"},
-                    "has_personal_pronoun": {"type": "boolean"},
-                    "spam_language_found": {"type": "array", "items": {"type": "string"}},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "hashtag_count": {
+                      "type": "integer"
+                    },
+                    "has_cta": {
+                      "type": "boolean"
+                    },
+                    "has_personal_pronoun": {
+                      "type": "boolean"
+                    },
+                    "spam_language_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 }
               }
             }
           },
-          "400": {"description": "Missing or invalid parameters"},
-          "429": {"description": "Rate limit exceeded"}
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -1964,14 +3297,18 @@
         "summary": "Score a YouTube Video Description",
         "description": "Score a YouTube video description 0-100 for SEO and viewer value. Checks description length (200-1000 chars ideal), first-125-char search hook, timestamps/chapters, CTA, links, hashtag count (3-5 at end), and keyword density. Instant heuristic, no AI.",
         "operationId": "scoreYouTubeDescription",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["text"],
+                "required": [
+                  "text"
+                ],
                 "properties": {
                   "text": {
                     "type": "string",
@@ -1992,23 +3329,59 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "char_count": {"type": "integer"},
-                    "has_timestamps": {"type": "boolean"},
-                    "has_cta": {"type": "boolean"},
-                    "has_links": {"type": "boolean"},
-                    "hashtag_count": {"type": "integer"},
-                    "hook_preview": {"type": "string"},
-                    "keyword_density_hint": {"type": "boolean"},
-                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "has_timestamps": {
+                      "type": "boolean"
+                    },
+                    "has_cta": {
+                      "type": "boolean"
+                    },
+                    "has_links": {
+                      "type": "boolean"
+                    },
+                    "hashtag_count": {
+                      "type": "integer"
+                    },
+                    "hook_preview": {
+                      "type": "string"
+                    },
+                    "keyword_density_hint": {
+                      "type": "boolean"
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 }
               }
             }
           },
-          "400": {"description": "Missing or invalid parameters"},
-          "429": {"description": "Rate limit exceeded"}
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -2017,14 +3390,18 @@
         "summary": "Score Ad Copy (Google or Meta)",
         "description": "Score ad copy (headline + description) 0-100 for Google Ads or Meta Ads. Checks character limits (Google: 30-char headline, 90-char description; Meta: 27/125), CTA presence, number/stat usage, you-language, urgency words, and power words. Instant heuristic, no AI.",
         "operationId": "scoreAdCopy",
-        "tags": ["Content Analysis"],
+        "tags": [
+          "Content Analysis"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["headline"],
+                "required": [
+                  "headline"
+                ],
                 "properties": {
                   "headline": {
                     "type": "string",
@@ -2040,7 +3417,12 @@
                   },
                   "platform": {
                     "type": "string",
-                    "enum": ["google", "meta", "facebook", "instagram"],
+                    "enum": [
+                      "google",
+                      "meta",
+                      "facebook",
+                      "instagram"
+                    ],
                     "default": "google",
                     "description": "Ad platform (affects character limit checking)"
                   }
@@ -2062,25 +3444,71 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "score": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
-                    "headline_char_count": {"type": "integer"},
-                    "headline_within_limit": {"type": "boolean"},
-                    "description_char_count": {"type": "integer"},
-                    "description_within_limit": {"type": "boolean"},
-                    "has_cta": {"type": "boolean"},
-                    "has_number": {"type": "boolean"},
-                    "has_you_language": {"type": "boolean"},
-                    "urgency_words_found": {"type": "array", "items": {"type": "string"}},
-                    "power_words_found": {"type": "array", "items": {"type": "string"}},
-                    "suggestions": {"type": "array", "items": {"type": "string"}}
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
+                    "headline_char_count": {
+                      "type": "integer"
+                    },
+                    "headline_within_limit": {
+                      "type": "boolean"
+                    },
+                    "description_char_count": {
+                      "type": "integer"
+                    },
+                    "description_within_limit": {
+                      "type": "boolean"
+                    },
+                    "has_cta": {
+                      "type": "boolean"
+                    },
+                    "has_number": {
+                      "type": "boolean"
+                    },
+                    "has_you_language": {
+                      "type": "boolean"
+                    },
+                    "urgency_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "power_words_found": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 }
               }
             }
           },
-          "400": {"description": "Missing or invalid parameters"},
-          "429": {"description": "Rate limit exceeded"}
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
         }
       }
     },
@@ -2089,14 +3517,18 @@
         "summary": "Generate a 3-Email Drip Sequence",
         "description": "Generate a 3-email drip sequence for any niche or offer. Returns a hook/welcome email (Day 0), a value email (Day 3), and a CTA/close email (Day 6). Each email includes subject line, preview/preheader text, and body copy. AI-powered (Gemini 2.0 Flash).",
         "operationId": "generateEmailSequence",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["niche"],
+                "required": [
+                  "niche"
+                ],
                 "properties": {
                   "niche": {
                     "type": "string",
@@ -2112,7 +3544,11 @@
                   },
                   "tone": {
                     "type": "string",
-                    "enum": ["friendly", "professional", "urgency"],
+                    "enum": [
+                      "friendly",
+                      "professional",
+                      "urgency"
+                    ],
                     "default": "friendly",
                     "description": "Tone of the email sequence"
                   }
@@ -2134,20 +3570,38 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "niche": {"type": "string"},
-                    "offer": {"type": "string"},
-                    "tone": {"type": "string"},
-                    "email_count": {"type": "integer"},
+                    "niche": {
+                      "type": "string"
+                    },
+                    "offer": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "email_count": {
+                      "type": "integer"
+                    },
                     "emails": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "email_number": {"type": "integer"},
-                          "send_day": {"type": "string"},
-                          "subject": {"type": "string"},
-                          "preview": {"type": "string"},
-                          "body": {"type": "string"}
+                          "email_number": {
+                            "type": "integer"
+                          },
+                          "send_day": {
+                            "type": "string"
+                          },
+                          "subject": {
+                            "type": "string"
+                          },
+                          "preview": {
+                            "type": "string"
+                          },
+                          "body": {
+                            "type": "string"
+                          }
                         }
                       }
                     }
@@ -2156,9 +3610,15 @@
               }
             }
           },
-          "400": {"description": "Missing or invalid parameters"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "LLM backend unavailable"}
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "LLM backend unavailable"
+          }
         }
       }
     },
@@ -2167,14 +3627,18 @@
         "summary": "Generate a Content Brief",
         "description": "Generate a full content brief for any topic. Returns target audience description, unique angle, content outline (4-6 sections), 5 SEO keywords, 5 hook ideas, and estimated word count. Useful for blog posts, YouTube scripts, LinkedIn articles, and social campaigns. AI-powered (Gemini 2.0 Flash).",
         "operationId": "generateContentBrief",
-        "tags": ["AI Content Generation"],
+        "tags": [
+          "AI Content Generation"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["topic"],
+                "required": [
+                  "topic"
+                ],
                 "properties": {
                   "topic": {
                     "type": "string",
@@ -2184,13 +3648,24 @@
                   },
                   "platform": {
                     "type": "string",
-                    "enum": ["blog", "youtube", "linkedin", "twitter", "instagram", "tiktok"],
+                    "enum": [
+                      "blog",
+                      "youtube",
+                      "linkedin",
+                      "twitter",
+                      "instagram",
+                      "tiktok"
+                    ],
                     "default": "blog",
                     "description": "Target platform for the content"
                   },
                   "tone": {
                     "type": "string",
-                    "enum": ["informative", "conversational", "authoritative"],
+                    "enum": [
+                      "informative",
+                      "conversational",
+                      "authoritative"
+                    ],
                     "default": "informative",
                     "description": "Tone of the content"
                   }
@@ -2212,18 +3687,45 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "topic": {"type": "string"},
-                    "platform": {"type": "string"},
-                    "tone": {"type": "string"},
+                    "topic": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
                     "brief": {
                       "type": "object",
                       "properties": {
-                        "target_audience": {"type": "string"},
-                        "angle": {"type": "string"},
-                        "outline": {"type": "array", "items": {"type": "string"}},
-                        "seo_keywords": {"type": "array", "items": {"type": "string"}},
-                        "hooks": {"type": "array", "items": {"type": "string"}},
-                        "estimated_word_count": {"type": "integer"}
+                        "target_audience": {
+                          "type": "string"
+                        },
+                        "angle": {
+                          "type": "string"
+                        },
+                        "outline": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "seo_keywords": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "hooks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "estimated_word_count": {
+                          "type": "integer"
+                        }
                       }
                     }
                   }
@@ -2231,9 +3733,15 @@
               }
             }
           },
-          "400": {"description": "Missing or invalid parameters"},
-          "429": {"description": "Rate limit exceeded"},
-          "503": {"description": "LLM backend unavailable"}
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "LLM backend unavailable"
+          }
         }
       }
     }
