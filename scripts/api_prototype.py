@@ -5051,41 +5051,56 @@ def health():
 
 @app.route("/", methods=["GET"])
 def root():
-    return jsonify({
-        "service": "ContentForge API",
-        "version": "1.0.0",
-        "endpoints": {
-            "POST /v1/analyze_headline": "Score & improve any headline (instant, no AI)",
-            "POST /v1/score_tweet": "Score a tweet draft for engagement potential (instant, no AI)",
-            "POST /v1/score_linkedin_post": "Score a LinkedIn post for reach and engagement (instant, no AI)",
-            "POST /v1/score_instagram": "Score an Instagram caption for engagement (instant, no AI)",
-            "POST /v1/score_youtube_title": "Score a YouTube title for CTR potential (instant, no AI)",
-            "POST /v1/score_email_subject": "Score an email subject line for open rate (instant, no AI)",
-            "POST /v1/score_multi": "Score text across multiple platforms in one call (instant, no AI)",
-            "POST /v1/score_readability": "Score any text for readability with Flesch-Kincaid metrics (instant, no AI)",
-            "POST /v1/score_tiktok": "Score a TikTok caption for engagement and reach (instant, no AI)",
-            "POST /v1/score_threads": "Score a Meta Threads post for reach and engagement (instant, no AI)",
-            "POST /v1/score_facebook": "Score a Facebook organic post for reach and engagement (instant, no AI)",
-            "POST /v1/score_pinterest": "Score a Pinterest pin description for reach and saves (instant, no AI)",
-            "POST /v1/score_youtube_description": "Score a YouTube video description for SEO and viewer value (instant, no AI)",
-            "POST /v1/score_ad_copy": "Score Google or Meta ad copy for CTR potential (instant, no AI)",
-            "POST /v1/analyze_hashtags": "Analyze hashtags for quality, diversity, and platform fit (instant, no AI)",
-            "POST /v1/improve_headline": "AI-rewrite a headline into N better scored versions",
-            "POST /v1/generate_hooks": "AI-generated scroll-stopping hooks",
-            "POST /v1/rewrite": "Rewrite text for any platform/tone",
-            "POST /v1/tweet_ideas": "Generate tweet ideas for any niche",
-            "POST /v1/content_calendar": "AI-generated 7-day content calendar",
-            "POST /v1/thread_outline": "AI-generated Twitter thread outline (hook + body + CTA)",
-            "POST /v1/generate_bio": "AI-generated social media bio (Twitter/LinkedIn/Instagram)",
-            "POST /v1/generate_caption": "AI-generated Instagram or TikTok caption (with hashtags + CTA)",
-            "POST /v1/generate_linkedin_post": "AI-generated LinkedIn post (storytelling, professional, or motivational)",
-            "POST /v1/generate_email_sequence": "AI-generated 3-email drip sequence (hook → value → CTA)",
-            "POST /v1/generate_content_brief": "AI-generated content brief with outline, keywords, and hooks",
-            "GET /health": "Service health check + usage stats",
-        },
-        "docs": "https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1",
-        "rapidapi": "https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1",
-    })
+    html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ContentForge API</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f0f; color: #f0f0f0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+    .card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px; max-width: 680px; width: 100%; padding: 3rem 2.5rem; text-align: center; }
+    .badge { display: inline-block; background: #1d3a2a; color: #4ade80; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; margin-bottom: 1.5rem; }
+    h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .sub { color: #888; font-size: 1rem; line-height: 1.6; margin-bottom: 2rem; }
+    .cta { display: inline-block; background: #f97316; color: #fff; font-weight: 600; font-size: 1rem; padding: 0.75rem 2rem; border-radius: 8px; text-decoration: none; margin-bottom: 2rem; }
+    .cta:hover { background: #ea6c0a; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; text-align: left; margin-bottom: 2rem; }
+    .item { background: #111; border: 1px solid #222; border-radius: 8px; padding: 0.65rem 0.9rem; }
+    .item code { font-size: 0.72rem; color: #60a5fa; font-family: 'SF Mono', 'Fira Code', monospace; display: block; margin-bottom: 2px; }
+    .item span { font-size: 0.78rem; color: #aaa; }
+    .tag { font-size: 0.65rem; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
+    .tag.instant { background: #1d3a2a; color: #4ade80; }
+    .tag.ai { background: #2a1d3a; color: #c084fc; }
+    .footer { color: #555; font-size: 0.8rem; }
+    .footer a { color: #888; text-decoration: none; }
+    @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } h1 { font-size: 1.5rem; } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Live API v1.0.0</div>
+    <h1>ContentForge API</h1>
+    <p class="sub">Score your tweets, headlines, and social posts before you publish. AI content generation in one API. No guesswork.</p>
+    <a class="cta" href="https://github.com/CaptainFredric/ContentForge" target="_blank">View on GitHub &rarr;</a>
+    <div class="grid">
+      <div class="item"><code>POST /v1/score_tweet</code><span>Score a tweet draft<span class="tag instant">instant</span></span></div>
+      <div class="item"><code>POST /v1/analyze_headline</code><span>Score any headline<span class="tag instant">instant</span></span></div>
+      <div class="item"><code>POST /v1/score_multi</code><span>Score across platforms<span class="tag instant">instant</span></span></div>
+      <div class="item"><code>POST /v1/batch_score</code><span>Rank 20 drafts at once<span class="tag instant">instant</span></span></div>
+      <div class="item"><code>POST /v1/generate_hooks</code><span>Generate viral hooks<span class="tag ai">AI</span></span></div>
+      <div class="item"><code>POST /v1/improve_headline</code><span>Rewrite weak headlines<span class="tag ai">AI</span></span></div>
+      <div class="item"><code>POST /v1/rewrite</code><span>Rewrite for any platform<span class="tag ai">AI</span></span></div>
+      <div class="item"><code>POST /v1/content_calendar</code><span>7-day content calendar<span class="tag ai">AI</span></span></div>
+      <div class="item"><code>POST /v1/thread_outline</code><span>Full Twitter thread<span class="tag ai">AI</span></span></div>
+      <div class="item"><code>POST /v1/generate_bio</code><span>Social media bio<span class="tag ai">AI</span></span></div>
+    </div>
+    <p class="footer">Free tier available &middot; <a href="https://github.com/CaptainFredric/ContentForge" target="_blank">GitHub</a> &middot; <a href="/health">Health</a></p>
+  </div>
+</body>
+</html>"""
+    return html, 200, {"Content-Type": "text/html; charset=utf-8"}
 
 
 # ---------------------------------------------------------------------------
