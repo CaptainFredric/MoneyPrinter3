@@ -25,6 +25,7 @@ import re
 import signal
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -77,31 +78,78 @@ class CmdResult:
 
 
 def _run_cmd(cmd: list[str], env: dict[str, str], timeout_seconds: int = 420) -> CmdResult:
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            env=env,
-            timeout=timeout_seconds,
-        )
-    except subprocess.TimeoutExpired as exc:
-        raw_stdout = exc.stdout or ""
-        raw_stderr = exc.stderr or ""
-        stdout = raw_stdout.decode("utf-8", errors="ignore") if isinstance(raw_stdout, bytes) else str(raw_stdout)
-        stderr_base = raw_stderr.decode("utf-8", errors="ignore") if isinstance(raw_stderr, bytes) else str(raw_stderr)
-        stderr = stderr_base + f"\n[idle-p2] timeout after {timeout_seconds}s"
-        if stdout:
-            print(stdout, end="" if stdout.endswith("\n") else "\n")
-        if stderr:
-            print(stderr, end="" if stderr.endswith("\n") else "\n")
-        return CmdResult(code=124, stdout=stdout, stderr=stderr)
+    """Run *cmd*, stream its output line-by-line, and honour stop requests.
 
-    if result.stdout:
-        print(result.stdout, end="" if result.stdout.endswith("\n") else "\n")
-    if result.stderr:
-        print(result.stderr, end="" if result.stderr.endswith("\n") else "\n")
-    return CmdResult(code=result.returncode, stdout=result.stdout or "", stderr=result.stderr or "")
+    Uses background reader threads so stdout/stderr pipes never deadlock even
+    when the child produces large amounts of output.  Polls _stop_requested()
+    every second so a SIGTERM/SIGINT (or .stop file) causes clean subprocess
+    termination instead of blocking up to *timeout_seconds*.
+    """
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env,
+    )
+    stdout_buf: list[str] = []
+    stderr_buf: list[str] = []
+
+    def _reader(stream, buf: list[str]) -> None:
+        for line in stream:
+            buf.append(line)
+            print(line, end="" if line.endswith("\n") else "\n")
+
+    t_out = threading.Thread(target=_reader, args=(proc.stdout, stdout_buf), daemon=True)
+    t_err = threading.Thread(target=_reader, args=(proc.stderr, stderr_buf), daemon=True)
+    t_out.start()
+    t_err.start()
+
+    deadline = time.monotonic() + timeout_seconds
+    try:
+        while True:
+            if _stop_requested():
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                t_out.join(timeout=2)
+                t_err.join(timeout=2)
+                return CmdResult(
+                    code=130,
+                    stdout="".join(stdout_buf),
+                    stderr="".join(stderr_buf) + "\n[idle-p2] interrupted by stop request",
+                )
+            if time.monotonic() >= deadline:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                t_out.join(timeout=2)
+                t_err.join(timeout=2)
+                return CmdResult(
+                    code=124,
+                    stdout="".join(stdout_buf),
+                    stderr="".join(stderr_buf) + f"\n[idle-p2] timeout after {timeout_seconds}s",
+                )
+            try:
+                proc.wait(timeout=1)
+                break  # process finished normally
+            except subprocess.TimeoutExpired:
+                continue  # still running — poll again
+    except Exception:
+        proc.kill()
+        raise
+
+    t_out.join(timeout=5)
+    t_err.join(timeout=5)
+    return CmdResult(
+        code=proc.returncode,
+        stdout="".join(stdout_buf),
+        stderr="".join(stderr_buf),
+    )
 
 
 def _parse_posted_count(output: str) -> int:

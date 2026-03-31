@@ -3996,7 +3996,20 @@ _PLATFORM_SCORERS = {
     "email": lambda text, opts: score_email_subject(
         text, opts.get("preview_text", "")
     ),
+    "email_subject": lambda text, opts: score_email_subject(
+        text, opts.get("preview_text", "")
+    ),
     "readability": lambda text, _opts: score_readability(text),
+    # ad_copy: pass text as the headline (description optional via opts)
+    # Use "ad_platform" key to specify google/meta — avoids collision with the
+    # routing "platform" key that score_multi/batch_score use internally.
+    "ad_copy": lambda text, opts: score_ad_copy(
+        text,
+        opts.get("description", ""),
+        opts.get("ad_platform", "google"),
+    ),
+    # headline: generic SEO/content headline scorer
+    "headline": lambda text, _opts: analyze_headline(text),
 }
 
 
