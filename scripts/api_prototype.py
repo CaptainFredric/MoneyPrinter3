@@ -5083,7 +5083,7 @@ def root():
     <div class="badge">Live API v1.0.0</div>
     <h1>ContentForge API</h1>
     <p class="sub">Score your tweets, headlines, and social posts before you publish. AI content generation in one API. No guesswork.</p>
-    <a class="cta" href="https://github.com/CaptainFredric/ContentForge" target="_blank">View on GitHub &rarr;</a>
+    <a class="cta" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Get your free API key &rarr;</a>
     <div class="grid">
       <div class="item"><code>POST /v1/score_tweet</code><span>Score a tweet draft<span class="tag instant">instant</span></span></div>
       <div class="item"><code>POST /v1/analyze_headline</code><span>Score any headline<span class="tag instant">instant</span></span></div>
@@ -5096,7 +5096,7 @@ def root():
       <div class="item"><code>POST /v1/thread_outline</code><span>Full Twitter thread<span class="tag ai">AI</span></span></div>
       <div class="item"><code>POST /v1/generate_bio</code><span>Social media bio<span class="tag ai">AI</span></span></div>
     </div>
-    <p class="footer">Free tier available &middot; <a href="https://github.com/CaptainFredric/ContentForge" target="_blank">GitHub</a> &middot; <a href="/health">Health</a></p>
+    <p class="footer">Free tier available &middot; <a href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Docs &amp; pricing on RapidAPI</a> &middot; <a href="/health">Health</a></p>
   </div>
 </body>
 </html>"""
