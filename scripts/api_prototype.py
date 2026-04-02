@@ -6624,11 +6624,11 @@ def health():
     return jsonify({
         "status": "ok",
         "service": "contentforge",
-        "version": "1.6.0",
+        "version": "1.7.0",
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
-        "endpoints": 40,
+        "endpoints": 41,
         "total_requests_served": total_requests,
         "counted_requests": counted_requests,
         "leniency_policy": "Error responses (4xx/5xx) are never counted toward usage quota.",
@@ -6666,9 +6666,9 @@ def root():
 </head>
 <body>
   <div class="card">
-    <div class="badge">Live API v1.0.0</div>
+    <div class="badge">Live API v1.7.0 &mdash; 41 endpoints</div>
     <h1>ContentForge API</h1>
-    <p class="sub">Score your tweets, headlines, and social posts before you publish. AI content generation in one API. No guesswork.</p>
+    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 41-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
     <a class="cta" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Get your free API key &rarr;</a>
     <div class="grid">
       <div class="item"><code>POST /v1/score_tweet</code><span>Score a tweet draft<span class="tag instant">instant</span></span></div>
@@ -6681,6 +6681,8 @@ def root():
       <div class="item"><code>POST /v1/content_calendar</code><span>7-day content calendar<span class="tag ai">AI</span></span></div>
       <div class="item"><code>POST /v1/thread_outline</code><span>Full Twitter thread<span class="tag ai">AI</span></span></div>
       <div class="item"><code>POST /v1/generate_bio</code><span>Social media bio<span class="tag ai">AI</span></span></div>
+      <div class="item"><code>GET /v1/platform_friction</code><span>Real-time friction level<span class="tag instant">ops</span></span></div>
+      <div class="item"><code>GET /v1/dashboard_stats</code><span>Proof dashboard<span class="tag instant">proof</span></span></div>
     </div>
     <p class="footer">Free tier available &middot; <a href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Docs &amp; pricing on RapidAPI</a> &middot; <a href="/health">Health</a></p>
   </div>
