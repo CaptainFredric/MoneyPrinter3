@@ -1,4 +1,4 @@
-# Reddit Post Drafts — ContentForge v1.8.0
+# Reddit Post Drafts — ContentForge v1.9.0
 
 Copy-paste ready. Post these while logged in.
 
@@ -15,7 +15,7 @@ Been building ContentForge for a few months — it scores your content before yo
 The idea: analytics tell you what happened *after*. I wanted something that tells you what's wrong *before*.
 
 **What it does:**
-- 44 endpoints across 12 platforms (Twitter, LinkedIn, YouTube, Reddit, TikTok, Instagram, email, etc.)
+- 45 endpoints across 12 platforms (Twitter, LinkedIn, YouTube, Reddit, TikTok, Instagram, email, etc.)
 - Deterministic heuristics — no LLM call, always <50ms, free to run
 - Returns a score, grade (A–F), quality gate (PASSED / REVIEW / FAILED), and actionable suggestions
 - AI generation endpoints for hooks, ad copy, rewrites, bios, CTAs — using Ollama locally or Gemini as fallback
@@ -54,12 +54,13 @@ Built a REST API that scores content before you post it — no LLM required for 
 - AI generation via Ollama → Gemini 2.5 Flash fallback chain
 - In-memory rate limiting, flat JSON persistence, RapidAPI proxy auth
 
-**New in v1.8.0:**
-- `generate_ad_copy` — N variants, each auto-scored by the heuristic engine and ranked
-- Proof dashboard — record outcomes and measure score deltas over time
-- Platform friction monitor — aggregate account health endpoint
+**New in v1.9.0:**
+- `score_content` — unified single-platform scorer (the main entry point)
+- `score_reddit` — Reddit-specific upvote potential scorer (specificity, anti-clickbait, hashtag penalty)
+- `generate_subject_line` — AI email subject lines, each scored and ranked
+- `generate_ad_copy` — N ad copy variants, auto-scored and ranked
 
-**44 endpoints total.** OpenAPI spec in the repo.
+**45 endpoints total.** OpenAPI spec in the repo.
 
 GitHub: https://github.com/CaptainFredric/ContentForge
 RapidAPI: https://rapidapi.com/captainfredric/api/contentforge (free tier)

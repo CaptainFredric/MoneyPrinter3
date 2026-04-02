@@ -93,7 +93,7 @@ Client (Browser / API / Extension)
     │       │
     │       └── Render Web Service
     │               │
-    │               ├── scripts/api_prototype.py  [Flask app, 44 endpoints]
+    │               ├── scripts/api_prototype.py  [Flask app, 45 endpoints]
     │               │       │
     │               │       ├── Heuristic scoring engine  [_PLATFORM_SCORERS dict]
     │               │       ├── _quality_gate(score)       [QOps verdict]
@@ -117,7 +117,7 @@ Client (Browser / API / Extension)
 
 - **One file for the app**: `scripts/api_prototype.py` is the entire API. No routing files, no model files, no service files. This is a deliberate choice for a solo-operated API — the entire system can be read and understood in one context window.
 - **No database**: All persistence is flat JSON files under `.mp/`. This eliminates the single biggest source of external failure modes (DB connection drops, migration failures, schema drift).
-- **Heuristic-first**: AI is never called for scoring. The heuristic engine runs in the same Python process, synchronously, in under 50ms. This means the API has no external dependencies for 19 of its 44 endpoints.
+- **Heuristic-first**: AI is never called for scoring. The heuristic engine runs in the same Python process, synchronously, in under 50ms. This means the API has no external dependencies for 19 of its 45 endpoints.
 - **Import structure**: The app is run from the project root. `deploy/wsgi.py` explicitly adds `ROOT` and `ROOT/src` to `sys.path`, making all module imports work correctly on Render without package installation.
 
 ---
@@ -560,7 +560,7 @@ Extension integrations can ping this endpoint on load and surface a warning badg
 | `/v1/batch_score` | POST | Content Analysis | Score up to 20 drafts against one platform, returned best-first |
 | `/v1/compare` | POST | Content Analysis | Head-to-head comparison of two texts, with winner and per-signal advantages |
 | `/v1/ab_test` | POST | Content Analysis | A/B test 2–20 drafts on any platform, returns ranked list with confidence |
-| `/v1/status` | GET | System | Service health: `{"ok": true, "service": "contentforge", "version": "1.7.0"}` |
+| `/v1/status` | GET | System | Service health: `{"ok": true, "service": "contentforge", "version": "1.9.0"}` |
 
 ### AI Content Generation (13 endpoints — Gemini 2.5 Flash, opt-in)
 
@@ -603,7 +603,7 @@ Extension integrations can ping this endpoint on load and surface a warning badg
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/health` | GET | Returns `{"status": "ok", "version": "1.7.0", "endpoints": 41}` |
+| `/health` | GET | Returns `{"status": "ok", "version": "1.9.0", "endpoints": 45}` |
 | `/` | GET | HTML landing page with live API badge and endpoint grid |
 
 ---
@@ -941,7 +941,7 @@ This means:
 Open (AGPL):                    │  Proprietary:
 ─────────────────────────────── │  ────────────────────────────
 Heuristic scoring engine        │  Managed Render deployment
-All 44 endpoints                │  RapidAPI listing + billing
+All 45 endpoints                │  RapidAPI listing + billing
 State machine                   │  Enterprise SLA
 Proof dashboard                 │  White-label licensing
 QOps layer                      │  Custom rule sets for specific
