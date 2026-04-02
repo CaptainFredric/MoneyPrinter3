@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "# ContentForge — Content Scoring & AI Generation Toolkit\n\nYour post flopped. You'll never know exactly why if you wait until after.\n\n**ContentForge** is a 28-endpoint REST API that scores your content against platform-specific best practices *before* you hit publish — returning a 0–100 score, a letter grade, and specific improvement tips in under 50ms. No guessing. No vague feedback. Just signal you can act on.\n\n**Free tier includes every endpoint. No credit card required.**\n\n---\n\n## Why ContentForge Is Different\n\nMost scoring tools are either too slow (LLM inference = 2–10s per call) or too vague (\"add more emotion\" isn't actionable). ContentForge uses a **pure heuristic engine** for all scoring: deterministic rules mapped to each platform's documented best practices. Same input, same score, every time — at <50ms with zero AI token cost.\n\nAI generation is opt-in, for when you actually need a draft written from scratch.\n\n---\n\n## ⚡ 16 Instant Scorers — <50ms, zero AI cost\n\nEach platform has different rules. ContentForge checks the right signals for each:\n\n| Endpoint | What It Checks |\n|---|---|\n| `/v1/score_tweet` | Length, hook, hashtags (1–2 optimal), emojis, CTA, power words |\n| `/v1/score_linkedin_post` | Hook strength, paragraph structure, hashtag count, professional tone, CTA |\n| `/v1/score_instagram` | Hashtag count (5–15 optimal), emojis, hook, line breaks, CTA |\n| `/v1/score_youtube_title` | CTR signals, optimal length (40–60 chars), numbers, brackets, power words |\n| `/v1/score_youtube_description` | SEO keywords, timestamps, chapter marks, links, CTA placement |\n| `/v1/score_email_subject` | Open-rate signals, spam triggers, urgency, personalization tokens, length |\n| `/v1/score_tiktok` | Hook speed, hashtag strategy, trending language, ideal length (≤150 chars) |\n| `/v1/score_threads` | Conversational tone, question hooks, hashtag penalty, CTA |\n| `/v1/score_facebook` | Engagement triggers, question hooks, emoji density, hashtag count |\n| `/v1/score_pinterest` | Keyword density, instructional language, hashtags, spam signals |\n| `/v1/score_ad_copy` | Headline length, benefit clarity, urgency, CTA strength, compliance signals |\n| `/v1/score_readability` | Flesch-Kincaid reading ease + grade level + avg sentence/word length |\n| `/v1/analyze_headline` | Power words (60+ tracked), numbers, questions, emotional triggers, length |\n| `/v1/analyze_hashtags` | Uniqueness, spam risk, overuse, per-platform recommendations |\n| `/v1/score_multi` | Score one piece of text across **all platforms** in a single call |\n| `/v1/batch_score` | Score up to 20 draft texts against one platform — returned best-first |\n\n---\n\n## ✦ 12 AI Generators — Gemini 2.5 Flash\n\nWhen you need a draft written, rebuilt, or expanded:\n\n| Endpoint | What It Returns |\n|---|---|\n| `/v1/improve_headline` | N AI-rewritten versions, each pre-scored and sorted best-first |\n| `/v1/generate_hooks` | Scroll-stopping openers for any topic (viral / professional / casual / bold) |\n| `/v1/rewrite` | Platform-optimized rewrite: Twitter, LinkedIn, Instagram, TikTok, email, blog |\n| `/v1/tweet_ideas` | 5–10 tweet angles for any niche with hashtag suggestions |\n| `/v1/content_calendar` | 7-day calendar with daily themes and ready-to-post drafts |\n| `/v1/thread_outline` | Complete Twitter thread: scroll-stopping hook + numbered body + CTA |\n| `/v1/generate_bio` | Social bio for Twitter (160 chars), LinkedIn (300), or Instagram (150) |\n| `/v1/generate_caption` | Instagram or TikTok caption with hashtags, emojis, and CTA |\n| `/v1/generate_linkedin_post` | Full LinkedIn post: hook + story + insight + CTA |\n| `/v1/generate_email_sequence` | 3-email drip: welcome → value → pitch, subject lines included |\n| `/v1/generate_content_brief` | Research brief: audience, angle, SEO keywords, outline, hooks |\n| `/v1/generate_ad_copy` | Short-form ad copy variants for Facebook, Google, and Twitter |\n\n---\n\n## Quick Example\n\n**Instant score — no AI, no wait:**\n\n```\ncurl -X POST https://contentforge-api-lpp9.onrender.com/v1/score_tweet \\\n  -H \"X-RapidAPI-Key: YOUR_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"text\": \"I shipped in 48 hours. Here is what I learned 🧵 #buildinpublic\"}'\n```\n\n**Response (~12ms):**\n\n```json\n{\n  \"score\": 79,\n  \"grade\": \"B\",\n  \"char_count\": 59,\n  \"hashtag_count\": 1,\n  \"emoji_count\": 1,\n  \"suggestions\": [\n    \"Add a specific number to the opening hook\",\n    \"Length is in the lower-optimal range — aim for 71–100 chars\"\n  ]\n}\n```\n\n---\n\n## Who Uses ContentForge\n\n- **Bloggers & newsletter writers** — `analyze_headline` every post before publish\n- **Twitter/X power users** — draft → score → only post A/B-grade content\n- **Indie hackers & founders** — daily `tweet_ideas` for your build-in-public niche\n- **Content agencies** — generate full monthly calendars in seconds\n- **Copywriters** — `rewrite` any text for a different platform instantly\n- **Email marketers** — score subject lines for higher open rates\n- **Developers** — clean JSON, CORS enabled, consistent schemas, fits any stack\n\n---\n\n## Plans\n\nInstant endpoints (`score_*`, `analyze_*`, `batch_score`, `health`) never count against AI call quota.\n\n| Plan | Price | AI Calls/mo | Requests/mo | Rate Limit |\n|---|---|---|---|---|\n| **BASIC** | Free | 50 | 300 | 30 req/min |\n| **PRO** | $9.99/mo | 750 | 1,000 | 30 req/min |\n| **ULTRA** | $29.99/mo | 3,000 | 4,000 | 30 req/min |\n| **MEGA** | $99/mo | 18,000 | 20,000 | 30 req/min |\n\n---\n\n**Live demo (no API key needed):** https://captainfredric.github.io/ContentForge/\n\n**GitHub:** https://github.com/CaptainFredric/ContentForge\n\n**Support:** captainarmoreddude@gmail.com",
-    "version": "1.0.0",
+    "description": "# ContentForge \u2014 Content Scoring & AI Generation Toolkit\n\nYour post flopped. You'll never know exactly why if you wait until after.\n\n**ContentForge** is a 38-endpoint REST API that scores your content against platform-specific best practices *before* you hit publish \u2014 returning a 0\u2013100 score, a letter grade, and specific improvement tips in under 50ms. No guessing. No vague feedback. Just signal you can act on.\n\n**Free tier includes every endpoint. No credit card required.**\n\n---\n\n## Why ContentForge Is Different\n\nMost scoring tools are either too slow (LLM inference = 2\u201310s per call) or too vague (\"add more emotion\" isn't actionable). ContentForge uses a **pure heuristic engine** for all scoring: deterministic rules mapped to each platform's documented best practices. Same input, same score, every time \u2014 at <50ms with zero AI token cost.\n\nAI generation is opt-in, for when you actually need a draft written from scratch.\n\n---\n\n## \u26a1 19 Instant Endpoints \u2014 <50ms, zero AI cost\n\nEach platform has different rules. ContentForge checks the right signals for each:\n\n| Endpoint | What It Checks |\n|---|---|\n| `/v1/score_tweet` | Length, hook, hashtags (1\u20132 optimal), emojis, CTA, power words |\n| `/v1/score_linkedin_post` | Hook strength, paragraph structure, hashtag count, professional tone, CTA |\n| `/v1/score_instagram` | Hashtag count (5\u201315 optimal), emojis, hook, line breaks, CTA |\n| `/v1/score_youtube_title` | CTR signals, optimal length (40\u201360 chars), numbers, brackets, power words |\n| `/v1/score_youtube_description` | SEO keywords, timestamps, chapter marks, links, CTA placement |\n| `/v1/score_email_subject` | Open-rate signals, spam triggers, urgency, personalization tokens, length |\n| `/v1/score_tiktok` | Hook speed, hashtag strategy, trending language, ideal length (\u2264150 chars) |\n| `/v1/score_threads` | Conversational tone, question hooks, hashtag penalty, CTA |\n| `/v1/score_facebook` | Engagement triggers, question hooks, emoji density, hashtag count |\n| `/v1/score_pinterest` | Keyword density, instructional language, hashtags, spam signals |\n| `/v1/score_ad_copy` | Headline length, benefit clarity, urgency, CTA strength, compliance signals |\n| `/v1/score_readability` | Flesch-Kincaid reading ease + grade level + avg sentence/word length |\n| `/v1/analyze_headline` | Power words (60+ tracked), numbers, questions, emotional triggers, length |\n| `/v1/analyze_hashtags` | Uniqueness, spam risk, overuse, per-platform recommendations |\n| `/v1/score_multi` | Score one piece of text across **all platforms** in a single call |\n| `/v1/batch_score` | Score up to 20 draft texts against one platform \u2014 returned best-first |\n| `/v1/compare` | Head-to-head comparison of two texts with winner + advantages |\n| `/v1/ab_test` | A/B test 2-20 drafts on any platform \u2014 returns ranked list with confidence |\n\n---\n\n## \u2726 13 AI Generators \u2014 Gemini 2.5 Flash\n\nWhen you need a draft written, rebuilt, or expanded:\n\n| Endpoint | What It Returns |\n|---|---|\n| `/v1/improve_headline` | N AI-rewritten versions, each pre-scored and sorted best-first |\n| `/v1/generate_hooks` | Scroll-stopping openers for any topic (viral / professional / casual / bold) |\n| `/v1/rewrite` | Platform-optimized rewrite: Twitter, LinkedIn, Instagram, TikTok, email, blog |\n| `/v1/compose_assist` | Generate 2-5 rewrites, score each, and return the best-performing draft |\n| `/v1/tweet_ideas` | 5\u201310 tweet angles for any niche with hashtag suggestions |\n| `/v1/content_calendar` | 7-day calendar with daily themes and ready-to-post drafts |\n| `/v1/thread_outline` | Complete Twitter thread: scroll-stopping hook + numbered body + CTA |\n| `/v1/generate_bio` | Social bio for Twitter (160 chars), LinkedIn (300), or Instagram (150) |\n| `/v1/generate_caption` | Instagram or TikTok caption with hashtags, emojis, and CTA |\n| `/v1/generate_linkedin_post` | Full LinkedIn post: hook + story + insight + CTA |\n| `/v1/generate_email_sequence` | 3-email drip: welcome \u2192 value \u2192 pitch, subject lines included |\n| `/v1/generate_content_brief` | Research brief: audience, angle, SEO keywords, outline, hooks |\n| `/v1/generate_ad_copy` | Short-form ad copy variants for Facebook, Google, and Twitter |\n\n---\n\n## Quick Example\n\n**Instant score \u2014 no AI, no wait:**\n\n```\ncurl -X POST https://contentforge-api-lpp9.onrender.com/v1/score_tweet \\\n  -H \"X-RapidAPI-Key: YOUR_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"text\": \"I shipped in 48 hours. Here is what I learned \ud83e\uddf5 #buildinpublic\"}'\n```\n\n**Response (~12ms):**\n\n```json\n{\n  \"score\": 79,\n  \"grade\": \"B\",\n  \"char_count\": 59,\n  \"hashtag_count\": 1,\n  \"emoji_count\": 1,\n  \"suggestions\": [\n    \"Add a specific number to the opening hook\",\n    \"Length is in the lower-optimal range \u2014 aim for 71\u2013100 chars\"\n  ]\n}\n```\n\n---\n\n## Who Uses ContentForge\n\n- **Bloggers & newsletter writers** \u2014 `analyze_headline` every post before publish\n- **Twitter/X power users** \u2014 draft \u2192 score \u2192 only post A/B-grade content\n- **Indie hackers & founders** \u2014 daily `tweet_ideas` for your build-in-public niche\n- **Content agencies** \u2014 generate full monthly calendars in seconds\n- **Copywriters** \u2014 `rewrite` any text for a different platform instantly\n- **Email marketers** \u2014 score subject lines for higher open rates\n- **Developers** \u2014 clean JSON, CORS enabled, consistent schemas, fits any stack\n\n---\n\n## Plans\n\nInstant endpoints (`score_*`, `analyze_*`, `batch_score`, `health`) never count against AI call quota.\n\n| Plan | Price | AI Calls/mo | Requests/mo | Rate Limit |\n|---|---|---|---|---|\n| **BASIC** | Free | 50 | 300 | 30 req/min |\n| **PRO** | $9.99/mo | 750 | 1,000 | 30 req/min |\n| **ULTRA** | $29.99/mo | 3,000 | 4,000 | 30 req/min |\n| **MEGA** | $99/mo | 18,000 | 20,000 | 30 req/min |\n\n---\n\n**Live demo (no API key needed):** https://captainfredric.github.io/ContentForge/\n\n**GitHub:** https://github.com/CaptainFredric/ContentForge\n\n**Support:** captainarmoreddude@gmail.com\n\n---\n\n## Proof Dashboard\n\nTrack score delta, publish outcomes, and estimated revenue lift with:\n- `/v1/record_score_delta`\n- `/v1/record_publish_outcome`\n- `/v1/record_revenue`\n- `/v1/dashboard_stats`\n",
+    "version": "1.5.0",
     "contact": {
       "name": "Aden Cisneros",
       "email": "captainarmoreddude@gmail.com",
@@ -24,7 +24,7 @@
   "tags": [
     {
       "name": "Content Analysis",
-      "description": "Instant heuristic scoring — zero latency, no AI token cost"
+      "description": "Instant heuristic scoring \u2014 zero latency, no AI token cost"
     },
     {
       "name": "AI Content Generation",
@@ -39,7 +39,7 @@
     "/v1/score_tweet": {
       "post": {
         "summary": "Score a Tweet Draft",
-        "description": "Score any tweet draft 0-100 for engagement potential before you post. Heuristic analysis — instant, no AI needed. Evaluates character count, hashtag usage, emoji presence, power words, and readability. Returns a grade (A-D) plus actionable improvement tips.",
+        "description": "Score any tweet draft 0-100 for engagement potential before you post. Heuristic analysis \u2014 instant, no AI needed. Evaluates character count, hashtag usage, emoji presence, power words, and readability. Returns a grade (A-D) plus actionable improvement tips.",
         "operationId": "scoreTweet",
         "tags": [
           "Content Analysis"
@@ -58,7 +58,7 @@
                     "type": "string",
                     "maxLength": 1000,
                     "description": "The tweet draft text to score",
-                    "example": "Built an API in 48 hours. It made $500 last month 💸 Here's how: #indiehacker #buildinpublic"
+                    "example": "Built an API in 48 hours. It made $500 last month \ud83d\udcb8 Here's how: #indiehacker #buildinpublic"
                   }
                 }
               }
@@ -129,7 +129,7 @@
                   }
                 },
                 "example": {
-                  "text": "Built an API in 48 hours. It made $500 last month 💸 Here's how: #indiehacker #buildinpublic",
+                  "text": "Built an API in 48 hours. It made $500 last month \ud83d\udcb8 Here's how: #indiehacker #buildinpublic",
                   "score": 83,
                   "grade": "A",
                   "char_count": 91,
@@ -387,7 +387,7 @@
                     "type": "string",
                     "maxLength": 5000,
                     "description": "The Instagram caption draft to score",
-                    "example": "Stop scrolling. This changed everything.\n\nI tried 30 days of cold showers 🧊💪\n\nSave this for later 👇\n\n#morningroutine #coldshower #productivity #selfimprovement #lifehacks"
+                    "example": "Stop scrolling. This changed everything.\n\nI tried 30 days of cold showers \ud83e\uddca\ud83d\udcaa\n\nSave this for later \ud83d\udc47\n\n#morningroutine #coldshower #productivity #selfimprovement #lifehacks"
                   }
                 }
               }
@@ -921,7 +921,7 @@
                     "type": "string",
                     "maxLength": 5000,
                     "description": "The text to score across platforms",
-                    "example": "Just shipped v2 of my SaaS 🚀 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic"
+                    "example": "Just shipped v2 of my SaaS \ud83d\ude80 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic"
                   },
                   "platforms": {
                     "type": "array",
@@ -994,7 +994,7 @@
                   }
                 },
                 "example": {
-                  "text": "Just shipped v2 of my SaaS 🚀 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic",
+                  "text": "Just shipped v2 of my SaaS \ud83d\ude80 Revenue hit $5K MRR in 90 days. Here's what I learned: #buildinpublic",
                   "platforms_scored": 5,
                   "results": {
                     "tweet": {
@@ -1369,7 +1369,7 @@
                     "type": "string",
                     "maxLength": 500,
                     "description": "The Facebook post to score",
-                    "example": "We just hit 10,000 customers 🎉 and it's all because of you!\n\nWhat's one thing you want us to build next? Drop a comment below!"
+                    "example": "We just hit 10,000 customers \ud83c\udf89 and it's all because of you!\n\nWhat's one thing you want us to build next? Drop a comment below!"
                   }
                 }
               }
@@ -1453,7 +1453,7 @@
                   }
                 },
                 "example": {
-                  "text": "We just hit 10,000 customers 🎉 and it's all because of you! What's one thing you want us to build next? Drop a comment!",
+                  "text": "We just hit 10,000 customers \ud83c\udf89 and it's all because of you! What's one thing you want us to build next? Drop a comment!",
                   "score": 86,
                   "grade": "B",
                   "char_count": 120,
@@ -1518,7 +1518,7 @@
                   "text": {
                     "type": "string",
                     "description": "The TikTok caption to score",
-                    "example": "POV: you stop guessing and start knowing if your content will go viral 🔥\n\nTry this free tool 👇\n\n#tiktok #viral #contentcreator"
+                    "example": "POV: you stop guessing and start knowing if your content will go viral \ud83d\udd25\n\nTry this free tool \ud83d\udc47\n\n#tiktok #viral #contentcreator"
                   }
                 }
               }
@@ -1599,7 +1599,7 @@
                   }
                 },
                 "example": {
-                  "text": "POV: you stop guessing 🔥 #tiktok #viral #contentcreator",
+                  "text": "POV: you stop guessing \ud83d\udd25 #tiktok #viral #contentcreator",
                   "score": 87,
                   "grade": "A",
                   "char_count": 56,
@@ -1842,7 +1842,7 @@
     "/v1/batch_score": {
       "post": {
         "summary": "Batch Score Multiple Texts",
-        "description": "Score up to 20 text drafts against a single platform scorer in one API call. Returns all results ranked best-first plus a top-level 'best' pick. Instant heuristic analysis — no AI token cost. Perfect for picking the strongest draft from a set of AI-generated candidates.",
+        "description": "Score up to 20 text drafts against a single platform scorer in one API call. Returns all results ranked best-first plus a top-level 'best' pick. Instant heuristic analysis \u2014 no AI token cost. Perfect for picking the strongest draft from a set of AI-generated candidates.",
         "operationId": "batchScore",
         "tags": [
           "Content Analysis"
@@ -1865,7 +1865,7 @@
                     "maxItems": 20,
                     "description": "Array of draft texts to score (max 20)",
                     "example": [
-                      "Built an API in 48 hours. Made $500 last month 💸 #buildinpublic",
+                      "Built an API in 48 hours. Made $500 last month \ud83d\udcb8 #buildinpublic",
                       "I made a thing. Check it out.",
                       "5 lessons from shipping my first paid API in public #indiehacker"
                     ]
@@ -1978,6 +1978,316 @@
           },
           "400": {
             "description": "Missing texts or invalid platform"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/v1/compare": {
+      "post": {
+        "summary": "Head-to-Head Content Comparison",
+        "description": "Compare two pieces of content head-to-head across one or more platforms. Returns per-platform scores, a winner declaration, point difference, and specific advantages each text has over the other. Instant heuristic analysis \u2014 no AI token cost. Great for A/B testing drafts or benchmarking against competitors.",
+        "operationId": "compare",
+        "tags": [
+          "Content Analysis"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text_a",
+                  "text_b"
+                ],
+                "properties": {
+                  "text_a": {
+                    "type": "string",
+                    "maxLength": 5000,
+                    "description": "First text (your draft)",
+                    "example": "Ship fast, learn faster. The only metric that matters is velocity."
+                  },
+                  "text_b": {
+                    "type": "string",
+                    "maxLength": 5000,
+                    "description": "Second text (competitor or alternative draft)",
+                    "example": "We are pleased to announce the release of our new product offering."
+                  },
+                  "platforms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Platforms to compare on (defaults to tweet, linkedin, instagram)",
+                    "example": [
+                      "tweet",
+                      "linkedin"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comparison result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text_a_preview": {
+                      "type": "string"
+                    },
+                    "text_b_preview": {
+                      "type": "string"
+                    },
+                    "platforms_compared": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "comparisons": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "score_a": {
+                            "type": "integer"
+                          },
+                          "grade_a": {
+                            "type": "string"
+                          },
+                          "score_b": {
+                            "type": "integer"
+                          },
+                          "grade_b": {
+                            "type": "string"
+                          },
+                          "difference": {
+                            "type": "integer"
+                          },
+                          "winner": {
+                            "type": "string",
+                            "enum": [
+                              "A",
+                              "B",
+                              "tie"
+                            ]
+                          },
+                          "a_advantages": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "b_advantages": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "a_wins": {
+                          "type": "integer"
+                        },
+                        "b_wins": {
+                          "type": "integer"
+                        },
+                        "ties": {
+                          "type": "integer"
+                        },
+                        "overall_winner": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "text_a_preview": "Ship fast, learn faster...",
+                  "text_b_preview": "We are pleased to announce...",
+                  "platforms_compared": [
+                    "tweet",
+                    "linkedin"
+                  ],
+                  "comparisons": {
+                    "tweet": {
+                      "score_a": 72,
+                      "grade_a": "B",
+                      "score_b": 45,
+                      "grade_b": "D",
+                      "difference": 27,
+                      "winner": "A",
+                      "a_advantages": [
+                        "Shorter, punchier opening"
+                      ],
+                      "b_advantages": [
+                        "Uses more formal language"
+                      ]
+                    }
+                  },
+                  "summary": {
+                    "a_wins": 2,
+                    "b_wins": 0,
+                    "ties": 0,
+                    "overall_winner": "A"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing text_a, text_b, or invalid platforms"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/v1/ab_test": {
+      "post": {
+        "summary": "A/B Test \u2014 Rank Multiple Drafts",
+        "description": "Submit 2-20 content drafts and a target platform. All drafts are scored and ranked best-first, with a winner recommendation, confidence level (high/medium/low), and statistical spread (min, max, avg, spread). Instant heuristic \u2014 no AI cost, <50ms.",
+        "operationId": "abTest",
+        "tags": [
+          "Instant Scoring"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "drafts",
+                  "platform"
+                ],
+                "properties": {
+                  "drafts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 2,
+                    "maxItems": 20,
+                    "description": "Array of 2-20 content drafts to test"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "description": "Target platform (tweet, linkedin, instagram, tiktok, youtube, email, headline, pinterest, ad, threads, facebook)"
+                  }
+                }
+              },
+              "example": {
+                "drafts": [
+                  "Ship fast, learn faster \ud83d\ude80 #buildinpublic",
+                  "We are pleased to announce our new product.",
+                  "Built an API in 48hr \u2014 $500 last month"
+                ],
+                "platform": "tweet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ranked drafts with winner recommendation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "type": "string"
+                    },
+                    "drafts_tested": {
+                      "type": "integer"
+                    },
+                    "rankings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "text_preview": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "integer"
+                          },
+                          "grade": {
+                            "type": "string"
+                          },
+                          "suggestions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "stats": {
+                      "type": "object",
+                      "properties": {
+                        "min": {
+                          "type": "integer"
+                        },
+                        "max": {
+                          "type": "integer"
+                        },
+                        "avg": {
+                          "type": "number"
+                        },
+                        "spread": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "recommendation": {
+                      "type": "object",
+                      "properties": {
+                        "winner": {
+                          "type": "string"
+                        },
+                        "winner_score": {
+                          "type": "integer"
+                        },
+                        "runner_up": {
+                          "type": "string"
+                        },
+                        "runner_up_score": {
+                          "type": "integer"
+                        },
+                        "margin": {
+                          "type": "integer"
+                        },
+                        "confidence": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing drafts, invalid platform, or fewer than 2 drafts"
           },
           "429": {
             "description": "Rate limit exceeded"
@@ -2110,7 +2420,7 @@
                     {
                       "day": "Wednesday",
                       "theme": "Story Hook",
-                      "draft": "6 months ago I had 0 users. Today I have 847. The only thing I changed: I started shipping every week. Thread 🧵"
+                      "draft": "6 months ago I had 0 users. Today I have 847. The only thing I changed: I started shipping every week. Thread \ud83e\uddf5"
                     }
                   ]
                 }
@@ -2132,7 +2442,7 @@
     "/v1/improve_headline": {
       "post": {
         "summary": "Improve a Headline with AI",
-        "description": "Analyze a weak headline and generate N better versions using AI. First scores the original, identifies weaknesses, then rewrites it into improved versions — each one scored and graded. Perfect for the analyze → improve workflow. Returns versions sorted by score descending.",
+        "description": "Analyze a weak headline and generate N better versions using AI. First scores the original, identifies weaknesses, then rewrites it into improved versions \u2014 each one scored and graded. Perfect for the analyze \u2192 improve workflow. Returns versions sorted by score descending.",
         "operationId": "improveHeadline",
         "tags": [
           "AI Content Generation"
@@ -2270,7 +2580,7 @@
     "/v1/analyze_headline": {
       "post": {
         "summary": "Analyze & Score a Headline",
-        "description": "Instantly scores any headline 0-100 with a letter grade and actionable improvement suggestions. Uses heuristic analysis (no AI) — responses are instant (<50ms). Evaluates length, power words, numbers, capitalization, punctuation, and curiosity factors.",
+        "description": "Instantly scores any headline 0-100 with a letter grade and actionable improvement suggestions. Uses heuristic analysis (no AI) \u2014 responses are instant (<50ms). Evaluates length, power words, numbers, capitalization, punctuation, and curiosity factors.",
         "operationId": "analyzeHeadline",
         "tags": [
           "Content Analysis"
@@ -2494,7 +2804,7 @@
                   "style": "viral",
                   "hooks": [
                     "I made $6K last month from an API I built in a weekend",
-                    "The API economy is minting millionaires — here's how to join",
+                    "The API economy is minting millionaires \u2014 here's how to join",
                     "3 APIs that earn more than my 9-to-5 salary"
                   ]
                 }
@@ -2740,7 +3050,7 @@
                 "example": {
                   "status": "ok",
                   "service": "contentforge",
-                  "version": "1.0.0",
+                  "version": "1.1.0",
                   "llm_backend": "gemini",
                   "ai_endpoints_ready": true,
                   "total_requests_served": 42,
@@ -2761,7 +3071,7 @@
     "/v1/thread_outline": {
       "post": {
         "summary": "Generate Twitter Thread Outline",
-        "description": "Generate a complete Twitter thread outline for any topic. Returns a hook tweet (scroll-stopping opener), numbered body tweets with key insights, and a CTA closing tweet — all ready to post. Configurable tweet count (3-10) and tone.",
+        "description": "Generate a complete Twitter thread outline for any topic. Returns a hook tweet (scroll-stopping opener), numbered body tweets with key insights, and a CTA closing tweet \u2014 all ready to post. Configurable tweet count (3-10) and tone.",
         "operationId": "threadOutline",
         "tags": [
           "AI Content Generation"
@@ -2845,12 +3155,12 @@
                   "topic": "how to build a micro-SaaS in a weekend",
                   "tone": "motivational",
                   "total_tweets": 5,
-                  "hook": "Want to build a micro-SaaS in just one weekend? It's possible. Here's how: 🧵",
+                  "hook": "Want to build a micro-SaaS in just one weekend? It's possible. Here's how: \ud83e\uddf5",
                   "tweets": [
-                    "2/ Pick a pain you've lived. Not an imaginary problem — YOUR problem.",
+                    "2/ Pick a pain you've lived. Not an imaginary problem \u2014 YOUR problem.",
                     "3/ Build the smallest version that solves it. No fancy features. Just the core."
                   ],
-                  "cta": "Follow me for weekly micro-SaaS breakdowns. Bookmark this thread 🔖",
+                  "cta": "Follow me for weekly micro-SaaS breakdowns. Bookmark this thread \ud83d\udd16",
                   "full_thread": [
                     "Want to build a micro-SaaS in just one weekend? ...",
                     "2/ Pick a pain you've lived...",
@@ -2876,7 +3186,7 @@
     "/v1/generate_bio": {
       "post": {
         "summary": "Generate Social Media Bio",
-        "description": "Generate an optimized social media bio for Twitter, LinkedIn, or Instagram. Supply a name, niche, optional keywords, platform, and tone — get back a punchy, professional bio that stays within platform character limits.",
+        "description": "Generate an optimized social media bio for Twitter, LinkedIn, or Instagram. Supply a name, niche, optional keywords, platform, and tone \u2014 get back a punchy, professional bio that stays within platform character limits.",
         "operationId": "generateBio",
         "tags": [
           "AI Content Generation"
@@ -3087,7 +3397,7 @@
                   "topic": "morning productivity routine",
                   "platform": "instagram",
                   "tone": "inspirational",
-                  "caption": "Your morning decides your day. 🌅\n\nI wasted years hitting snooze. Then I built a 5-step routine that changed everything.\n\nHere's what works:\n- 5 min journal\n- No phone for 30 min\n- Move your body\n\nWhat does your morning look like? Drop it below 👇\n\n#morningroutine #productivity #selfimprovement #motivation #morningmindset",
+                  "caption": "Your morning decides your day. \ud83c\udf05\n\nI wasted years hitting snooze. Then I built a 5-step routine that changed everything.\n\nHere's what works:\n- 5 min journal\n- No phone for 30 min\n- Move your body\n\nWhat does your morning look like? Drop it below \ud83d\udc47\n\n#morningroutine #productivity #selfimprovement #motivation #morningmindset",
                   "char_count": 312,
                   "word_count": 54
                 }
@@ -3109,7 +3419,7 @@
     "/v1/generate_linkedin_post": {
       "post": {
         "summary": "Generate a LinkedIn Post",
-        "description": "AI-generated LinkedIn post for any topic. Returns a full post with scroll-stopping hook, story or insight body paragraphs, and a closing CTA — formatted in LinkedIn's proven short-paragraph style with hashtags. Supports three tones: storytelling (personal story + lesson), professional (data-driven + 3-point structure), and motivational (inspirational + empowering CTA).",
+        "description": "AI-generated LinkedIn post for any topic. Returns a full post with scroll-stopping hook, story or insight body paragraphs, and a closing CTA \u2014 formatted in LinkedIn's proven short-paragraph style with hashtags. Supports three tones: storytelling (personal story + lesson), professional (data-driven + 3-point structure), and motivational (inspirational + empowering CTA).",
         "operationId": "generateLinkedInPost",
         "tags": [
           "AI Content Generation"
@@ -3199,7 +3509,7 @@
     "/v1/score_pinterest": {
       "post": {
         "summary": "Score a Pinterest Pin Description",
-        "description": "Score a Pinterest pin description 0-100 for reach and saves. Pinterest is a search engine — keyword density, description length (150-500 chars), CTA, and avoiding promotional language are the key signals. Instant heuristic, no AI.",
+        "description": "Score a Pinterest pin description 0-100 for reach and saves. Pinterest is a search engine \u2014 keyword density, description length (150-500 chars), CTA, and avoiding promotional language are the key signals. Instant heuristic, no AI.",
         "operationId": "scorePinterest",
         "tags": [
           "Content Analysis"
@@ -3413,7 +3723,7 @@
                     "type": "string",
                     "maxLength": 500,
                     "description": "Ad description or primary text (optional)",
-                    "example": "Try ContentForge free — instant scores for tweets, LinkedIn, TikTok and more."
+                    "example": "Try ContentForge free \u2014 instant scores for tweets, LinkedIn, TikTok and more."
                   },
                   "platform": {
                     "type": "string",
@@ -3430,7 +3740,7 @@
               },
               "example": {
                 "headline": "Score Your Content in 5 Seconds",
-                "description": "Try ContentForge free — instant scores for 9 platforms.",
+                "description": "Try ContentForge free \u2014 instant scores for 9 platforms.",
                 "platform": "google"
               }
             }
@@ -3741,6 +4051,416 @@
           },
           "503": {
             "description": "LLM backend unavailable"
+          }
+        }
+      }
+    },
+    "/v1/status": {
+      "get": {
+        "summary": "Quick Status Check",
+        "description": "Ultra-lightweight uptime endpoint. Returns ok status and version. No LLM probe or log reads.",
+        "operationId": "statusQuick",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "API is online",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "service": {
+                      "type": "string",
+                      "example": "contentforge"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "1.2.0"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/compose_assist": {
+      "post": {
+        "summary": "Compose Assist",
+        "description": "Generate multiple rewrite variants and rank them by platform score.",
+        "operationId": "composeAssist",
+        "tags": [
+          "AI Content Generation"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "platform": {
+                    "type": "string",
+                    "example": "tweet"
+                  },
+                  "tone": {
+                    "type": "string",
+                    "example": "engaging"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 5,
+                    "example": 3
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ranked rewrites with winner recommendation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "original": {
+                      "type": "string"
+                    },
+                    "original_score": {
+                      "type": "number"
+                    },
+                    "ranked_variants": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "rank_label": {
+                            "type": "string"
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "number"
+                          },
+                          "grade": {
+                            "type": "string"
+                          },
+                          "suggestions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "char_count": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "recommendation": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/record_score_delta": {
+      "post": {
+        "summary": "Record Score Delta",
+        "description": "Record before/after score changes for a revised draft.",
+        "operationId": "recordScoreDelta",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "platform"
+                ],
+                "properties": {
+                  "platform": {
+                    "type": "string",
+                    "example": "tweet"
+                  },
+                  "original_text": {
+                    "type": "string"
+                  },
+                  "revised_text": {
+                    "type": "string"
+                  },
+                  "original_score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "revised_score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "suggestions_applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "posted": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded"
+          }
+        }
+      }
+    },
+    "/v1/record_publish_outcome": {
+      "post": {
+        "summary": "Record Publish Outcome",
+        "description": "Record engagement and estimate revenue lift from score improvement.",
+        "operationId": "recordPublishOutcome",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "post_id",
+                  "platform"
+                ],
+                "properties": {
+                  "post_id": {
+                    "type": "string"
+                  },
+                  "platform": {
+                    "type": "string"
+                  },
+                  "score_before": {
+                    "type": "integer"
+                  },
+                  "score_after": {
+                    "type": "integer"
+                  },
+                  "engagement": {
+                    "type": "object"
+                  },
+                  "value_per_click": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded"
+          }
+        }
+      }
+    },
+    "/v1/record_revenue": {
+      "post": {
+        "summary": "Record Revenue Attribution",
+        "description": "Record realized revenue tied to a post.",
+        "operationId": "recordRevenue",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "post_id",
+                  "revenue_amount"
+                ],
+                "properties": {
+                  "post_id": {
+                    "type": "string"
+                  },
+                  "platform": {
+                    "type": "string"
+                  },
+                  "revenue_amount": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "revenue_source": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded"
+          }
+        }
+      }
+    },
+    "/v1/dashboard_stats": {
+      "get": {
+        "summary": "Proof Dashboard Stats",
+        "description": "Aggregated score delta, engagement, and revenue proof metrics.",
+        "operationId": "dashboardStats",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "week",
+                "month",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregates"
+          }
+        }
+      }
+    },
+    "/v1/proof_timeline": {
+      "get": {
+        "summary": "Proof Timeline",
+        "description": "Daily trendline of score deltas, estimated lift, and realized revenue.",
+        "operationId": "proofTimeline",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "week",
+                "month",
+                "quarter",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timeline rows"
+          }
+        }
+      }
+    },
+    "/v1/export_proof_report": {
+      "get": {
+        "summary": "Export Proof Report",
+        "description": "Export proof dashboard records as JSON or CSV.",
+        "operationId": "exportProofReport",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "csv"
+              ]
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "week",
+                "month",
+                "quarter",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON payload or CSV download"
           }
         }
       }

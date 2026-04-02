@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ContentForge API — AI-powered content toolkit for creators and marketers.
 
-Endpoints (28 total):
+Endpoints (30 total):
   # Instant heuristic scorers (no AI, <50ms):
   POST /v1/analyze_headline        — Score & grade any headline (power words, length, numbers)
   POST /v1/score_tweet             — Score a tweet draft 0-100 (hashtags, emojis, hooks, char count)
@@ -19,6 +19,8 @@ Endpoints (28 total):
   POST /v1/analyze_hashtags        — Hashtag quality analysis: platform fit, spam risk, count check
   POST /v1/score_multi             — Score one text across multiple platforms in one call
   POST /v1/batch_score             — Score up to 20 drafts against one platform, return ranked best
+  POST /v1/compare                 — Head-to-head comparison of two texts with winner + advantages
+  POST /v1/ab_test                 — Rank 2-20 drafts on a platform, pick winner with confidence level
 
   # AI generators (Gemini 2.0 Flash, ~1-3s):
   POST /v1/improve_headline        — Rewrite a weak headline into N better scored versions
@@ -45,11 +47,14 @@ Run as server:
 from __future__ import annotations
 
 import argparse
+import csv
+from datetime import datetime, timedelta, timezone
 import json
 import os
 import re
 import sys
 import time
+from uuid import uuid4
 from functools import wraps
 from pathlib import Path
 
@@ -88,6 +93,32 @@ class _ContentForgeRequest(_FlaskRequest):
 
 app.request_class = _ContentForgeRequest
 
+# Maximum request body: 256 KB — prevents abuse and excessive payloads
+app.config["MAX_CONTENT_LENGTH"] = 256 * 1024
+
+# Maximum text field length for scoring endpoints (characters)
+MAX_TEXT_LENGTH = 50_000
+
+
+# ---------------------------------------------------------------------------
+# Request timing — record start so after_request can compute latency
+# ---------------------------------------------------------------------------
+@app.before_request
+def _track_request_start():
+    g.req_start = time.time()
+
+    # Reject non-JSON POST bodies early (but not OPTIONS or GET)
+    if request.method == "POST" and request.path.startswith("/v1/"):
+        body = request.get_json(silent=True)
+        if body is None:
+            return jsonify({"error": "Request body must be valid JSON", "status": 400}), 400
+
+    # Idempotency: return cached response for repeated POST bodies
+    if request.path.startswith("/v1/"):
+        cached = _idempotency_lookup()
+        if cached is not None:
+            return cached
+
 
 # ---------------------------------------------------------------------------
 # CORS — allow browser clients (RapidAPI playground, web apps)
@@ -115,18 +146,73 @@ def _cors_preflight(dummy=""):
     })
 
 # ---------------------------------------------------------------------------
+# Global JSON error handlers — ensures every response is JSON, never HTML
+# ---------------------------------------------------------------------------
+from werkzeug.exceptions import HTTPException
+
+
+@app.errorhandler(404)
+def _handle_404(e):
+    return jsonify({"error": "endpoint not found", "status": 404}), 404
+
+
+@app.errorhandler(405)
+def _handle_405(e):
+    return jsonify({"error": "method not allowed", "status": 405}), 405
+
+
+@app.errorhandler(413)
+def _handle_413(e):
+    return jsonify({"error": "request too large (max 256 KB)", "status": 413}), 413
+
+
+@app.errorhandler(429)
+def _handle_429(e):
+    resp = jsonify({"error": "rate limit exceeded (30/min)", "status": 429})
+    resp.headers["Retry-After"] = "60"
+    return resp, 429
+
+
+@app.errorhandler(500)
+def _handle_500(e):
+    return jsonify({"error": "internal server error", "status": 500}), 500
+
+
+@app.errorhandler(Exception)
+def _handle_unhandled(e):
+    """Catch-all for any unhandled exception — return generic JSON error.
+    Never leak stack traces or internal details to the client."""
+    if isinstance(e, HTTPException):
+        return jsonify({"error": e.description, "status": e.code}), e.code
+    app.logger.exception("Unhandled exception: %s", type(e).__name__)
+    return jsonify({"error": "internal server error", "status": 500}), 500
+
+
+# ---------------------------------------------------------------------------
 # Usage tracking (simple JSON log for analytics / future billing)
 # ---------------------------------------------------------------------------
 USAGE_LOG = ROOT_DIR / ".mp" / "api_usage.json"
+PROOF_LOG = ROOT_DIR / ".mp" / "proof.json"
 
 
 def _log_usage(endpoint: str, latency_ms: int):
+    """No-op stub — usage logging is now handled centrally by the
+    ``_track_usage`` after_request hook.  Existing per-endpoint calls are
+    retained so that adding a new endpoint can follow the old pattern
+    harmlessly; actual I/O only happens via ``_log_usage_entry``."""
+    pass
+
+
+def _log_usage_entry(endpoint: str, latency_ms: int, status_code: int):
+    """Write a usage entry to the JSON log (called by after_request hook)."""
     try:
         USAGE_LOG.parent.mkdir(parents=True, exist_ok=True)
         entry = {
             "endpoint": endpoint,
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "latency_ms": latency_ms,
+            "status": status_code,
+            "counted": 200 <= status_code < 300,
         }
         entries = []
         if USAGE_LOG.exists():
@@ -138,6 +224,117 @@ def _log_usage(endpoint: str, latency_ms: int):
         USAGE_LOG.write_text(json.dumps(entries))
     except Exception:
         pass
+
+
+def _proof_read() -> dict:
+    """Read proof dashboard storage, returning a normalized structure."""
+    base = {
+        "score_deltas": [],
+        "publish_outcomes": [],
+        "revenue_records": [],
+    }
+    try:
+        if not PROOF_LOG.exists():
+            return base
+        loaded = json.loads(PROOF_LOG.read_text())
+        if not isinstance(loaded, dict):
+            return base
+        for k in base.keys():
+            v = loaded.get(k, [])
+            base[k] = v if isinstance(v, list) else []
+        return base
+    except Exception:
+        return base
+
+
+def _proof_write(data: dict):
+    """Atomically write proof dashboard storage to disk."""
+    PROOF_LOG.parent.mkdir(parents=True, exist_ok=True)
+    tmp = PROOF_LOG.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data))
+    tmp.replace(PROOF_LOG)
+
+
+def _proof_append(section: str, record: dict):
+    """Append a record into one proof storage section with bounded retention."""
+    store = _proof_read()
+    bucket = store.get(section)
+    if not isinstance(bucket, list):
+        bucket = []
+    bucket.append(record)
+    # Keep latest 5000 entries per section to avoid unbounded growth
+    store[section] = bucket[-5000:]
+    _proof_write(store)
+
+
+def _to_float(value, default=0.0):
+    try:
+        return float(value)
+    except Exception:
+        return float(default)
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _parse_iso_utc(ts: str):
+    try:
+        return datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Request Leniency — centralized usage tracking + transparency headers
+# Error responses (4xx/5xx) are NEVER counted toward the user's quota.
+# ---------------------------------------------------------------------------
+@app.after_request
+def _track_usage(response):
+    """Log successful /v1/ requests and add leniency headers."""
+    if not request.path.startswith("/v1/"):
+        return response
+
+    start = getattr(g, "req_start", time.time())
+    latency_ms = int((time.time() - start) * 1000)
+    counted = 200 <= response.status_code < 300
+
+    # Derive clean endpoint name (strip Flask's "endpoint_" prefix)
+    ep = request.endpoint or ""
+    if ep.startswith("endpoint_"):
+        ep = ep[len("endpoint_"):]
+    ep = ep or request.path.rsplit("/", 1)[-1]
+
+    # Only count successful responses toward usage quota
+    if counted:
+        # Skip counting idempotent cache hits — they were already counted
+        if response.headers.get("X-Idempotent-Hit") != "true":
+            _log_usage_entry(ep, latency_ms, response.status_code)
+        else:
+            counted = False  # don't bill twice
+
+    # Store successful responses in idempotency cache
+    if 200 <= response.status_code < 300:
+        _idempotency_store(response)
+
+    # Transparency header — consumers can always check if a request was billed
+    response.headers["X-Request-Counted"] = str(counted).lower()
+
+    # Inject leniency notice into error JSON bodies
+    if not counted and response.status_code >= 400:
+        try:
+            data = response.get_json(silent=True)
+            if data and isinstance(data, dict) and "error" in data:
+                data["request_counted"] = False
+                data["leniency"] = (
+                    "Error responses are never counted toward your usage quota."
+                )
+                response.data = json.dumps(data)
+                response.content_type = "application/json"
+        except Exception:
+            pass
+
+    return response
 
 
 def _count_emojis(s: str) -> int:
@@ -206,6 +403,68 @@ def _add_rate_headers(response, remaining: int):
     response.headers["X-RateLimit-Remaining"] = str(remaining)
     response.headers["X-RateLimit-Window"] = "60s"
     return response
+
+
+# ---------------------------------------------------------------------------
+# Idempotency cache — Leniency Tier 3
+# Identical request (same IP + endpoint + body hash) within IDEMPOTENCY_TTL
+# seconds returns the cached response instantly, and is NOT re-counted.
+# ---------------------------------------------------------------------------
+import hashlib
+
+_idempotency_cache: dict[str, tuple[float, bytes, int, dict]] = {}
+IDEMPOTENCY_TTL = 60  # seconds
+
+
+def _idempotency_key() -> str | None:
+    """Build a cache key from IP + path + body hash.  Returns None for
+    non-cacheable requests (GET, OPTIONS, or empty body)."""
+    if request.method != "POST":
+        return None
+    body = request.get_data(as_text=False)
+    if not body:
+        return None
+    ip = request.headers.get("X-RapidAPI-User") or request.remote_addr or "anon"
+    h = hashlib.sha256(body).hexdigest()[:16]
+    return f"{ip}:{request.path}:{h}"
+
+
+def _idempotency_lookup():
+    """Check if this request has a cached response.  If so, return a
+    Flask Response immediately; otherwise return None so the endpoint
+    runs normally.  Stale entries are pruned lazily."""
+    key = _idempotency_key()
+    if not key:
+        return None
+    now = time.time()
+    # Lazy eviction — cap at 2000 entries
+    if len(_idempotency_cache) > 2000:
+        stale = [k for k, v in _idempotency_cache.items() if now - v[0] > IDEMPOTENCY_TTL]
+        for k in stale:
+            del _idempotency_cache[k]
+    entry = _idempotency_cache.get(key)
+    if entry and (now - entry[0]) < IDEMPOTENCY_TTL:
+        ts, data, status_code, headers = entry
+        resp = app.make_response((data, status_code, headers))
+        resp.headers["X-Idempotent-Hit"] = "true"
+        resp.headers["X-Request-Counted"] = "false"
+        return resp
+    return None
+
+
+def _idempotency_store(response):
+    """Save a successful response into the idempotency cache."""
+    if response.status_code < 200 or response.status_code >= 300:
+        return  # don't cache errors
+    key = _idempotency_key()
+    if not key:
+        return
+    _idempotency_cache[key] = (
+        time.time(),
+        response.get_data(),
+        response.status_code,
+        dict(response.headers),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -515,6 +774,154 @@ def endpoint_rewrite():
         "platform": platform,
         "tone": tone,
         "char_count": len(rewritten),
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 3B. Compose Assist (AI + scoring)
+# ---------------------------------------------------------------------------
+@app.route("/v1/compose_assist", methods=["GET", "POST"])
+def endpoint_compose_assist():
+    """Generate multiple rewritten variants and rank them with heuristic scoring.
+    This endpoint is designed for practical posting workflows: one call returns
+    candidate drafts, scores, grades, and the recommended winner."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "compose_assist",
+            "method": "POST",
+            "description": "Generate 2-5 rewrite variants for one draft, score each, and return ranked recommendations.",
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/compose_assist",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "text": "I built an API",
+                    "platform": "tweet",
+                    "tone": "engaging",
+                    "count": 3,
+                },
+            },
+            "available_platforms": list(_PLATFORM_SCORERS.keys()),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or "").strip()
+    platform = (payload.get("platform") or "tweet").strip().lower()
+    tone = (payload.get("tone") or "engaging").strip().lower()
+
+    try:
+        count = int(payload.get("count", 3))
+    except (ValueError, TypeError):
+        return jsonify({"error": "'count' must be an integer"}), 400
+
+    if not text:
+        return jsonify({"error": "missing 'text' parameter"}), 400
+    if len(text) > 2000:
+        return jsonify({"error": "text too long (max 2000 chars)"}), 400
+    if platform not in _PLATFORM_SCORERS:
+        return jsonify({"error": f"invalid platform. Available: {list(_PLATFORM_SCORERS.keys())}"}), 400
+    count = max(2, min(5, count))
+
+    platform_hint = {
+        "tweet": "under 280 chars, punchy hook, 1-2 hashtags max",
+        "linkedin": "short paragraphs, professional tone, clear CTA",
+        "instagram": "strong hook, visual language, CTA + hashtags",
+        "tiktok": "under 150 chars, trendy phrasing, concise",
+        "headline": "30-80 chars, use numbers/question/power words",
+        "email": "under 60 chars, curiosity + clarity",
+        "youtube": "40-70 chars, CTR-oriented wording",
+    }.get(platform, "fit platform norms and keep it clear")
+
+    prompt = (
+        f"Rewrite the text below into exactly {count} distinct variants for {platform}.\n"
+        f"Tone: {tone}.\n"
+        f"Constraints: {platform_hint}.\n"
+        "Return ONLY a JSON array of strings.\n\n"
+        f"Original text: {text}"
+    )
+
+    try:
+        raw = _llm_generate(prompt)
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    variants = None
+    try:
+        variants = json.loads(raw)
+    except Exception:
+        match = re.search(r'\[.*\]', raw, re.DOTALL)
+        if match:
+            try:
+                variants = json.loads(match.group(0))
+            except Exception:
+                variants = None
+
+    if not isinstance(variants, list):
+        # Fallback parse when model adds bullets/numbering instead of JSON
+        variants = [
+            re.sub(r'^[\d\-\*\.)\]]+\s*', '', line).strip().strip('"')
+            for line in raw.split("\n")
+            if line.strip()
+        ]
+
+    clean_variants = []
+    for v in variants:
+        s = str(v).strip()
+        if s and s.lower() != text.lower() and s not in clean_variants:
+            clean_variants.append(s)
+        if len(clean_variants) >= count:
+            break
+
+    if len(clean_variants) < 2:
+        return jsonify({"error": "could not generate enough rewrite variants"}), 503
+
+    scored = []
+    for i, variant in enumerate(clean_variants, start=1):
+        r = _PLATFORM_SCORERS[platform](variant, payload)
+        scored.append({
+            "rank_label": chr(64 + i),
+            "text": variant,
+            "score": r.get("score", 0),
+            "grade": r.get("grade", "D"),
+            "suggestions": (r.get("suggestions") or [])[:4],
+            "char_count": len(variant),
+        })
+
+    scored.sort(key=lambda x: x["score"], reverse=True)
+    original_result = _PLATFORM_SCORERS[platform](text, payload)
+    original_score = original_result.get("score", 0)
+    winner = scored[0]
+    if original_score >= winner["score"]:
+        winner = {
+            "rank_label": "ORIGINAL",
+            "text": text,
+            "score": original_score,
+            "grade": original_result.get("grade", "C"),
+            "suggestions": [],
+            "char_count": len(text),
+        }
+
+    _log_usage("compose_assist", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "platform": platform,
+        "tone": tone,
+        "original": text,
+        "original_score": original_score,
+        "ranked_variants": scored,
+        "recommendation": {
+            "winner": winner["rank_label"],
+            "winner_score": winner["score"],
+            "winner_grade": winner["grade"],
+            "winner_text": winner["text"],
+            "score_delta_vs_original": winner["score"] - original_score,
+        },
     }), remaining)
 
 
@@ -4202,6 +4609,262 @@ def endpoint_batch_score():
 
 
 # ---------------------------------------------------------------------------
+# 5i. Compare — head-to-head score comparison (heuristic, instant)
+# ---------------------------------------------------------------------------
+@app.route("/v1/compare", methods=["GET", "POST"])
+def endpoint_compare():
+    """Compare two pieces of content head-to-head on one or more platforms."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "compare",
+            "method": "POST",
+            "description": (
+                "Compare two texts head-to-head. Get per-platform scores, "
+                "a winner declaration, point difference, and specific advantages "
+                "each text has over the other. Instant heuristic — no AI."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/compare",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "text_a": "Your draft or content",
+                    "text_b": "Competitor's content or alternative draft",
+                    "platforms": ["tweet", "linkedin"],
+                },
+            },
+            "available_platforms": list(_PLATFORM_SCORERS.keys()),
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/v1/compare '
+                '-H "Content-Type: application/json" '
+                "-d '{\"text_a\": \"Ship fast, learn faster.\", "
+                "\"text_b\": \"We are pleased to announce the release of our new product.\", "
+                "\"platforms\": [\"tweet\", \"linkedin\"]}'"
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text_a = (payload.get("text_a") or payload.get("a") or "").strip()
+    text_b = (payload.get("text_b") or payload.get("b") or "").strip()
+    platforms = payload.get("platforms", [])
+    opts = payload
+
+    if not text_a:
+        return jsonify({"error": "missing 'text_a' parameter"}), 400
+    if not text_b:
+        return jsonify({"error": "missing 'text_b' parameter"}), 400
+    if len(text_a) > 5000:
+        return jsonify({"error": "text_a too long (max 5000 chars)"}), 400
+    if len(text_b) > 5000:
+        return jsonify({"error": "text_b too long (max 5000 chars)"}), 400
+
+    if not platforms or not isinstance(platforms, list):
+        platforms = ["tweet", "linkedin", "instagram"]
+
+    valid = [p for p in platforms if p in _PLATFORM_SCORERS]
+    if not valid:
+        return jsonify({
+            "error": f"no valid platforms. Available: {list(_PLATFORM_SCORERS.keys())}"
+        }), 400
+    if len(valid) > 10:
+        valid = valid[:10]
+
+    comparisons = {}
+    a_wins = 0
+    b_wins = 0
+    ties = 0
+
+    for p in valid:
+        try:
+            r_a = _PLATFORM_SCORERS[p](text_a, opts)
+            r_b = _PLATFORM_SCORERS[p](text_b, opts)
+
+            score_a = r_a["score"]
+            score_b = r_b["score"]
+            diff = score_a - score_b
+
+            sugg_a = set(r_a.get("suggestions", []))
+            sugg_b = set(r_b.get("suggestions", []))
+            # Advantages: suggestions the OTHER text got that this one didn't
+            a_advantages = sorted(sugg_b - sugg_a)
+            b_advantages = sorted(sugg_a - sugg_b)
+
+            if diff > 0:
+                winner = "A"
+                a_wins += 1
+            elif diff < 0:
+                winner = "B"
+                b_wins += 1
+            else:
+                winner = "tie"
+                ties += 1
+
+            comparisons[p] = {
+                "score_a": score_a,
+                "grade_a": r_a["grade"],
+                "score_b": score_b,
+                "grade_b": r_b["grade"],
+                "difference": diff,
+                "winner": winner,
+                "a_advantages": a_advantages[:5],
+                "b_advantages": b_advantages[:5],
+            }
+        except Exception as e:
+            comparisons[p] = {"error": str(e)}
+
+    # Overall winner across all platforms
+    if a_wins > b_wins:
+        overall = "A"
+    elif b_wins > a_wins:
+        overall = "B"
+    else:
+        overall = "tie"
+
+    _log_usage("compare", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "text_a_preview": text_a[:150] + ("..." if len(text_a) > 150 else ""),
+        "text_b_preview": text_b[:150] + ("..." if len(text_b) > 150 else ""),
+        "platforms_compared": valid,
+        "comparisons": comparisons,
+        "summary": {
+            "a_wins": a_wins,
+            "b_wins": b_wins,
+            "ties": ties,
+            "overall_winner": overall,
+        },
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 5j. A/B Test — rank N drafts on a platform, pick a winner (heuristic)
+# ---------------------------------------------------------------------------
+@app.route("/v1/ab_test", methods=["GET", "POST"])
+def endpoint_ab_test():
+    """Rank 2-20 drafts on a single platform and pick the best one."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "ab_test",
+            "method": "POST",
+            "description": (
+                "Submit 2-20 content drafts and a target platform. "
+                "Returns all drafts ranked by score with the recommended "
+                "winner, statistical spread (min/max/avg), and per-draft "
+                "suggestions. Instant heuristic — no AI."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/ab_test",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "drafts": [
+                        "Draft A text here",
+                        "Draft B text here",
+                        "Draft C text here",
+                    ],
+                    "platform": "tweet",
+                },
+            },
+            "available_platforms": list(_PLATFORM_SCORERS.keys()),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    drafts = payload.get("drafts", [])
+    platform = (payload.get("platform") or "").strip().lower()
+
+    if not drafts or not isinstance(drafts, list):
+        return jsonify({"error": "missing 'drafts' array (2-20 items)"}), 400
+    if len(drafts) < 2:
+        return jsonify({"error": "need at least 2 drafts to A/B test"}), 400
+    if len(drafts) > 20:
+        return jsonify({"error": "max 20 drafts per request"}), 400
+    if not platform or platform not in _PLATFORM_SCORERS:
+        return jsonify({
+            "error": f"invalid platform. Available: {list(_PLATFORM_SCORERS.keys())}"
+        }), 400
+
+    results = []
+    labels = "ABCDEFGHIJKLMNOPQRST"
+    for i, draft in enumerate(drafts):
+        text = str(draft).strip()
+        if not text:
+            results.append({"label": labels[i], "error": "empty draft"})
+            continue
+        if len(text) > 5000:
+            results.append({"label": labels[i], "error": "too long (max 5000)"})
+            continue
+        try:
+            scored = _PLATFORM_SCORERS[platform](text, payload)
+            results.append({
+                "label": labels[i],
+                "text_preview": text[:120] + ("..." if len(text) > 120 else ""),
+                "score": scored["score"],
+                "grade": scored["grade"],
+                "suggestions": scored.get("suggestions", [])[:5],
+            })
+        except Exception as e:
+            results.append({"label": labels[i], "error": str(e)})
+
+    # Rank by score descending (errors sort to bottom)
+    scored_results = [r for r in results if "score" in r]
+    error_results = [r for r in results if "score" not in r]
+    scored_results.sort(key=lambda r: r["score"], reverse=True)
+
+    scores = [r["score"] for r in scored_results]
+    winner = scored_results[0] if scored_results else None
+    runner_up = scored_results[1] if len(scored_results) > 1 else None
+
+    stats = {}
+    if scores:
+        stats = {
+            "min": min(scores),
+            "max": max(scores),
+            "avg": round(sum(scores) / len(scores), 1),
+            "spread": max(scores) - min(scores),
+        }
+
+    recommendation = None
+    if winner and runner_up:
+        margin = winner["score"] - runner_up["score"]
+        if margin >= 15:
+            confidence = "high"
+        elif margin >= 5:
+            confidence = "medium"
+        else:
+            confidence = "low — consider refining both"
+        recommendation = {
+            "winner": winner["label"],
+            "winner_score": winner["score"],
+            "runner_up": runner_up["label"],
+            "runner_up_score": runner_up["score"],
+            "margin": margin,
+            "confidence": confidence,
+        }
+
+    _log_usage("ab_test", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "platform": platform,
+        "drafts_tested": len(drafts),
+        "rankings": scored_results + error_results,
+        "stats": stats,
+        "recommendation": recommendation,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 6. Content Calendar (AI-powered)
 # ---------------------------------------------------------------------------
 @app.route("/v1/content_calendar", methods=["POST"])
@@ -4989,8 +5652,595 @@ def endpoint_generate_content_brief():
 
 
 # ---------------------------------------------------------------------------
-# Health + Root
+# 12. Proof Dashboard — Score Delta Recorder
 # ---------------------------------------------------------------------------
+@app.route("/v1/record_score_delta", methods=["GET", "POST"])
+def endpoint_record_score_delta():
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "record_score_delta",
+            "method": "POST",
+            "description": "Record before/after score changes for one draft revision.",
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/record_score_delta",
+                "body": {
+                    "platform": "tweet",
+                    "original_text": "I built an API",
+                    "revised_text": "Built an API in 48 hours. $500 last month 🚀 #buildinpublic",
+                    "suggestions_applied": ["add number", "add hashtag"],
+                    "posted": True,
+                    "post_url": "https://x.com/user/status/123",
+                },
+            },
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    platform = (payload.get("platform") or "tweet").strip().lower()
+    if platform not in _PLATFORM_SCORERS:
+        return jsonify({"error": f"invalid platform. Available: {list(_PLATFORM_SCORERS.keys())}"}), 400
+
+    original_text = str(payload.get("original_text") or "").strip()
+    revised_text = str(payload.get("revised_text") or "").strip()
+    if original_text and len(original_text) > 5000:
+        return jsonify({"error": "original_text too long (max 5000 chars)"}), 400
+    if revised_text and len(revised_text) > 5000:
+        return jsonify({"error": "revised_text too long (max 5000 chars)"}), 400
+
+    original_score = payload.get("original_score")
+    revised_score = payload.get("revised_score")
+
+    if original_score is None:
+        if not original_text:
+            return jsonify({"error": "missing original score or original_text"}), 400
+        original_score = _PLATFORM_SCORERS[platform](original_text, payload).get("score", 0)
+    if revised_score is None:
+        if not revised_text:
+            return jsonify({"error": "missing revised score or revised_text"}), 400
+        revised_score = _PLATFORM_SCORERS[platform](revised_text, payload).get("score", 0)
+
+    original_score = int(_to_float(original_score, 0))
+    revised_score = int(_to_float(revised_score, 0))
+    if not (0 <= original_score <= 100 and 0 <= revised_score <= 100):
+        return jsonify({"error": "scores must be between 0 and 100"}), 400
+
+    suggestions_applied = payload.get("suggestions_applied", [])
+    if not isinstance(suggestions_applied, list):
+        suggestions_applied = []
+    suggestions_applied = [str(s)[:120] for s in suggestions_applied[:20] if str(s).strip()]
+
+    record = {
+        "id": str(uuid4()),
+        "session_id": str(payload.get("session_id") or uuid4()),
+        "platform": platform,
+        "original_text": original_text[:1000],
+        "revised_text": revised_text[:1000],
+        "original_score": original_score,
+        "revised_score": revised_score,
+        "score_delta": revised_score - original_score,
+        "suggestions_applied": suggestions_applied,
+        "posted": bool(payload.get("posted", False)),
+        "post_url": str(payload.get("post_url") or "")[:300],
+        "time_to_revise_ms": int(_to_float(payload.get("time_to_revise_ms"), 0)),
+        "recorded_at": _utc_now_iso(),
+    }
+
+    _proof_append("score_deltas", record)
+    _log_usage("record_score_delta", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "status": "recorded",
+        "score_delta": record["score_delta"],
+        "record": record,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 13. Proof Dashboard — Publish Outcome Recorder
+# ---------------------------------------------------------------------------
+@app.route("/v1/record_publish_outcome", methods=["GET", "POST"])
+def endpoint_record_publish_outcome():
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "record_publish_outcome",
+            "method": "POST",
+            "description": "Record post outcome metrics and estimate revenue lift from score improvements.",
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/record_publish_outcome",
+                "body": {
+                    "post_id": "x-123",
+                    "platform": "tweet",
+                    "score_before": 56,
+                    "score_after": 81,
+                    "engagement": {"impressions": 5000, "likes": 45, "clicks": 80},
+                    "value_per_click": 1.8,
+                    "baseline_ctr_pct": 1.5,
+                    "ctr_lift_per_score_point_pct": 0.8,
+                },
+            },
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    post_id = str(payload.get("post_id") or "").strip()
+    platform = (payload.get("platform") or "").strip().lower()
+    if not post_id:
+        return jsonify({"error": "missing 'post_id'"}), 400
+    if not platform:
+        return jsonify({"error": "missing 'platform'"}), 400
+
+    score_before = int(_to_float(payload.get("score_before", payload.get("original_score", 0)), 0))
+    score_after = int(_to_float(payload.get("score_after", payload.get("revised_score", score_before)), score_before))
+    if not (0 <= score_before <= 100 and 0 <= score_after <= 100):
+        return jsonify({"error": "scores must be between 0 and 100"}), 400
+    score_delta = score_after - score_before
+
+    engagement = payload.get("engagement", {})
+    if not isinstance(engagement, dict):
+        engagement = {}
+
+    impressions = max(0.0, _to_float(engagement.get("impressions", payload.get("impressions", 0)), 0))
+    clicks = max(0.0, _to_float(engagement.get("clicks", payload.get("clicks", 0)), 0))
+    likes = max(0.0, _to_float(engagement.get("likes", 0), 0))
+    comments = max(0.0, _to_float(engagement.get("comments", 0), 0))
+    shares = max(0.0, _to_float(engagement.get("shares", 0), 0))
+    saves = max(0.0, _to_float(engagement.get("saves", 0), 0))
+
+    baseline_ctr_pct = max(0.0, _to_float(payload.get("baseline_ctr_pct", 1.5), 1.5))
+    ctr_lift_per_score_point_pct = max(0.0, _to_float(payload.get("ctr_lift_per_score_point_pct", 0.8), 0.8))
+    value_per_click = max(0.0, _to_float(payload.get("value_per_click", 1.0), 1.0))
+
+    extra_clicks = 0.0
+    if impressions > 0 and score_delta > 0:
+        extra_ctr_pct = baseline_ctr_pct * ((score_delta * ctr_lift_per_score_point_pct) / 100.0)
+        extra_clicks = impressions * (extra_ctr_pct / 100.0)
+    elif clicks > 0 and score_delta > 0:
+        extra_clicks = clicks * ((score_delta * ctr_lift_per_score_point_pct) / 100.0)
+
+    estimated_revenue_lift = round(extra_clicks * value_per_click, 2)
+    if "estimated_revenue_lift" in payload:
+        estimated_revenue_lift = round(max(0.0, _to_float(payload.get("estimated_revenue_lift"), 0.0)), 2)
+
+    record = {
+        "id": str(uuid4()),
+        "post_id": post_id[:120],
+        "platform": platform,
+        "score_before": score_before,
+        "score_after": score_after,
+        "score_delta": score_delta,
+        "engagement": {
+            "impressions": int(impressions),
+            "clicks": int(clicks),
+            "likes": int(likes),
+            "comments": int(comments),
+            "shares": int(shares),
+            "saves": int(saves),
+        },
+        "estimated_extra_clicks": round(extra_clicks, 2),
+        "estimated_revenue_lift": estimated_revenue_lift,
+        "model": {
+            "baseline_ctr_pct": baseline_ctr_pct,
+            "ctr_lift_per_score_point_pct": ctr_lift_per_score_point_pct,
+            "value_per_click": value_per_click,
+        },
+        "url": str(payload.get("url") or payload.get("post_url") or "")[:300],
+        "posted_at": str(payload.get("posted_at") or "")[:80],
+        "verified_at": str(payload.get("verified_at") or "")[:80],
+        "recorded_at": _utc_now_iso(),
+    }
+
+    _proof_append("publish_outcomes", record)
+    _log_usage("record_publish_outcome", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "status": "recorded",
+        "score_delta": score_delta,
+        "estimated_revenue_lift": estimated_revenue_lift,
+        "record": record,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 14. Proof Dashboard — Revenue Recorder
+# ---------------------------------------------------------------------------
+@app.route("/v1/record_revenue", methods=["GET", "POST"])
+def endpoint_record_revenue():
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "record_revenue",
+            "method": "POST",
+            "description": "Record realized revenue attribution for a post.",
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/record_revenue",
+                "body": {
+                    "post_id": "x-123",
+                    "platform": "tweet",
+                    "revenue_amount": 12.5,
+                    "revenue_source": "affiliate",
+                    "currency": "USD",
+                },
+            },
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    post_id = str(payload.get("post_id") or "").strip()
+    if not post_id:
+        return jsonify({"error": "missing 'post_id'"}), 400
+
+    revenue_amount = round(max(0.0, _to_float(payload.get("revenue_amount", 0.0), 0.0)), 2)
+    if revenue_amount <= 0:
+        return jsonify({"error": "revenue_amount must be > 0"}), 400
+
+    record = {
+        "id": str(uuid4()),
+        "post_id": post_id[:120],
+        "platform": str(payload.get("platform") or "")[:40],
+        "revenue_amount": revenue_amount,
+        "currency": str(payload.get("currency") or "USD")[:10],
+        "revenue_source": str(payload.get("revenue_source") or "manual")[:60],
+        "attribution_method": str(payload.get("attribution_method") or "manual")[:60],
+        "notes": str(payload.get("notes") or "")[:300],
+        "recorded_at": _utc_now_iso(),
+    }
+
+    _proof_append("revenue_records", record)
+    _log_usage("record_revenue", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "status": "recorded",
+        "record": record,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 15. Proof Dashboard — Aggregated Stats
+# ---------------------------------------------------------------------------
+@app.route("/v1/dashboard_stats", methods=["GET"])
+def endpoint_dashboard_stats():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    period = (request.args.get("period") or "week").lower()
+    platform_filter = (request.args.get("platform") or "all").lower()
+
+    days_map = {"week": 7, "month": 30, "all": None}
+    if period not in days_map:
+        return jsonify({"error": "invalid period (use week, month, all)"}), 400
+
+    cutoff = None
+    if days_map[period] is not None:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days_map[period])
+
+    store = _proof_read()
+    score_deltas = store.get("score_deltas", [])
+    outcomes = store.get("publish_outcomes", [])
+    revenues = store.get("revenue_records", [])
+
+    def include_record(rec):
+        if platform_filter != "all" and str(rec.get("platform", "")).lower() != platform_filter:
+            return False
+        if cutoff is None:
+            return True
+        ts = rec.get("recorded_at") or ""
+        try:
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            return dt >= cutoff
+        except Exception:
+            return False
+
+    score_deltas = [r for r in score_deltas if include_record(r)]
+    outcomes = [r for r in outcomes if include_record(r)]
+    revenues = [r for r in revenues if include_record(r)]
+
+    delta_values = [int(_to_float(r.get("score_delta"), 0)) for r in score_deltas]
+    avg_delta = round(sum(delta_values) / len(delta_values), 2) if delta_values else 0.0
+
+    est_lift_total = round(sum(_to_float(r.get("estimated_revenue_lift"), 0.0) for r in outcomes), 2)
+    realized_total = round(sum(_to_float(r.get("revenue_amount"), 0.0) for r in revenues), 2)
+
+    total_likes = sum(int(_to_float((r.get("engagement") or {}).get("likes"), 0)) for r in outcomes)
+    total_clicks = sum(int(_to_float((r.get("engagement") or {}).get("clicks"), 0)) for r in outcomes)
+    total_impressions = sum(int(_to_float((r.get("engagement") or {}).get("impressions"), 0)) for r in outcomes)
+
+    top_wins = sorted(score_deltas, key=lambda x: int(_to_float(x.get("score_delta"), 0)), reverse=True)[:5]
+
+    _log_usage("dashboard_stats", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "period": period,
+        "platform": platform_filter,
+        "counts": {
+            "score_delta_records": len(score_deltas),
+            "publish_outcomes": len(outcomes),
+            "revenue_records": len(revenues),
+        },
+        "metrics": {
+            "avg_score_delta": avg_delta,
+            "estimated_revenue_lift_total": est_lift_total,
+            "realized_revenue_total": realized_total,
+            "combined_revenue_signal": round(est_lift_total + realized_total, 2),
+            "engagement": {
+                "likes": total_likes,
+                "clicks": total_clicks,
+                "impressions": total_impressions,
+            },
+        },
+        "top_wins": [
+            {
+                "id": r.get("id"),
+                "platform": r.get("platform"),
+                "score_delta": r.get("score_delta"),
+                "post_url": r.get("post_url", ""),
+                "recorded_at": r.get("recorded_at"),
+            }
+            for r in top_wins
+        ],
+        "note": "Estimated lift is model-based. Realized revenue comes from explicit attribution records.",
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 16. Proof Dashboard — Timeline (daily trend view)
+# ---------------------------------------------------------------------------
+@app.route("/v1/proof_timeline", methods=["GET"])
+def endpoint_proof_timeline():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    period = (request.args.get("period") or "month").lower()
+    platform_filter = (request.args.get("platform") or "all").lower()
+
+    days_map = {"week": 7, "month": 30, "quarter": 90, "all": None}
+    if period not in days_map:
+        return jsonify({"error": "invalid period (use week, month, quarter, all)"}), 400
+
+    cutoff = None
+    if days_map[period] is not None:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days_map[period])
+
+    store = _proof_read()
+    buckets: dict = {}
+
+    def _want_platform(rec: dict) -> bool:
+        if platform_filter == "all":
+            return True
+        return str(rec.get("platform", "")).lower() == platform_filter
+
+    def _want_period(rec: dict) -> bool:
+        if cutoff is None:
+            return True
+        dt = _parse_iso_utc(rec.get("recorded_at") or rec.get("posted_at") or "")
+        return bool(dt and dt >= cutoff)
+
+    def _ensure_day(day: str) -> dict:
+        row = buckets.get(day)
+        if row is None:
+            row = {
+                "date": day,
+                "score_delta_total": 0,
+                "score_delta_count": 0,
+                "avg_score_delta": 0.0,
+                "estimated_revenue_lift": 0.0,
+                "realized_revenue": 0.0,
+                "combined_signal": 0.0,
+                "posts_with_outcomes": 0,
+            }
+            buckets[day] = row
+        return row
+
+    for rec in store.get("score_deltas", []):
+        if not _want_platform(rec) or not _want_period(rec):
+            continue
+        dt = _parse_iso_utc(rec.get("recorded_at") or "")
+        if not dt:
+            continue
+        day = dt.date().isoformat()
+        row = _ensure_day(day)
+        row["score_delta_total"] += int(_to_float(rec.get("score_delta"), 0))
+        row["score_delta_count"] += 1
+
+    for rec in store.get("publish_outcomes", []):
+        if not _want_platform(rec) or not _want_period(rec):
+            continue
+        dt = _parse_iso_utc(rec.get("recorded_at") or rec.get("posted_at") or "")
+        if not dt:
+            continue
+        day = dt.date().isoformat()
+        row = _ensure_day(day)
+        row["estimated_revenue_lift"] = round(
+            row["estimated_revenue_lift"] + _to_float(rec.get("estimated_revenue_lift"), 0.0), 2
+        )
+        row["posts_with_outcomes"] += 1
+
+    for rec in store.get("revenue_records", []):
+        if not _want_platform(rec) or not _want_period(rec):
+            continue
+        dt = _parse_iso_utc(rec.get("recorded_at") or "")
+        if not dt:
+            continue
+        day = dt.date().isoformat()
+        row = _ensure_day(day)
+        row["realized_revenue"] = round(row["realized_revenue"] + _to_float(rec.get("revenue_amount"), 0.0), 2)
+
+    timeline = []
+    for day in sorted(buckets.keys()):
+        row = buckets[day]
+        count = row.get("score_delta_count", 0)
+        if count > 0:
+            row["avg_score_delta"] = round(row.get("score_delta_total", 0) / count, 2)
+        row["combined_signal"] = round(
+            row.get("estimated_revenue_lift", 0.0) + row.get("realized_revenue", 0.0), 2
+        )
+        timeline.append(row)
+
+    _log_usage("proof_timeline", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "period": period,
+        "platform": platform_filter,
+        "days": len(timeline),
+        "timeline": timeline,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 17. Proof Dashboard — Export report (JSON or CSV)
+# ---------------------------------------------------------------------------
+@app.route("/v1/export_proof_report", methods=["GET"])
+def endpoint_export_proof_report():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    fmt = (request.args.get("format") or "json").lower()
+    period = (request.args.get("period") or "month").lower()
+    platform_filter = (request.args.get("platform") or "all").lower()
+
+    days_map = {"week": 7, "month": 30, "quarter": 90, "all": None}
+    if period not in days_map:
+        return jsonify({"error": "invalid period (use week, month, quarter, all)"}), 400
+    if fmt not in ("json", "csv"):
+        return jsonify({"error": "invalid format (use json or csv)"}), 400
+
+    cutoff = None
+    if days_map[period] is not None:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days_map[period])
+
+    store = _proof_read()
+
+    def include_record(rec: dict):
+        if platform_filter != "all" and str(rec.get("platform", "")).lower() != platform_filter:
+            return False
+        if cutoff is None:
+            return True
+        dt = _parse_iso_utc(rec.get("recorded_at") or rec.get("posted_at") or "")
+        return bool(dt and dt >= cutoff)
+
+    score_deltas = [r for r in store.get("score_deltas", []) if include_record(r)]
+    outcomes = [r for r in store.get("publish_outcomes", []) if include_record(r)]
+    revenues = [r for r in store.get("revenue_records", []) if include_record(r)]
+
+    if fmt == "json":
+        delta_values = [int(_to_float(r.get("score_delta"), 0)) for r in score_deltas]
+        est_total = round(sum(_to_float(r.get("estimated_revenue_lift"), 0.0) for r in outcomes), 2)
+        realized_total = round(sum(_to_float(r.get("revenue_amount"), 0.0) for r in revenues), 2)
+        payload = {
+            "period": period,
+            "platform": platform_filter,
+            "generated_at": _utc_now_iso(),
+            "summary": {
+                "score_delta_records": len(score_deltas),
+                "publish_outcomes": len(outcomes),
+                "revenue_records": len(revenues),
+                "avg_score_delta": round(sum(delta_values) / len(delta_values), 2) if delta_values else 0.0,
+                "estimated_revenue_lift_total": est_total,
+                "realized_revenue_total": realized_total,
+                "combined_revenue_signal": round(est_total + realized_total, 2),
+            },
+            "score_deltas": score_deltas,
+            "publish_outcomes": outcomes,
+            "revenue_records": revenues,
+        }
+        _log_usage("export_proof_report", int((time.time() - start) * 1000))
+        return _add_rate_headers(jsonify(payload), remaining)
+
+    rows = []
+    for r in score_deltas:
+        rows.append({
+            "type": "score_delta",
+            "id": r.get("id", ""),
+            "platform": r.get("platform", ""),
+            "post_id": r.get("post_id", ""),
+            "score_before": r.get("original_score", ""),
+            "score_after": r.get("revised_score", ""),
+            "score_delta": r.get("score_delta", ""),
+            "estimated_revenue_lift": "",
+            "realized_revenue": "",
+            "recorded_at": r.get("recorded_at", ""),
+        })
+    for r in outcomes:
+        rows.append({
+            "type": "publish_outcome",
+            "id": r.get("id", ""),
+            "platform": r.get("platform", ""),
+            "post_id": r.get("post_id", ""),
+            "score_before": r.get("score_before", ""),
+            "score_after": r.get("score_after", ""),
+            "score_delta": r.get("score_delta", ""),
+            "estimated_revenue_lift": r.get("estimated_revenue_lift", ""),
+            "realized_revenue": "",
+            "recorded_at": r.get("recorded_at", ""),
+        })
+    for r in revenues:
+        rows.append({
+            "type": "revenue",
+            "id": r.get("id", ""),
+            "platform": r.get("platform", ""),
+            "post_id": r.get("post_id", ""),
+            "score_before": "",
+            "score_after": "",
+            "score_delta": "",
+            "estimated_revenue_lift": "",
+            "realized_revenue": r.get("revenue_amount", ""),
+            "recorded_at": r.get("recorded_at", ""),
+        })
+
+    rows.sort(key=lambda x: str(x.get("recorded_at", "")), reverse=True)
+    fieldnames = [
+        "type", "id", "platform", "post_id", "score_before", "score_after", "score_delta",
+        "estimated_revenue_lift", "realized_revenue", "recorded_at",
+    ]
+
+    from io import StringIO
+    out = StringIO()
+    writer = csv.DictWriter(out, fieldnames=fieldnames)
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(row)
+
+    _log_usage("export_proof_report", int((time.time() - start) * 1000))
+    csv_text = out.getvalue()
+    response = app.response_class(csv_text, mimetype="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=contentforge-proof-report.csv"
+    response.headers["X-RateLimit-Limit"] = "30"
+    response.headers["X-RateLimit-Remaining"] = str(remaining)
+    return response
+
+
+# ---------------------------------------------------------------------------
+# Status (lightweight) + Health + Root
+# ---------------------------------------------------------------------------
+@app.route("/v1/status", methods=["GET"])
+def status_quick():
+    """Ultra-lightweight status ping. No LLM check, no log reads.
+    Designed for uptime monitors and the Chrome extension health check."""
+    return jsonify({"ok": True, "service": "contentforge", "version": "1.5.0"})
+
 @app.route("/health", methods=["GET"])
 def health():
     gemini_configured = bool(os.environ.get("GEMINI_API_KEY", ""))
@@ -5013,6 +6263,7 @@ def health():
 
     # Pull quick usage stats from usage log
     total_requests = 0
+    counted_requests = 0
     endpoint_counts: dict = {}
     try:
         if USAGE_LOG.exists():
@@ -5021,6 +6272,8 @@ def health():
             for e in entries:
                 ep = e.get("endpoint", "unknown")
                 endpoint_counts[ep] = endpoint_counts.get(ep, 0) + 1
+                if e.get("counted", True):
+                    counted_requests += 1
     except Exception:
         pass
 
@@ -5041,11 +6294,14 @@ def health():
     return jsonify({
         "status": "ok",
         "service": "contentforge",
-        "version": "1.0.0",
+        "version": "1.5.0",
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
+        "endpoints": 38,
         "total_requests_served": total_requests,
+        "counted_requests": counted_requests,
+        "leniency_policy": "Error responses (4xx/5xx) are never counted toward usage quota.",
         "endpoint_usage": endpoint_counts,
     })
 
@@ -5185,6 +6441,20 @@ def _run_test():
         })
         pprint.pprint(rv.get_json())
 
+        print("\n=== Compose Assist ===")
+        rv = c.post("/v1/compose_assist", json={
+            "text": "I built a scoring API for creators and it helped me post more consistently.",
+            "platform": "tweet",
+            "tone": "engaging",
+            "count": 3,
+        })
+        data = rv.get_json()
+        pprint.pprint(data)
+        assert rv.status_code == 200, f"Compose assist returned {rv.status_code}"
+        assert "ranked_variants" in data and len(data["ranked_variants"]) >= 2, "Expected ranked variants"
+        assert "recommendation" in data, "Missing compose recommendation"
+        print(f"  Winner: {data['recommendation']['winner']}  delta={data['recommendation']['score_delta_vs_original']}")
+
         print("\n=== Tweet Ideas ===")
         rv = c.post("/v1/tweet_ideas", json={"niche": "developer tools", "count": 3})
         pprint.pprint(rv.get_json())
@@ -5216,6 +6486,120 @@ def _run_test():
         print("\n=== Generate Content Brief ===")
         rv = c.post("/v1/generate_content_brief", json={"topic": "how to build passive income with APIs", "platform": "blog"})
         pprint.pprint(rv.get_json())
+
+        print("\n=== Compare (head-to-head) ===")
+        rv = c.post("/v1/compare", json={
+            "text_a": "Ship fast, learn faster. The only metric that matters is velocity.",
+            "text_b": "We are pleased to announce the release of our new product offering.",
+            "platforms": ["tweet", "linkedin", "headline"],
+        })
+        data = rv.get_json()
+        pprint.pprint(data)
+        assert rv.status_code == 200, f"Compare returned {rv.status_code}"
+        assert "comparisons" in data, "Missing comparisons key"
+        print(f"  Overall winner: {data['summary']['overall_winner']}")
+
+        print("\n=== Compare (error — leniency) ===")
+        rv = c.post("/v1/compare", json={"text_a": "hello"})
+        data = rv.get_json()
+        assert rv.status_code == 400, f"Expected 400 got {rv.status_code}"
+        assert data.get("request_counted") is False, "Leniency not applied"
+        print(f"  Leniency: {data.get('leniency')}")
+
+        print("\n=== A/B Test ===")
+        rv = c.post("/v1/ab_test", json={
+            "drafts": [
+                "Ship fast, learn faster.",
+                "We are pleased to announce our new product.",
+                "Built an API in 48hr — $500 last month #buildinpublic",
+            ],
+            "platform": "tweet",
+        })
+        data = rv.get_json()
+        pprint.pprint(data)
+        assert rv.status_code == 200, f"AB test returned {rv.status_code}"
+        assert "recommendation" in data, "Missing recommendation key"
+        assert len(data["rankings"]) == 3, "Expected 3 ranked drafts"
+        print(f"  Winner: {data['recommendation']['winner']} (score {data['recommendation']['winner_score']})")
+        print(f"  Confidence: {data['recommendation']['confidence']}")
+
+        print("\n=== Record Score Delta ===")
+        rv = c.post("/v1/record_score_delta", json={
+            "platform": "tweet",
+            "original_text": "I like ai",
+            "revised_text": "Obsessed with AI 🤖✨ Built this in 48 hours and learned 3 lessons.",
+            "suggestions_applied": ["add context", "add number", "add emoji"],
+            "posted": True,
+            "post_url": "https://x.com/example/status/123",
+        })
+        data = rv.get_json()
+        assert rv.status_code == 200, f"record_score_delta returned {rv.status_code}"
+        assert data.get("status") == "recorded", "record_score_delta failed"
+        print(f"  score_delta={data.get('score_delta')}")
+
+        print("\n=== Record Publish Outcome ===")
+        rv = c.post("/v1/record_publish_outcome", json={
+            "post_id": "x-123",
+            "platform": "tweet",
+            "score_before": 52,
+            "score_after": 78,
+            "engagement": {"impressions": 5000, "likes": 45, "clicks": 80},
+            "value_per_click": 1.8,
+            "baseline_ctr_pct": 1.5,
+            "ctr_lift_per_score_point_pct": 0.8,
+        })
+        data = rv.get_json()
+        assert rv.status_code == 200, f"record_publish_outcome returned {rv.status_code}"
+        assert data.get("status") == "recorded", "record_publish_outcome failed"
+        print(f"  est_lift=${data.get('estimated_revenue_lift')}")
+
+        print("\n=== Record Revenue ===")
+        rv = c.post("/v1/record_revenue", json={
+            "post_id": "x-123",
+            "platform": "tweet",
+            "revenue_amount": 12.5,
+            "revenue_source": "affiliate",
+            "currency": "USD",
+        })
+        data = rv.get_json()
+        assert rv.status_code == 200, f"record_revenue returned {rv.status_code}"
+        assert data.get("status") == "recorded", "record_revenue failed"
+        print(f"  revenue=${data.get('record', {}).get('revenue_amount')}")
+
+        print("\n=== Dashboard Stats ===")
+        rv = c.get("/v1/dashboard_stats?period=week&platform=all")
+        data = rv.get_json()
+        assert rv.status_code == 200, f"dashboard_stats returned {rv.status_code}"
+        assert "metrics" in data, "dashboard_stats missing metrics"
+        print(f"  avg_delta={data['metrics'].get('avg_score_delta')} combined_signal=${data['metrics'].get('combined_revenue_signal')}")
+
+        print("\n=== Proof Timeline ===")
+        rv = c.get("/v1/proof_timeline?period=month&platform=all")
+        data = rv.get_json()
+        assert rv.status_code == 200, f"proof_timeline returned {rv.status_code}"
+        assert "timeline" in data, "proof_timeline missing timeline"
+        print(f"  timeline_days={data.get('days')}")
+
+        print("\n=== Export Proof Report (JSON) ===")
+        rv = c.get("/v1/export_proof_report?format=json&period=month&platform=all")
+        data = rv.get_json()
+        assert rv.status_code == 200, f"export_proof_report json returned {rv.status_code}"
+        assert "summary" in data, "export_proof_report json missing summary"
+        print(f"  exported_score_deltas={data.get('summary', {}).get('score_delta_records')}")
+
+        print("\n=== Export Proof Report (CSV) ===")
+        rv = c.get("/v1/export_proof_report?format=csv&period=month&platform=all")
+        csv_body = rv.get_data(as_text=True)
+        assert rv.status_code == 200, f"export_proof_report csv returned {rv.status_code}"
+        assert "type,id,platform,post_id" in csv_body, "export_proof_report csv header missing"
+        print(f"  csv_bytes={len(csv_body)}")
+
+        print("\n=== Status (lightweight) ===")
+        rv = c.get("/v1/status")
+        data = rv.get_json()
+        assert rv.status_code == 200, f"Status returned {rv.status_code}"
+        assert data.get("ok") is True, "Status not ok"
+        print(f"  ok={data['ok']}  version={data.get('version')}")
 
         print("\n=== Health ===")
         rv = c.get("/health")

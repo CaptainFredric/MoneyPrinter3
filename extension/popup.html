@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 340px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      padding: 16px;
+    }
+    h1 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+    .subtitle { font-size: 11px; color: #888; margin-bottom: 8px; }
+
+    /* Status bar */
+    .status-bar {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; color: #666; margin-bottom: 12px;
+      padding: 6px 8px; border-radius: 6px; background: #141420;
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #555; flex-shrink: 0;
+    }
+    .status-dot.ok { background: #22c55e; }
+    .status-dot.loading { background: #f59e0b; animation: pulse-dot 1.2s infinite; }
+    .status-dot.error { background: #ef4444; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+    .tab-btn {
+      flex: 1; padding: 6px; font-size: 11px; font-weight: 600;
+      border-radius: 6px; border: 1px solid #333; cursor: pointer;
+      background: #1a1a2e; color: #888; transition: all 0.15s; text-align: center;
+    }
+    .tab-btn:hover { border-color: #555; color: #ccc; }
+    .tab-btn.active { background: #7c5cfc; color: #fff; border-color: #7c5cfc; }
+
+    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+    textarea {
+      width: 100%; border: 1px solid #333; border-radius: 8px;
+      background: #1a1a2e; color: #e0e0e0; padding: 8px;
+      font-size: 13px; resize: vertical; line-height: 1.4;
+    }
+    textarea:focus { outline: none; border-color: #7c5cfc; }
+    .char-count { font-size: 10px; color: #555; text-align: right; margin-top: 2px; }
+    select, button {
+      margin-top: 8px; width: 100%; padding: 8px;
+      border-radius: 8px; border: 1px solid #333; font-size: 13px;
+    }
+    select { background: #1a1a2e; color: #e0e0e0; }
+    button {
+      background: #7c5cfc; color: #fff; border: none;
+      cursor: pointer; font-weight: 600; transition: all 0.15s;
+    }
+    button:hover { background: #6a4ce0; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result-box {
+      margin-top: 12px; padding: 10px; border-radius: 8px;
+      background: #1a1a2e; font-size: 12px; display: none;
+    }
+    .score-big { font-size: 32px; font-weight: 800; text-align: center; }
+    .grade { text-align: center; font-size: 13px; margin-bottom: 6px; color: #aaa; }
+    .suggestions { padding-left: 16px; margin: 0; }
+    .suggestions li { margin-bottom: 4px; color: #a0a0b8; font-size: 11.5px; }
+
+    .error-banner {
+      margin-top: 10px; padding: 8px 10px; border-radius: 8px;
+      background: #2a1520; border: 1px solid #4a2535;
+      font-size: 11px; color: #e8a0a0; display: none; line-height: 1.4;
+    }
+    .error-banner a { color: #f59e0b; text-decoration: underline; }
+
+    .assist-box {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #2d2d45;
+      border-radius: 8px;
+      background: #121224;
+    }
+    .assist-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      margin-bottom: 6px;
+      color: #cfcfe8;
+    }
+    .assist-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .assist-actions button {
+      flex: 1;
+      margin-top: 0;
+      font-size: 12px;
+      padding: 7px;
+    }
+    .assist-output {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 6px;
+      background: #1b1b34;
+      border: 1px solid #2e2e48;
+      font-size: 11.5px;
+      color: #d4d4ec;
+      line-height: 1.4;
+      display: none;
+      max-height: 110px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    .history-box {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #2d2d45;
+      border-radius: 8px;
+      background: #101021;
+    }
+    .history-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .history-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #cfcfe8;
+    }
+    .history-clear {
+      width: auto;
+      margin: 0;
+      padding: 4px 8px;
+      font-size: 10px;
+      border-radius: 6px;
+      background: #23233b;
+      border: 1px solid #3a3a5c;
+    }
+    .history-list {
+      max-height: 120px;
+      overflow: auto;
+      display: grid;
+      gap: 6px;
+    }
+    .history-item {
+      border: 1px solid #2b2b45;
+      border-radius: 6px;
+      padding: 6px;
+      background: #18182e;
+    }
+    .history-meta {
+      font-size: 10px;
+      color: #8f8fb0;
+      margin-bottom: 4px;
+    }
+    .history-text {
+      font-size: 11px;
+      color: #ddddf2;
+      line-height: 1.35;
+      margin-bottom: 5px;
+      max-height: 42px;
+      overflow: hidden;
+    }
+    .history-use {
+      margin: 0;
+      width: auto;
+      padding: 4px 8px;
+      font-size: 10px;
+      border-radius: 6px;
+      background: #2c5be6;
+    }
+
+    .cmp-winner { font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 4px; }
+    .cmp-detail { color: #a0a0b8; font-size: 11.5px; }
+    .cmp-detail .strength { margin-top: 6px; font-weight: 600; }
+
+    .footer {
+      margin-top: 12px; text-align: center; font-size: 10px; color: #444;
+    }
+    .footer a { color: #7c5cfc; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>ContentForge</h1>
+  <p class="subtitle">Score your content before you post.</p>
+
+  <div class="status-bar" id="statusBar">
+    <span class="status-dot loading" id="statusDot"></span>
+    <span id="statusText">Checking API...</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="score">Score</button>
+    <button class="tab-btn" data-tab="compare">Compare</button>
+  </div>
+
+  <div id="tab-score">
+    <label for="platform">Platform</label>
+    <select id="platform">
+      <option value="tweet">Twitter / X</option>
+      <option value="linkedin">LinkedIn</option>
+      <option value="instagram">Instagram</option>
+      <option value="facebook">Facebook</option>
+      <option value="threads">Threads</option>
+      <option value="tiktok">TikTok</option>
+      <option value="headline">Headline</option>
+      <option value="email">Email Subject</option>
+      <option value="youtube">YouTube Title</option>
+      <option value="pinterest">Pinterest</option>
+      <option value="ad_copy">Ad Copy</option>
+      <option value="readability">Readability</option>
+    </select>
+
+    <label for="text" style="margin-top:10px">Your content</label>
+    <textarea id="text" rows="4" placeholder="Paste or type your content here..."></textarea>
+    <div class="char-count"><span id="charCount">0</span> chars</div>
+
+    <button id="scoreBtn">Score It</button>
+
+    <div class="result-box" id="result">
+      <div class="score-big" id="scoreNum">--</div>
+      <div class="grade" id="gradeText"></div>
+      <ul class="suggestions" id="suggList"></ul>
+    </div>
+    <div class="error-banner" id="scoreError"></div>
+
+    <div class="assist-box">
+      <div class="assist-title">AI Rewrite Assistant</div>
+      <label for="tone" style="font-size:11px;margin-bottom:3px;">Tone</label>
+      <select id="tone" style="margin-top:0;">
+        <option value="engaging">Engaging</option>
+        <option value="professional">Professional</option>
+        <option value="casual">Casual</option>
+        <option value="bold">Bold</option>
+      </select>
+      <div class="assist-actions">
+        <button id="suggestBtn">Suggest Rewrite</button>
+        <button id="insertBtn" disabled>Auto Insert</button>
+      </div>
+      <div class="assist-output" id="assistOutput"></div>
+
+      <div class="history-box">
+        <div class="history-head">
+          <span class="history-title">Rewrite History</span>
+          <button class="history-clear" id="clearHistoryBtn">Clear</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-compare" style="display:none">
+    <label for="textA">Text A (yours)</label>
+    <textarea id="textA" rows="2" placeholder="Your draft..."></textarea>
+    <label for="textB" style="margin-top:8px">Text B (theirs)</label>
+    <textarea id="textB" rows="2" placeholder="Competitor or alt draft..."></textarea>
+    <select id="cmpPlatform" style="margin-top:8px">
+      <option value="tweet">Twitter / X</option>
+      <option value="linkedin">LinkedIn</option>
+      <option value="instagram">Instagram</option>
+      <option value="headline">Headline</option>
+      <option value="tiktok">TikTok</option>
+      <option value="facebook">Facebook</option>
+    </select>
+    <button id="compareBtn" style="margin-top:8px">Compare</button>
+    <div class="result-box" id="cmpResult">
+      <div class="cmp-winner" id="cmpSummary"></div>
+      <div class="cmp-detail" id="cmpDetail"></div>
+    </div>
+    <div class="error-banner" id="cmpError"></div>
+  </div>
+
+  <div class="footer">
+    <a href="https://captainfredric.github.io/ContentForge/" target="_blank" rel="noopener">contentforge.dev</a>
+    &nbsp;·&nbsp; v0.4.0
+    &nbsp;·&nbsp; <a href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">API</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

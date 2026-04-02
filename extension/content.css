@@ -1,0 +1,85 @@
+/* ContentForge — Inline score badge styles */
+
+#cf-score-badge {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+#cf-score-badge.cf-visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.cf-badge-score {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  background: #555;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  margin-left: auto;
+}
+
+.cf-badge-score.cf-grade-a { background: #22c55e; }
+.cf-badge-score.cf-grade-b { background: #3b82f6; }
+.cf-badge-score.cf-grade-c { background: #f59e0b; }
+.cf-badge-score.cf-grade-f { background: #ef4444; }
+
+.cf-badge-detail {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-top: 8px;
+  min-width: 220px;
+  max-width: 300px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cf-badge-grade {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  text-transform: capitalize;
+}
+
+.cf-badge-chars {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.cf-badge-suggestions {
+  margin: 0;
+  padding: 0 0 0 16px;
+  list-style: disc;
+}
+
+.cf-badge-suggestions li {
+  margin-bottom: 4px;
+  color: #a0a0b8;
+}
+
+.cf-badge-brand {
+  margin-top: 8px;
+  font-size: 10px;
+  color: #666;
+  text-align: right;
+}
