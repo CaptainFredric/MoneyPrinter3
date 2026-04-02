@@ -5122,6 +5122,113 @@
           }
         }
       }
+    },
+    "/v1/score_reddit": {
+      "post": {
+        "summary": "Score a Reddit post for upvote potential",
+        "description": "Heuristic scorer for Reddit post titles and body text. Checks specificity, question format, hashtag penalty, clickbait, spam language, and community engagement signals. No AI \u2014 instant.",
+        "operationId": "scoreReddit",
+        "tags": [
+          "Scoring"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "Post title or body text",
+                    "maxLength": 40000
+                  },
+                  "subreddit": {
+                    "type": "string",
+                    "description": "Optional subreddit name for context",
+                    "example": "SideProject"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reddit score result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "grade": {
+                      "type": "string",
+                      "example": "B+"
+                    },
+                    "quality_gate": {
+                      "type": "string",
+                      "enum": [
+                        "PASSED",
+                        "REVIEW",
+                        "FAILED"
+                      ]
+                    },
+                    "operational_risk": {
+                      "type": "string",
+                      "enum": [
+                        "LOW",
+                        "MEDIUM",
+                        "HIGH"
+                      ]
+                    },
+                    "char_count": {
+                      "type": "integer"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "has_question": {
+                      "type": "boolean"
+                    },
+                    "has_number": {
+                      "type": "boolean"
+                    },
+                    "has_value_opener": {
+                      "type": "boolean"
+                    },
+                    "hashtag_count": {
+                      "type": "integer"
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "breakdown": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
     }
   }
 }

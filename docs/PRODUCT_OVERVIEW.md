@@ -1,6 +1,6 @@
 # ContentForge — Complete Product Overview
 
-**Version: 1.9.0 | 44 Endpoints | AGPL-3.0**
+**Version: 1.9.0 | 45 Endpoints | AGPL-3.0**
 
 > A deterministic, latency-first content intelligence platform for professional creators, agencies, and automation operators. Scores content before it's published, generates improved versions on demand, tracks proof of improvement over time, and monitors the state of an automated publishing network in real time.
 

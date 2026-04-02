@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ContentForge API — AI-powered content toolkit for creators and marketers.
 
-Endpoints (44 total):
+Endpoints (45 total):
   # Instant heuristic scorers (no AI, <50ms):
   POST /v1/score_content           — Unified single-platform scorer: content + platform → score/grade/suggestions
   POST /v1/analyze_headline        — Score & grade any headline (power words, length, numbers)
@@ -13,6 +13,7 @@ Endpoints (44 total):
   POST /v1/score_email_subject     — Email open rate score (spam triggers, urgency, length)
   POST /v1/score_tiktok            — TikTok caption engagement score
   POST /v1/score_threads           — Meta Threads post reach score (hashtag penalty)
+  POST /v1/score_reddit            — Reddit post upvote potential (specificity, question format, anti-spam)
   POST /v1/score_facebook          — Facebook organic post reach score
   POST /v1/score_pinterest         — Pinterest pin description score (keywords, CTAs, spam)
   POST /v1/score_ad_copy           — Google Ads / Meta Ads copy score (char limits, CTA, you-language)
@@ -3003,6 +3004,233 @@ def endpoint_score_threads():
 
 
 # ---------------------------------------------------------------------------
+# 5g3. Reddit Post Score (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_reddit_post(text: str, subreddit: str = "") -> dict:
+    """Score a Reddit post title or body text 0-100 for upvote potential.
+
+    Reddit-specific signals based on community engagement patterns:
+    - Length: title 40-120 chars best (+15). Body 200-1000 chars is thorough (+12).
+    - Question format: titles ending with ? perform well on AskReddit-style posts (+10)
+    - Specificity signals (numbers, percentages, dollar amounts): +10
+    - "I built / I made / Show HN-style" opener: good for r/SideProject, r/webdev (+8)
+    - Hashtags: Reddit does not use hashtags — penalise presence (-8 each)
+    - Link spam: excessive URLs in text (-6)
+    - Clickbait openers ("You won't believe", "This one trick"): -10
+    - ALL CAPS abuse: -8
+    - Self-promotion without value signal: "buy", "sign up now", "click here" (-6 each)
+    - Conversational tone (first-person I/we + honest/real/true): +6
+    - Formatting signals in body: bullet dashes or numbered lists: +5
+    - Community engagement words ("thoughts?", "feedback", "opinions", "discuss"): +7
+    """
+    _REDDIT_CLICKBAIT = {
+        "you won't believe", "this one trick", "shocking", "doctors hate",
+        "this will blow your mind", "insane hack", "life changing secret",
+    }
+    _REDDIT_SPAM_WORDS = {"buy now", "click here", "sign up now", "limited time", "act now"}
+    _REDDIT_ENGAGEMENT_WORDS = {
+        "thoughts", "feedback", "opinions", "discuss", "what do you think",
+        "any advice", "has anyone", "looking for", "help me", "roast my",
+        "am i the only", "is it just me",
+    }
+    _REDDIT_VALUE_OPENERS = {
+        "i built", "i made", "i created", "i wrote", "i spent", "i learned",
+        "we built", "we made", "show reddit", "oc:", "[oc]", "i've been",
+        "after", "til ", "til:", "eli5",
+    }
+
+    text = (text or "").strip()
+    if not text:
+        return {"score": 0, "grade": "F", "suggestions": ["no text provided"]}
+
+    lower = text.lower()
+    words = text.split()
+    word_count = len(words)
+    char_count = len(text)
+    score = 50
+    suggestions = []
+    breakdown = {}
+
+    # --- Length scoring ---
+    if 40 <= char_count <= 120:
+        score += 15
+        breakdown["length"] = "+15 (ideal title length 40-120 chars)"
+    elif 121 <= char_count <= 300:
+        score += 10
+        breakdown["length"] = "+10 (good length)"
+    elif 301 <= char_count <= 1000:
+        score += 8
+        breakdown["length"] = "+8 (detailed post)"
+    elif char_count < 20:
+        score -= 10
+        breakdown["length"] = "-10 (too short, add more context)"
+        suggestions.append("Too brief — Reddit rewards specificity and context.")
+    else:
+        breakdown["length"] = "0 (very long — consider TL;DR)"
+        suggestions.append("Very long post — add a TL;DR at the top.")
+
+    # --- Specificity (numbers/percentages) ---
+    import re as _re
+    has_number = bool(_re.search(r'\b\d+[%$]?\b|\$\d+', text))
+    if has_number:
+        score += 10
+        breakdown["specificity"] = "+10 (contains numbers/metrics — Reddit trusts specifics)"
+    else:
+        breakdown["specificity"] = "0"
+        suggestions.append("Add a specific number, metric, or timeframe to build credibility.")
+
+    # --- Question format ---
+    has_question = text.rstrip().endswith("?")
+    if has_question:
+        score += 8
+        breakdown["question"] = "+8 (question format invites engagement)"
+    else:
+        breakdown["question"] = "0"
+
+    # --- Value openers (Show-style posts) ---
+    has_value_opener = any(lower.startswith(op) or op in lower[:50] for op in _REDDIT_VALUE_OPENERS)
+    if has_value_opener:
+        score += 8
+        breakdown["value_opener"] = "+8 (personal/maker opener builds authenticity)"
+    else:
+        breakdown["value_opener"] = "0"
+
+    # --- Community engagement words ---
+    engagement_hits = [w for w in _REDDIT_ENGAGEMENT_WORDS if w in lower]
+    if engagement_hits:
+        score += 7
+        breakdown["engagement"] = f"+7 (engagement words: {engagement_hits[:2]})"
+    else:
+        breakdown["engagement"] = "0"
+        if not has_question:
+            suggestions.append("Add a question or ask for feedback to drive comments.")
+
+    # --- Conversational / first-person ---
+    first_person = any(w in lower.split() for w in ["i", "we", "my", "our", "i've", "i'm", "we've"])
+    if first_person:
+        score += 5
+        breakdown["first_person"] = "+5 (first-person tone)"
+    else:
+        breakdown["first_person"] = "0"
+
+    # --- Formatting (lists, structure) ---
+    has_list = bool(_re.search(r'^\s*[-•*]\s|\n\d+\.', text, _re.MULTILINE))
+    if has_list and word_count > 50:
+        score += 5
+        breakdown["formatting"] = "+5 (structured with list formatting)"
+    else:
+        breakdown["formatting"] = "0"
+
+    # --- Hashtags (Reddit doesn't use them — negative signal) ---
+    hashtags = _re.findall(r'#\w+', text)
+    if hashtags:
+        penalty = min(len(hashtags) * 8, 20)
+        score -= penalty
+        breakdown["hashtags"] = f"-{penalty} (Reddit doesn't use hashtags — remove them)"
+        suggestions.append(f"Remove hashtags ({', '.join(hashtags[:3])}) — they look spammy on Reddit.")
+
+    # --- Clickbait detection ---
+    clickbait_hits = [cb for cb in _REDDIT_CLICKBAIT if cb in lower]
+    if clickbait_hits:
+        score -= 12
+        breakdown["clickbait"] = f"-12 (clickbait language detected)"
+        suggestions.append("Remove clickbait phrasing — Reddit communities are highly spam-aware.")
+
+    # --- Spam / hard sell words ---
+    spam_hits = [sw for sw in _REDDIT_SPAM_WORDS if sw in lower]
+    if spam_hits:
+        penalty = len(spam_hits) * 6
+        score -= penalty
+        breakdown["spam"] = f"-{penalty} (promotional language: {spam_hits})"
+        suggestions.append("Avoid hard-sell language — lead with value, not a pitch.")
+
+    # --- Excessive URLs ---
+    urls = _re.findall(r'https?://', text)
+    if len(urls) > 2:
+        score -= 6
+        breakdown["url_spam"] = f"-6 (too many links: {len(urls)})"
+        suggestions.append("Reduce to 1-2 links — multiple links trigger spam filters.")
+    else:
+        breakdown["url_spam"] = "0"
+
+    # --- ALL CAPS abuse ---
+    caps_words = [w for w in words if w.isupper() and len(w) > 2]
+    if len(caps_words) > 2:
+        score -= 8
+        breakdown["caps"] = f"-8 (ALL CAPS abuse: {caps_words[:3]})"
+        suggestions.append("Avoid ALL CAPS — it reads as shouting on Reddit.")
+    else:
+        breakdown["caps"] = "0"
+
+    score = max(0, min(100, score))
+    grade_map = [(90, "A+"), (85, "A"), (80, "A-"), (75, "B+"), (70, "B"),
+                 (65, "B-"), (60, "C+"), (55, "C"), (50, "C-"), (40, "D"), (0, "F")]
+    grade = next(g for threshold, g in grade_map if score >= threshold)
+
+    return {
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "has_question": has_question,
+        "has_number": has_number,
+        "has_value_opener": has_value_opener,
+        "hashtag_count": len(hashtags),
+        "suggestions": suggestions[:5],
+        "breakdown": breakdown,
+    }
+
+
+@app.route("/v1/score_reddit", methods=["GET", "POST"])
+@app.route("/score-reddit", methods=["GET", "POST"])
+@app.route("/score_reddit", methods=["GET", "POST"])
+def endpoint_score_reddit():
+    """Score a Reddit post title or body text for upvote potential."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score_reddit",
+            "method": "POST",
+            "description": (
+                "Score a Reddit post title or body text 0-100 for upvote potential. "
+                "Checks specificity, question format, hashtag penalty, clickbait, "
+                "formatting, and community engagement signals. No AI — instant."
+            ),
+            "body": {"text": "your reddit post title or body", "subreddit": "SideProject"},
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/v1/score_reddit '
+                '-H "Content-Type: application/json" '
+                '-d \'{"text": "I built a content scoring API — tell me what you think"}\''
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or payload.get("content") or "").strip()
+    subreddit = (payload.get("subreddit") or "").strip().lstrip("r/")
+
+    if not text:
+        return jsonify({"error": "missing 'text' parameter"}), 400
+    if len(text) > 40000:
+        return jsonify({"error": "text too long (max 40 000 chars for Reddit body)"}), 400
+
+    result = score_reddit_post(text, subreddit)
+    gate = _quality_gate(result["score"])
+    result["quality_gate"] = gate["quality_gate"]
+    result["operational_risk"] = gate["operational_risk"]
+    if subreddit:
+        result["subreddit"] = subreddit
+
+    _log_usage("score_reddit", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 5g3. Facebook Post Score (heuristic — instant, no LLM)
 # ---------------------------------------------------------------------------
 def score_facebook_post(text: str) -> dict:
@@ -4453,6 +4681,7 @@ _PLATFORM_SCORERS = {
     "instagram": lambda text, _opts: score_instagram_caption(text),
     "tiktok": lambda text, _opts: score_tiktok_caption(text),
     "threads": lambda text, _opts: score_threads_post(text),
+    "reddit": lambda text, opts: score_reddit_post(text, opts.get("subreddit", "")),
     "facebook": lambda text, _opts: score_facebook_post(text),
     "pinterest": lambda text, _opts: score_pinterest_pin(text),
     "youtube": lambda text, opts: score_youtube_title(
@@ -6975,7 +7204,7 @@ def health():
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
-        "endpoints": 44,
+        "endpoints": 45,
         "total_requests_served": total_requests,
         "counted_requests": counted_requests,
         "leniency_policy": "Error responses (4xx/5xx) are never counted toward usage quota.",
@@ -7013,9 +7242,9 @@ def root():
 </head>
 <body>
   <div class="card">
-    <div class="badge">Live API v1.9.0 &mdash; 44 endpoints</div>
+    <div class="badge">Live API v1.9.0 &mdash; 45 endpoints</div>
     <h1>ContentForge API</h1>
-    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 44-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
+    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 45-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
     <a class="cta" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Get your free API key &rarr;</a>
     <div class="grid">
       <div class="item"><code>POST /v1/score_tweet</code><span>Score a tweet draft<span class="tag instant">instant</span></span></div>
