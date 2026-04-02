@@ -57,6 +57,7 @@ import time
 from uuid import uuid4
 from functools import wraps
 from pathlib import Path
+from statistics import median
 
 from flask import Flask, request, jsonify, g
 
@@ -193,6 +194,7 @@ def _handle_unhandled(e):
 # ---------------------------------------------------------------------------
 USAGE_LOG = ROOT_DIR / ".mp" / "api_usage.json"
 PROOF_LOG = ROOT_DIR / ".mp" / "proof.json"
+ACCOUNT_STATES_FILE = ROOT_DIR / ".mp" / "runtime" / "account_states.json"
 
 
 def _log_usage(endpoint: str, latency_ms: int):
@@ -283,6 +285,26 @@ def _parse_iso_utc(ts: str):
         return datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
     except Exception:
         return None
+
+
+def _proof_metrics(score_deltas: list, outcomes: list, revenues: list) -> dict:
+    delta_values = [int(_to_float(r.get("score_delta"), 0)) for r in score_deltas]
+    est_lift_total = round(sum(_to_float(r.get("estimated_revenue_lift"), 0.0) for r in outcomes), 2)
+    realized_total = round(sum(_to_float(r.get("revenue_amount"), 0.0) for r in revenues), 2)
+    total_likes = sum(int(_to_float((r.get("engagement") or {}).get("likes"), 0)) for r in outcomes)
+    total_clicks = sum(int(_to_float((r.get("engagement") or {}).get("clicks"), 0)) for r in outcomes)
+    total_impressions = sum(int(_to_float((r.get("engagement") or {}).get("impressions"), 0)) for r in outcomes)
+    return {
+        "avg_score_delta": round(sum(delta_values) / len(delta_values), 2) if delta_values else 0.0,
+        "estimated_revenue_lift_total": est_lift_total,
+        "realized_revenue_total": realized_total,
+        "combined_revenue_signal": round(est_lift_total + realized_total, 2),
+        "engagement": {
+            "likes": total_likes,
+            "clicks": total_clicks,
+            "impressions": total_impressions,
+        },
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -403,6 +425,17 @@ def _add_rate_headers(response, remaining: int):
     response.headers["X-RateLimit-Remaining"] = str(remaining)
     response.headers["X-RateLimit-Window"] = "60s"
     return response
+
+
+def _quality_gate(score: int) -> dict:
+    """Map a 0-100 heuristic score to QOps quality gate fields.
+    Deterministic — same score always produces the same gate verdict."""
+    if score >= 70:
+        return {"quality_gate": "PASSED", "operational_risk": "LOW"}
+    elif score >= 50:
+        return {"quality_gate": "REVIEW", "operational_risk": "MEDIUM"}
+    else:
+        return {"quality_gate": "FAILED", "operational_risk": "HIGH"}
 
 
 # ---------------------------------------------------------------------------
@@ -624,10 +657,13 @@ def analyze_headline(text: str) -> dict:
     if questions == 0 and not has_number:
         suggestions.append("Try framing as a question to boost curiosity.")
 
+    gate = _quality_gate(score)
     return {
         "text": txt,
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "length": length,
         "word_count": word_count,
         "has_number": has_number,
@@ -4508,6 +4544,10 @@ def endpoint_score_multi():
                 best_platform = p
         except Exception as e:
             results[p] = {"score": 0, "grade": "F", "error": str(e)}
+        else:
+            gate = _quality_gate(r["score"])
+            results[p]["quality_gate"] = gate["quality_gate"]
+            results[p]["operational_risk"] = gate["operational_risk"]
 
     _log_usage("score_multi", int((time.time() - start) * 1000))
     return _add_rate_headers(jsonify({
@@ -5019,17 +5059,45 @@ def endpoint_improve_headline():
         # Sort by score descending
         scored_versions.sort(key=lambda x: -x["score"])
 
+        best_revised_score = scored_versions[0]["score"] if scored_versions else original_analysis["score"]
+        original_score_val = original_analysis["score"]
+        raw_lift = round((best_revised_score - original_score_val) / max(original_score_val, 1) * 100)
+        lift_pct = f"+{raw_lift}%" if raw_lift >= 0 else f"{raw_lift}%"
+
+        # LLM audit summary: translate heuristic findings into an agency-ready brief
+        audit_summary = ""
+        try:
+            weaknesses = "; ".join(original_analysis.get("suggestions", [])) or "none identified"
+            audit_prompt = (
+                f"Write 1-2 sentences explaining why the headline '{text}' scored {original_score_val}/100 "
+                f"and what the improved versions address. Weaknesses identified: {weaknesses}. "
+                f"The best rewrite scored {best_revised_score}/100. "
+                f"Tone: professional, concise, suitable for an agency client brief. No markdown."
+            )
+            audit_summary = _llm_generate(audit_prompt).strip()
+        except Exception:
+            pass  # audit_summary is optional; failure here must not block the response
+
     except Exception as e:
         return jsonify({"error": f"LLM generation failed: {e}"}), 503
 
-    _log_usage("improve_headline", int((time.time() - start) * 1000))
-    return _add_rate_headers(jsonify({
+    elapsed_ms = int((time.time() - start) * 1000)
+    gate = _quality_gate(best_revised_score if scored_versions else original_analysis["score"])
+    _log_usage("improve_headline", elapsed_ms)
+    resp_body = {
         "original": text,
         "original_score": original_analysis["score"],
         "original_grade": original_analysis["grade"],
         "original_suggestions": original_analysis["suggestions"],
         "improved_versions": scored_versions,
-    }), remaining)
+        "lift_percentage": lift_pct,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
+        "time_to_improve_ms": elapsed_ms,
+    }
+    if audit_summary:
+        resp_body["audit_summary"] = audit_summary
+    return _add_rate_headers(jsonify(resp_body), remaining)
 
 
 # ---------------------------------------------------------------------------
@@ -5952,15 +6020,7 @@ def endpoint_dashboard_stats():
     outcomes = [r for r in outcomes if include_record(r)]
     revenues = [r for r in revenues if include_record(r)]
 
-    delta_values = [int(_to_float(r.get("score_delta"), 0)) for r in score_deltas]
-    avg_delta = round(sum(delta_values) / len(delta_values), 2) if delta_values else 0.0
-
-    est_lift_total = round(sum(_to_float(r.get("estimated_revenue_lift"), 0.0) for r in outcomes), 2)
-    realized_total = round(sum(_to_float(r.get("revenue_amount"), 0.0) for r in revenues), 2)
-
-    total_likes = sum(int(_to_float((r.get("engagement") or {}).get("likes"), 0)) for r in outcomes)
-    total_clicks = sum(int(_to_float((r.get("engagement") or {}).get("clicks"), 0)) for r in outcomes)
-    total_impressions = sum(int(_to_float((r.get("engagement") or {}).get("impressions"), 0)) for r in outcomes)
+    metrics = _proof_metrics(score_deltas, outcomes, revenues)
 
     top_wins = sorted(score_deltas, key=lambda x: int(_to_float(x.get("score_delta"), 0)), reverse=True)[:5]
 
@@ -5974,15 +6034,7 @@ def endpoint_dashboard_stats():
             "revenue_records": len(revenues),
         },
         "metrics": {
-            "avg_score_delta": avg_delta,
-            "estimated_revenue_lift_total": est_lift_total,
-            "realized_revenue_total": realized_total,
-            "combined_revenue_signal": round(est_lift_total + realized_total, 2),
-            "engagement": {
-                "likes": total_likes,
-                "clicks": total_clicks,
-                "impressions": total_impressions,
-            },
+            **metrics,
         },
         "top_wins": [
             {
@@ -6233,13 +6285,291 @@ def endpoint_export_proof_report():
 
 
 # ---------------------------------------------------------------------------
+# 18. Proof Dashboard — Action recommendations
+# ---------------------------------------------------------------------------
+@app.route("/v1/proof_recommendations", methods=["GET"])
+def endpoint_proof_recommendations():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    period = (request.args.get("period") or "month").lower()
+    platform_filter = (request.args.get("platform") or "all").lower()
+    days_map = {"week": 7, "month": 30, "quarter": 90, "all": None}
+    if period not in days_map:
+        return jsonify({"error": "invalid period (use week, month, quarter, all)"}), 400
+
+    cutoff = None
+    if days_map[period] is not None:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days_map[period])
+
+    store = _proof_read()
+
+    def include_record(rec: dict) -> bool:
+        if platform_filter != "all" and str(rec.get("platform", "")).lower() != platform_filter:
+            return False
+        if cutoff is None:
+            return True
+        dt = _parse_iso_utc(rec.get("recorded_at") or rec.get("posted_at") or "")
+        return bool(dt and dt >= cutoff)
+
+    score_deltas = [r for r in store.get("score_deltas", []) if include_record(r)]
+    outcomes = [r for r in store.get("publish_outcomes", []) if include_record(r)]
+    revenues = [r for r in store.get("revenue_records", []) if include_record(r)]
+    metrics = _proof_metrics(score_deltas, outcomes, revenues)
+
+    by_platform: dict = {}
+    for rec in outcomes:
+        plat = str(rec.get("platform") or "unknown").lower()
+        p = by_platform.setdefault(plat, {"estimated": 0.0, "outcomes": 0})
+        p["estimated"] += _to_float(rec.get("estimated_revenue_lift"), 0.0)
+        p["outcomes"] += 1
+    for rec in revenues:
+        plat = str(rec.get("platform") or "unknown").lower()
+        p = by_platform.setdefault(plat, {"estimated": 0.0, "outcomes": 0, "realized": 0.0})
+        p["realized"] = p.get("realized", 0.0) + _to_float(rec.get("revenue_amount"), 0.0)
+
+    weakest_platform = None
+    weakest_signal = None
+    for plat, p in by_platform.items():
+        signal = round(p.get("estimated", 0.0) + p.get("realized", 0.0), 2)
+        if weakest_signal is None or signal < weakest_signal:
+            weakest_signal = signal
+            weakest_platform = plat
+
+    recs = []
+    if len(score_deltas) < 5:
+        recs.append({
+            "priority": "high",
+            "action": "Increase score-delta logging volume",
+            "why": "Fewer than 5 score delta records is too thin for confident optimization.",
+        })
+    if metrics.get("avg_score_delta", 0.0) < 8:
+        recs.append({
+            "priority": "high",
+            "action": "Tighten rewrite quality gate",
+            "why": "Average score delta is below 8 points. Require stronger winner margin before publishing.",
+            "tactic": "Use compose_assist and only ship drafts with >= +10 points over original.",
+        })
+    if len(outcomes) == 0:
+        recs.append({
+            "priority": "high",
+            "action": "Start logging publish outcomes",
+            "why": "No publish outcomes were recorded, so lift cannot be tied to visibility metrics.",
+        })
+    if metrics.get("estimated_revenue_lift_total", 0.0) > 0 and metrics.get("realized_revenue_total", 0.0) < (metrics.get("estimated_revenue_lift_total", 0.0) * 0.25):
+        recs.append({
+            "priority": "medium",
+            "action": "Close attribution gap",
+            "why": "Estimated lift is materially higher than realized revenue, indicating tracking friction.",
+            "tactic": "Attach post IDs to all conversion events and log revenue weekly.",
+        })
+    if weakest_platform and weakest_platform != "unknown":
+        recs.append({
+            "priority": "medium",
+            "action": f"Run focused 7-day experiment on {weakest_platform}",
+            "why": f"{weakest_platform} has the weakest current proof signal in the selected period.",
+            "tactic": "AB-test 2-3 hooks daily and track outcome deltas.",
+        })
+
+    if not recs:
+        recs.append({
+            "priority": "info",
+            "action": "Maintain operating rhythm",
+            "why": "Current proof metrics are healthy with no critical gaps detected.",
+        })
+
+    _log_usage("proof_recommendations", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "period": period,
+        "platform": platform_filter,
+        "metrics": metrics,
+        "recommendations": recs[:5],
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 19. Proof Dashboard — Cohort benchmarks
+# ---------------------------------------------------------------------------
+@app.route("/v1/cohort_benchmarks", methods=["GET"])
+def endpoint_cohort_benchmarks():
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    period = (request.args.get("period") or "month").lower()
+    platform_filter = (request.args.get("platform") or "all").lower()
+    days_map = {"week": 7, "month": 30, "quarter": 90}
+    if period not in days_map:
+        return jsonify({"error": "invalid period (use week, month, quarter)"}), 400
+
+    span_days = days_map[period]
+    now = datetime.now(timezone.utc)
+    current_start = now - timedelta(days=span_days)
+    prev_start = current_start - timedelta(days=span_days)
+    prev_end = current_start
+
+    store = _proof_read()
+
+    def include_record(rec: dict, start_dt: datetime, end_dt: datetime | None = None) -> bool:
+        if platform_filter != "all" and str(rec.get("platform", "")).lower() != platform_filter:
+            return False
+        dt = _parse_iso_utc(rec.get("recorded_at") or rec.get("posted_at") or "")
+        if not dt:
+            return False
+        if dt < start_dt:
+            return False
+        if end_dt is not None and dt >= end_dt:
+            return False
+        return True
+
+    def get_sets(start_dt: datetime, end_dt: datetime | None = None):
+        s = [r for r in store.get("score_deltas", []) if include_record(r, start_dt, end_dt)]
+        o = [r for r in store.get("publish_outcomes", []) if include_record(r, start_dt, end_dt)]
+        rv = [r for r in store.get("revenue_records", []) if include_record(r, start_dt, end_dt)]
+        return s, o, rv
+
+    current_s, current_o, current_r = get_sets(current_start, None)
+    trailing_s, trailing_o, trailing_r = get_sets(prev_start, prev_end)
+
+    current_metrics = _proof_metrics(current_s, current_o, current_r)
+    trailing_metrics = _proof_metrics(trailing_s, trailing_o, trailing_r)
+
+    current_platform_rows = {}
+    for rec in current_s:
+        p = str(rec.get("platform") or "unknown").lower()
+        row = current_platform_rows.setdefault(p, {"deltas": [], "combined": 0.0})
+        row["deltas"].append(int(_to_float(rec.get("score_delta"), 0)))
+    for rec in current_o:
+        p = str(rec.get("platform") or "unknown").lower()
+        row = current_platform_rows.setdefault(p, {"deltas": [], "combined": 0.0})
+        row["combined"] += _to_float(rec.get("estimated_revenue_lift"), 0.0)
+    for rec in current_r:
+        p = str(rec.get("platform") or "unknown").lower()
+        row = current_platform_rows.setdefault(p, {"deltas": [], "combined": 0.0})
+        row["combined"] += _to_float(rec.get("revenue_amount"), 0.0)
+
+    platform_summaries = []
+    for plat, row in current_platform_rows.items():
+        deltas = row.get("deltas", [])
+        platform_summaries.append({
+            "platform": plat,
+            "avg_score_delta": round(sum(deltas) / len(deltas), 2) if deltas else 0.0,
+            "combined_revenue_signal": round(row.get("combined", 0.0), 2),
+        })
+
+    delta_median = round(median([p["avg_score_delta"] for p in platform_summaries]), 2) if platform_summaries else 0.0
+    signal_median = round(median([p["combined_revenue_signal"] for p in platform_summaries]), 2) if platform_summaries else 0.0
+
+    _log_usage("cohort_benchmarks", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "period": period,
+        "platform": platform_filter,
+        "current_period": {
+            "window_start": current_start.isoformat(),
+            "window_end": now.isoformat(),
+            "counts": {
+                "score_delta_records": len(current_s),
+                "publish_outcomes": len(current_o),
+                "revenue_records": len(current_r),
+            },
+            "metrics": current_metrics,
+        },
+        "trailing_period": {
+            "window_start": prev_start.isoformat(),
+            "window_end": prev_end.isoformat(),
+            "counts": {
+                "score_delta_records": len(trailing_s),
+                "publish_outcomes": len(trailing_o),
+                "revenue_records": len(trailing_r),
+            },
+            "metrics": trailing_metrics,
+        },
+        "deltas_vs_trailing": {
+            "avg_score_delta": round(current_metrics.get("avg_score_delta", 0.0) - trailing_metrics.get("avg_score_delta", 0.0), 2),
+            "combined_revenue_signal": round(current_metrics.get("combined_revenue_signal", 0.0) - trailing_metrics.get("combined_revenue_signal", 0.0), 2),
+        },
+        "platform_cohort_medians": {
+            "avg_score_delta_median": delta_median,
+            "combined_revenue_signal_median": signal_median,
+            "platforms": platform_summaries,
+        },
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# Platform Friction (operator tier)
+# ---------------------------------------------------------------------------
+@app.route("/v1/platform_friction", methods=["GET"])
+def endpoint_platform_friction():
+    """Aggregate account state machine health across all tracked accounts.
+    Returns real-time friction level so operators know if it is safe to post.
+    Requires API auth (RapidAPI proxy secret when configured)."""
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+
+    accounts_data: dict = {}
+    if ACCOUNT_STATES_FILE.exists():
+        try:
+            raw = json.loads(ACCOUNT_STATES_FILE.read_text(encoding="utf-8"))
+            accounts_data = raw.get("accounts", {}) if isinstance(raw, dict) else {}
+        except Exception:
+            pass
+
+    summary = {"active": 0, "cooldown": 0, "paused": 0, "degraded": 0, "blocked": 0}
+    details = []
+    for acct_id, state in accounts_data.items():
+        s = state.get("state", "unknown")
+        if s in summary:
+            summary[s] += 1
+        details.append({
+            "account": acct_id,
+            "state": s,
+            "health_score": state.get("health_score", 0),
+            "last_post_at": state.get("last_post_at"),
+            "consecutive_failures": state.get("consecutive_failures", 0),
+            "blocked_retry_count": state.get("blocked_retry_count", 0),
+        })
+
+    total = len(accounts_data)
+    if not total:
+        friction_level = "UNKNOWN"
+    elif summary["degraded"] + summary["blocked"] > 0:
+        friction_level = "HIGH"
+    elif summary["cooldown"] + summary["paused"] > 0:
+        friction_level = "MEDIUM"
+    else:
+        friction_level = "LOW"
+
+    return jsonify({
+        "friction_level": friction_level,
+        "active_accounts": summary["active"],
+        "total_accounts": total,
+        "states": summary,
+        "accounts": details,
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "note": (
+            "LOW = all accounts active and healthy. "
+            "MEDIUM = managed cooldown/pause in progress (normal operation). "
+            "HIGH = degraded or blocked state detected (operator review recommended)."
+        ),
+    })
+
+
+# ---------------------------------------------------------------------------
 # Status (lightweight) + Health + Root
 # ---------------------------------------------------------------------------
 @app.route("/v1/status", methods=["GET"])
 def status_quick():
     """Ultra-lightweight status ping. No LLM check, no log reads.
     Designed for uptime monitors and the Chrome extension health check."""
-    return jsonify({"ok": True, "service": "contentforge", "version": "1.5.0"})
+    return jsonify({"ok": True, "service": "contentforge", "version": "1.7.0"})
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -6294,11 +6624,11 @@ def health():
     return jsonify({
         "status": "ok",
         "service": "contentforge",
-        "version": "1.5.0",
+        "version": "1.6.0",
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
-        "endpoints": 38,
+        "endpoints": 40,
         "total_requests_served": total_requests,
         "counted_requests": counted_requests,
         "leniency_policy": "Error responses (4xx/5xx) are never counted toward usage quota.",
@@ -6593,6 +6923,20 @@ def _run_test():
         assert rv.status_code == 200, f"export_proof_report csv returned {rv.status_code}"
         assert "type,id,platform,post_id" in csv_body, "export_proof_report csv header missing"
         print(f"  csv_bytes={len(csv_body)}")
+
+        print("\n=== Proof Recommendations ===")
+        rv = c.get("/v1/proof_recommendations?period=month&platform=all")
+        data = rv.get_json()
+        assert rv.status_code == 200, f"proof_recommendations returned {rv.status_code}"
+        assert "recommendations" in data, "proof_recommendations missing recommendations"
+        print(f"  recommendations={len(data.get('recommendations', []))}")
+
+        print("\n=== Cohort Benchmarks ===")
+        rv = c.get("/v1/cohort_benchmarks?period=month&platform=all")
+        data = rv.get_json()
+        assert rv.status_code == 200, f"cohort_benchmarks returned {rv.status_code}"
+        assert "current_period" in data and "trailing_period" in data, "cohort_benchmarks missing period blocks"
+        print(f"  delta_vs_trailing={data.get('deltas_vs_trailing')}")
 
         print("\n=== Status (lightweight) ===")
         rv = c.get("/v1/status")

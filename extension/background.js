@@ -6,8 +6,9 @@
  */
 
 const API_BASE = "https://contentforge-api-lpp9.onrender.com";
-const FETCH_TIMEOUT_MS = 20000; // 20s covers Render cold-start
-const MAX_RETRIES = 1;
+const FETCH_TIMEOUT_MS = 35000; // 35s — covers Render free-tier cold start (~30s)
+const MAX_RETRIES = 2;
+const RETRY_DELAYS_MS = [3000, 8000]; // exponential-ish backoff between retries
 
 // Listen for requests from content script / popup
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -54,7 +55,98 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       .catch(err => sendResponse({ ok: false, error: err.message }));
     return true;
   }
+
+  if (msg.type === "logProof") {
+    logProofBundle(msg.payload || {})
+      .then(sendResponse)
+      .catch(err => sendResponse({ error: err.message, offline: isOfflineError(err) }));
+    return true;
+  }
 });
+
+async function rapidPost(path, body, retry = 0) {
+  if (retry > 0) await new Promise(r => setTimeout(r, RETRY_DELAYS_MS[retry - 1] || 5000));
+  let resp;
+  try {
+    resp = await fetchWithTimeout(`${API_BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {}),
+    });
+  } catch (err) {
+    if (retry < MAX_RETRIES) return rapidPost(path, body, retry + 1);
+    throw err;
+  }
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${resp.status}`);
+  }
+  return resp.json();
+}
+
+async function logProofBundle(payload) {
+  const platform = (payload.platform || "tweet").toLowerCase();
+  const original = String(payload.original_text || "").trim();
+  const revised = String(payload.revised_text || "").trim();
+  const postUrl = String(payload.post_url || "").trim();
+  const impressions = Math.max(0, Number(payload.impressions || 0));
+  const clicks = Math.max(0, Number(payload.clicks || 0));
+  const likes = Math.max(0, Number(payload.likes || 0));
+  const valuePerClick = Math.max(0, Number(payload.value_per_click || 1.0));
+  const revenueAmount = Math.max(0, Number(payload.revenue_amount || 0));
+
+  if (!revised) {
+    throw new Error("Missing revised text to log proof");
+  }
+
+  const postId = payload.post_id ||
+    (postUrl ? `url-${Date.now()}` : `manual-${Date.now()}`);
+
+  const delta = await rapidPost("/v1/record_score_delta", {
+    platform,
+    original_text: original,
+    revised_text: revised,
+    suggestions_applied: payload.suggestions_applied || ["extension rewrite"],
+    posted: Boolean(postUrl),
+    post_url: postUrl,
+  });
+
+  const rec = (delta && delta.record) || {};
+  const outcome = await rapidPost("/v1/record_publish_outcome", {
+    post_id: postId,
+    platform,
+    score_before: rec.original_score,
+    score_after: rec.revised_score,
+    engagement: {
+      impressions,
+      clicks,
+      likes,
+    },
+    value_per_click: valuePerClick,
+    url: postUrl,
+  });
+
+  let revenue = null;
+  if (revenueAmount > 0) {
+    revenue = await rapidPost("/v1/record_revenue", {
+      post_id: postId,
+      platform,
+      revenue_amount: revenueAmount,
+      revenue_source: payload.revenue_source || "manual",
+      currency: payload.currency || "USD",
+      notes: payload.notes || "Logged from extension popup",
+    });
+  }
+
+  return {
+    ok: true,
+    post_id: postId,
+    score_delta: delta?.score_delta,
+    estimated_revenue_lift: outcome?.estimated_revenue_lift,
+    realized_revenue: revenue?.record?.revenue_amount || 0,
+  };
+}
 
 async function pingApi() {
   let resp = await fetchWithTimeout(`${API_BASE}/v1/status`, { method: "GET" }, 10000);
@@ -80,7 +172,7 @@ async function fetchWithTimeout(url, options, timeoutMs = FETCH_TIMEOUT_MS) {
     const resp = await fetch(url, { ...options, signal: controller.signal });
     return resp;
   } catch (err) {
-    if (err.name === "AbortError") throw new Error("Request timed out — API may be waking up (free tier). Try again in 15s.");
+    if (err.name === "AbortError") throw new Error("Request timed out — API may be waking up (free tier cold start ~30s). Retrying automatically...");
     throw err;
   } finally {
     clearTimeout(timer);
@@ -88,6 +180,7 @@ async function fetchWithTimeout(url, options, timeoutMs = FETCH_TIMEOUT_MS) {
 }
 
 async function scoreText(text, platform, opts, retry = 0) {
+  if (retry > 0) await new Promise(r => setTimeout(r, RETRY_DELAYS_MS[retry - 1] || 5000));
   const body = { text, platforms: [platform], ...opts };
   const url = `${API_BASE}/v1/score_multi`;
 
@@ -117,6 +210,7 @@ async function scoreText(text, platform, opts, retry = 0) {
 }
 
 async function compareTexts(textA, textB, platforms, retry = 0) {
+  if (retry > 0) await new Promise(r => setTimeout(r, RETRY_DELAYS_MS[retry - 1] || 5000));
   let resp;
   try {
     resp = await fetchWithTimeout(`${API_BASE}/v1/compare`, {
@@ -168,6 +262,7 @@ async function compareTexts(textA, textB, platforms, retry = 0) {
 }
 
 async function suggestRewrite(text, platform, tone, retry = 0) {
+  if (retry > 0) await new Promise(r => setTimeout(r, RETRY_DELAYS_MS[retry - 1] || 5000));
   const alias = {
     tweet: "twitter",
     threads: "twitter",

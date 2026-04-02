@@ -71,12 +71,13 @@ Turn ContentForge from a useful scoring API into a sellable "content performance
 - Offer: "Start on free tier, then upgrade for team volume and automation."
 
 ## Next Engineering Iteration
-1. Add Proof Dashboard recommendations endpoint that flags low-lift platforms and prescribes next actions.
-2. Add benchmark cohorts (self baseline vs trailing 30-day baseline vs account median).
-3. Add extension-to-proof handshake so selected rewrites can be logged with one click after posting.
-4. Add weekly summary email with top gains, dropped opportunities, and auto-generated action list.
+1. Add weekly summary email with top gains, dropped opportunities, and auto-generated action list.
+2. Add per-platform win-rate and confidence interval metrics for A/B outcomes.
+3. Add anomaly alerts when score quality rises but revenue signal drops.
+4. Add one-click PDF case study export for outreach decks.
 
 ## Implemented In Current Sprint
 - Proof tracking endpoints: `/v1/record_score_delta`, `/v1/record_publish_outcome`, `/v1/record_revenue`, `/v1/dashboard_stats`.
 - Proof intelligence endpoints: `/v1/proof_timeline`, `/v1/export_proof_report`.
-- Extension reliability and workflow: improved insertion stability plus persistent rewrite history in popup.
+- Proof optimization endpoints: `/v1/proof_recommendations`, `/v1/cohort_benchmarks`.
+- Extension reliability and workflow: improved insertion stability, persistent rewrite history, and one-click proof outcome logging in popup.

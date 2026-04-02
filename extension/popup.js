@@ -1,6 +1,7 @@
-/* ContentForge — Popup scoring UI v0.4.0 */
+/* ContentForge — Popup scoring UI v0.6.0 */
 
 let latestSuggestion = "";
+let latestOriginalText = "";
 let suggestionHistory = [];
 let historyList = null;
 
@@ -12,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultDiv  = document.getElementById("result");
   const scoreNum   = document.getElementById("scoreNum");
   const gradeText  = document.getElementById("gradeText");
+  const qualityGate = document.getElementById("qualityGate");
   const suggList   = document.getElementById("suggList");
   const scoreError = document.getElementById("scoreError");
   const charCount  = document.getElementById("charCount");
@@ -21,8 +23,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const insertBtn = document.getElementById("insertBtn");
   const toneEl = document.getElementById("tone");
   const assistOutput = document.getElementById("assistOutput");
+  const auditSummary = document.getElementById("auditSummary");
   historyList = document.getElementById("historyList");
   const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  const proofPostUrl = document.getElementById("proofPostUrl");
+  const proofImpressions = document.getElementById("proofImpressions");
+  const proofClicks = document.getElementById("proofClicks");
+  const proofLikes = document.getElementById("proofLikes");
+  const proofValuePerClick = document.getElementById("proofValuePerClick");
+  const proofRevenue = document.getElementById("proofRevenue");
+  const logOutcomeBtn = document.getElementById("logOutcomeBtn");
+  const proofStatus = document.getElementById("proofStatus");
 
   loadSuggestionHistory();
 
@@ -30,6 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
     suggestionHistory = [];
     chrome.storage.local.set({ cfSuggestionHistory: [] }, renderSuggestionHistory);
   });
+
+  if (proofValuePerClick) proofValuePerClick.value = "1.0";
 
   // --- API health check on popup open ---
   statusDot.className = "status-dot loading";
@@ -117,10 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (chrome.runtime.lastError || !resp || resp.error) {
           const msg = resp?.error || "Connection error";
-          if (resp?.offline) {
+          if (resp?.offline || (msg && msg.includes("timed out"))) {
             showError(scoreError,
-              `API unreachable. This usually means the server is waking up (free tier). ` +
-              `Wait 15-30 seconds and try again. <a href="https://captainfredric.github.io/ContentForge/" target="_blank">Check status</a>`
+              `API is waking up (free tier cold start ~30s). ` +
+              `Retrying automatically — or <a href="https://captainfredric.github.io/ContentForge/" target="_blank">check status</a>.`
             );
           } else {
             showError(scoreError, escapeHtml(msg));
@@ -133,6 +146,19 @@ document.addEventListener("DOMContentLoaded", () => {
         gradeText.textContent = resp._fallback
           ? `Grade: ${resp.grade} (offline estimate)`
           : `Grade: ${resp.grade}`;
+
+        // Quality gate badge
+        if (resp.quality_gate && qualityGate) {
+          qualityGate.textContent = resp.quality_gate;
+          qualityGate.className = "quality-gate " + resp.quality_gate.toLowerCase();
+          if (resp.operational_risk) {
+            qualityGate.textContent += `  ·  Risk: ${resp.operational_risk}`;
+          }
+          qualityGate.style.display = "inline-block";
+        } else if (qualityGate) {
+          qualityGate.style.display = "none";
+        }
+
         suggList.innerHTML = "";
         if (resp._note) {
           const li = document.createElement("li");
@@ -168,6 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
     suggestBtn.textContent = "Rewriting...";
     suggestBtn.disabled = true;
     insertBtn.disabled = true;
+    latestOriginalText = text;
 
     chrome.runtime.sendMessage(
       { type: "suggest", text, platform: platformEl.value, tone: toneEl.value },
@@ -194,9 +221,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         assistOutput.style.display = "block";
-        assistOutput.textContent = latestSuggestion;
-        if (resp._fallback && resp._note) {
-          assistOutput.textContent += `\n\nNote: ${resp._note}`;
+        let outputText = latestSuggestion;
+        if (resp._fallback && resp._note) outputText += `\n\nNote: ${resp._note}`;
+        // Show lift and gate if API returned enriched improve_headline data
+        if (resp.lift_percentage) outputText = `[${resp.lift_percentage} lift${resp.quality_gate ? "  ·  " + resp.quality_gate : ""}]\n\n` + outputText;
+        assistOutput.textContent = outputText;
+        // Audit summary brief
+        if (auditSummary) {
+          if (resp.audit_summary) {
+            auditSummary.textContent = `Audit brief: ${resp.audit_summary}`;
+            auditSummary.style.display = "block";
+          } else {
+            auditSummary.style.display = "none";
+          }
         }
         insertBtn.disabled = false;
       }
@@ -312,6 +349,47 @@ document.addEventListener("DOMContentLoaded", () => {
         cmpResult.style.display = "block";
       }
     );
+  });
+
+  logOutcomeBtn.addEventListener("click", () => {
+    const revisedText = (latestSuggestion || textEl.value || "").trim();
+    if (!revisedText) {
+      proofStatus.textContent = "Generate or select a rewrite first.";
+      proofStatus.style.color = "#f59e0b";
+      return;
+    }
+
+    logOutcomeBtn.disabled = true;
+    logOutcomeBtn.textContent = "Logging...";
+    proofStatus.textContent = "Recording score delta and outcomes...";
+    proofStatus.style.color = "#9ca0c6";
+
+    chrome.runtime.sendMessage({
+      type: "logProof",
+      payload: {
+        platform: platformEl.value,
+        original_text: (latestOriginalText || "").trim(),
+        revised_text: revisedText,
+        post_url: (proofPostUrl.value || "").trim(),
+        impressions: Number(proofImpressions.value || 0),
+        clicks: Number(proofClicks.value || 0),
+        likes: Number(proofLikes.value || 0),
+        value_per_click: Number(proofValuePerClick.value || 1),
+        revenue_amount: Number(proofRevenue.value || 0),
+      },
+    }, (resp) => {
+      logOutcomeBtn.disabled = false;
+      logOutcomeBtn.textContent = "Log Outcome to Proof Dashboard";
+
+      if (chrome.runtime.lastError || !resp || resp.error) {
+        proofStatus.textContent = `Failed: ${resp?.error || "connection error"}`;
+        proofStatus.style.color = "#ef4444";
+        return;
+      }
+
+      proofStatus.textContent = `Logged: delta ${resp.score_delta ?? 0}, est lift $${resp.estimated_revenue_lift ?? 0}, realized $${resp.realized_revenue ?? 0}`;
+      proofStatus.style.color = "#22c55e";
+    });
   });
 });
 

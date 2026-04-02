@@ -65,6 +65,15 @@
     }
     .score-big { font-size: 32px; font-weight: 800; text-align: center; }
     .grade { text-align: center; font-size: 13px; margin-bottom: 6px; color: #aaa; }
+    .quality-gate {
+      text-align: center; font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px; display: inline-block;
+      margin: 0 auto 8px; letter-spacing: 0.5px;
+    }
+    .quality-gate-wrap { text-align: center; margin-bottom: 6px; }
+    .quality-gate.passed { background: #14532d; color: #4ade80; }
+    .quality-gate.review { background: #451a03; color: #fbbf24; }
+    .quality-gate.failed { background: #450a0a; color: #f87171; }
     .suggestions { padding-left: 16px; margin: 0; }
     .suggestions li { margin-bottom: 4px; color: #a0a0b8; font-size: 11.5px; }
 
@@ -176,6 +185,35 @@
       background: #2c5be6;
     }
 
+    .proof-box {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #2d2d45;
+      border-radius: 8px;
+      background: #101425;
+    }
+    .proof-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .proof-grid input {
+      width: 100%;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #31314e;
+      background: #171a2e;
+      color: #d7d7f0;
+      font-size: 11px;
+    }
+    .proof-status {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #9ca0c6;
+      min-height: 16px;
+    }
+
     .cmp-winner { font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 4px; }
     .cmp-detail { color: #a0a0b8; font-size: 11.5px; }
     .cmp-detail .strength { margin-top: 6px; font-weight: 600; }
@@ -227,6 +265,7 @@
     <div class="result-box" id="result">
       <div class="score-big" id="scoreNum">--</div>
       <div class="grade" id="gradeText"></div>
+      <div class="quality-gate-wrap"><span class="quality-gate" id="qualityGate" style="display:none"></span></div>
       <ul class="suggestions" id="suggList"></ul>
     </div>
     <div class="error-banner" id="scoreError"></div>
@@ -245,6 +284,7 @@
         <button id="insertBtn" disabled>Auto Insert</button>
       </div>
       <div class="assist-output" id="assistOutput"></div>
+      <div id="auditSummary" style="display:none;margin-top:6px;padding:7px 9px;border-radius:6px;background:#12122a;border:1px solid #2d3060;font-size:10.5px;color:#b0b4e0;line-height:1.45;"></div>
 
       <div class="history-box">
         <div class="history-head">
@@ -252,6 +292,20 @@
           <button class="history-clear" id="clearHistoryBtn">Clear</button>
         </div>
         <div class="history-list" id="historyList"></div>
+      </div>
+
+      <div class="proof-box">
+        <div class="assist-title">One-Click Proof Log</div>
+        <input id="proofPostUrl" type="text" placeholder="Post URL (optional)" style="margin-top:0;width:100%;padding:6px;border-radius:6px;border:1px solid #31314e;background:#171a2e;color:#d7d7f0;font-size:11px;" />
+        <div class="proof-grid">
+          <input id="proofImpressions" type="number" min="0" placeholder="Impressions" />
+          <input id="proofClicks" type="number" min="0" placeholder="Clicks" />
+          <input id="proofLikes" type="number" min="0" placeholder="Likes" />
+          <input id="proofValuePerClick" type="number" min="0" step="0.1" placeholder="$/click" />
+        </div>
+        <input id="proofRevenue" type="number" min="0" step="0.01" placeholder="Realized revenue (optional)" style="margin-top:6px;width:100%;padding:6px;border-radius:6px;border:1px solid #31314e;background:#171a2e;color:#d7d7f0;font-size:11px;" />
+        <button id="logOutcomeBtn" style="margin-top:8px">Log Outcome to Proof Dashboard</button>
+        <div class="proof-status" id="proofStatus"></div>
       </div>
     </div>
   </div>
@@ -279,7 +333,7 @@
 
   <div class="footer">
     <a href="https://captainfredric.github.io/ContentForge/" target="_blank" rel="noopener">contentforge.dev</a>
-    &nbsp;·&nbsp; v0.4.0
+    &nbsp;·&nbsp; v0.6.0
     &nbsp;·&nbsp; <a href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">API</a>
   </div>
 
