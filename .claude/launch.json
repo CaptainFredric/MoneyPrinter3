@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "contentforge-api",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["scripts/api_prototype.py", "--host", "127.0.0.1", "--port", "8081"],
+      "port": 8081
+    },
+    {
+      "name": "lead-capture",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["scripts/lead_capture_server.py", "--host", "127.0.0.1", "--port", "8080"],
+      "port": 8080
+    }
+  ]
+}
