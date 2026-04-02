@@ -1,215 +1,183 @@
-# MoneyPrinter V2 — ContentForge Edition
+# ContentForge — Content Intelligence API
 
-A Python 3.12 automation platform that runs Twitter bots, generates AI content, and monetizes through a public API on RapidAPI.
+> **45 endpoints · 12 platforms · Deterministic scoring in <50ms · No AI hallucinations**
 
-> Fork of [FujiwaraChoki/MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) — extended with multi-account state management, ContentForge API, and deployment automation.
+Score content before you post. ContentForge is a **Content Intelligence API** — a before-publish quality gate that grades every tweet, LinkedIn post, headline, and ad copy with a deterministic A–F score, actionable suggestions, and a `PASSED | REVIEW | FAILED` verdict in under 50ms — no LLM involved in the scoring layer.
+
+Think of it as a **digital ruler for content quality**. A ruler doesn't need a dataset to tell you something is 12 inches long — it just needs to be correctly calibrated. ContentForge's heuristic engine is that ruler: zero variance on the same input, zero hallucinations, fully auditable open-source logic. AI (Ollama or Gemini) kicks in only for generation endpoints like rewrites, hooks, and subject lines.
+
+```python
+import requests
+
+HEADERS = {"X-RapidAPI-Key": "YOUR_KEY", "X-RapidAPI-Host": "contentforge1.p.rapidapi.com"}
+
+r = requests.post("https://contentforge1.p.rapidapi.com/v1/score_tweet",
+    headers=HEADERS,
+    json={"text": "I'm working on a new project."})
+# → {"score": 32, "grade": "C", "quality_gate": "FAILED", "suggestions": [...]}
+
+r = requests.post("https://contentforge1.p.rapidapi.com/v1/score_tweet",
+    headers=HEADERS,
+    json={"text": "Got 100 signups in 24 hours 🚀 Here's the copy that converted: #buildinpublic"})
+# → {"score": 91, "grade": "A", "quality_gate": "PASSED", "suggestions": []}
+```
+
+**→ [Start free on RapidAPI](https://rapidapi.com/captainarmoreddude/api/contentforge1)** — no credit card required, 300 requests/month on BASIC.
 
 ---
 
-## Current Status (March 28, 2026)
+## Current Status (v1.9.0)
 
 | Component | Status | Notes |
 |---|---|---|
 | **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
-| **RapidAPI Listing** | ✅ Public | All 10 endpoints, 4-tier pricing configured |
-| **Twitter bot: niche_launch_1** | ✅ Active | health=50, 2 verified posts |
-| **Twitter bot: EyeCatcher** | ✅ Active | health=100, 1 verified post |
-| **Gemini backend** | ✅ Configured | `gemini-2.0-flash` on Render |
-| **Ollama local** | ✅ Running | `llama3.2:3b` at `http://127.0.0.1:11434` |
-| **Keep-warm cron** | ✅ Active | cron-job.org pings `/health` every 10 min |
+| **RapidAPI Listing** | ✅ Public | 45 endpoints, 4-tier pricing |
+| **Keep-warm cron** | ✅ Active | cron-job.org pings `/health` every 10 min, 60s timeout |
+| **Gemini backend** | ✅ Configured | `gemini-2.5-flash` on Render (AI generation fallback) |
+| **Ollama local** | ✅ Running | Scoring uses zero AI calls — pure heuristics |
+| **Twitter bots** | ✅ Active | Multi-account state machine, health scoring |
 | **Legal docs** | ✅ Done | `docs/TERMS_OF_USE.md`, `docs/TERMS_AND_CONDITIONS.md` |
 
 ---
 
-## What This Does
+## Why Deterministic Scoring?
 
-1. **Twitter Bots** — AI-generated posts (copywriting tips, attention psychology) published on schedule via Selenium + Firefox profiles
-2. **ContentForge API** — Flask API monetized on RapidAPI that scores headlines and tweets, improves headlines with AI, generates hooks, rewrites text, produces tweet ideas, builds content calendars, generates thread outlines, and writes social bios
-3. **YouTube Shorts** — LLM script → TTS → image generation → MoviePy composite → Selenium upload
-4. **Affiliate Marketing** — Amazon product scraping + AI pitch generation + Twitter posting
-5. **Local Business Outreach** — Google Maps scraping (Go) → email extraction → cold outreach via SMTP
+Every LLM-based scorer has the same flaw: ask it to score the same tweet twice and you'll get two different answers. For a professional content workflow, that's not a tool — that's a vibe check.
 
-The bots drive traffic to the API. The API generates revenue. Zero upfront cost (Render free tier + Gemini free tier + RapidAPI free provider account).
+ContentForge's scoring layer is pure Python heuristics. Same input → same output, every time. The logic is open source; you can read exactly why a post scored 74 and not 83. This is the **Deterministic Advantage**:
 
----
-
-## Quick Start
-
-```bash
-git clone https://github.com/CaptainFredric/MoneyPrinter3.git
-cd MoneyPrinter3
-
-# Copy config and fill in your values
-cp config.example.json config.json
-
-# macOS automated setup (creates venv, installs deps, configures Ollama + ImageMagick)
-bash scripts/setup_local.sh
-
-# Or manual setup
-python3 -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-
-# Validate everything works
-python3 scripts/preflight_local.py
-
-# Run
-python3 src/main.py
-```
-
-> **Requirements**: Python 3.12, Firefox (with pre-authenticated profiles for bot accounts), ImageMagick (for video subtitles), Ollama or Gemini API key (for AI generation).
+| | ContentForge | LLM-based scoring |
+|---|---|---|
+| Response time | <50ms | 1–5 seconds |
+| Variance on same input | 0% | ~15–30% |
+| Explainability | Full — every deduction itemised | Black box |
+| Cost per call | Free (heuristics) | $0.001–0.01 per call |
+| Self-hostable | ✅ (`python scripts/api_prototype.py`) | Depends on provider |
 
 ---
 
-## ContentForge API
+## All 45 Endpoints
 
-A monetized API product hosted on Render and listed on RapidAPI.
-
+### Instant Scorers (no AI, <50ms)
 | Endpoint | What It Does |
 |---|---|
-| `POST /v1/analyze_headline` | Score any headline (0–100) with word-level feedback and suggestions. Instant, no AI needed. |
-| `POST /v1/score_tweet` | Score any tweet draft (0–100) for engagement potential before posting. Instant, no AI needed. |
-| `POST /v1/improve_headline` | Submit a weak headline, get N AI-rewritten versions sorted by score. |
-| `POST /v1/generate_hooks` | Generate scroll-stopping openers for a topic. Viral, professional, or casual style. |
-| `POST /v1/rewrite` | Rewrite text for Twitter, LinkedIn, email, or blog with tone control. |
-| `POST /v1/tweet_ideas` | Generate tweet ideas for any niche with hashtags. Mix of hot takes, tips, and questions. |
-| `POST /v1/content_calendar` | Build a 7-day content calendar with themes and ready-to-post drafts. |
-| `POST /v1/thread_outline` | Generate a full Twitter thread: hook, body tweets, and CTA closing tweet. |
-| `POST /v1/generate_bio` | Generate an optimized social bio for Twitter, LinkedIn, or Instagram. Auto-trimmed to fit. |
-| `GET /health` | Service health check with LLM backend detection and per-endpoint usage stats. |
+| `POST /v1/score_tweet` | Score a tweet 0–100 with grade + quality gate |
+| `POST /v1/score_linkedin_post` | Score a LinkedIn post for professional engagement |
+| `POST /v1/score_instagram` | Score an Instagram caption for saves and reach |
+| `POST /v1/score_youtube_title` | Score a YouTube title for CTR and SEO |
+| `POST /v1/score_youtube_description` | Score a YouTube description for watch time |
+| `POST /v1/score_email_subject` | Score an email subject line for open rate |
+| `POST /v1/score_readability` | Flesch–Kincaid + grade level + suggestions |
+| `POST /v1/score_threads` | Score a Threads post |
+| `POST /v1/score_facebook` | Score a Facebook post |
+| `POST /v1/score_tiktok` | Score a TikTok caption |
+| `POST /v1/score_pinterest` | Score a Pinterest pin description |
+| `POST /v1/score_reddit` | Score a Reddit post/title |
+| `POST /v1/analyze_headline` | Headline power word detection + CTR scoring |
+| `POST /v1/analyze_hashtags` | Hashtag strategy audit across platforms |
+| `POST /v1/score_content` | Single unified endpoint — pass `platform` param |
+| `GET  /v1/analyze_headline` | GET variant for quick headline scoring |
 
-**Pricing tiers** (via RapidAPI — live):
-- **BASIC** — Free, 50 AI objects + 300 requests/month
-- **PRO** — $9.99/month, 750 AI objects + 1,000 requests
-- **ULTRA** — $29.99/month, 3,000 AI objects + 4,000 requests
-- **MEGA** — $99/month, 18,000 AI objects + 20,000 requests
+### Multi-Content & Comparison
+| Endpoint | What It Does |
+|---|---|
+| `POST /v1/score_multi` | Score one post across all platforms simultaneously |
+| `POST /v1/ab_test` | Head-to-head score comparison of two drafts |
 
-Full deployment guide: [docs/ContentForge_Deploy.md](docs/ContentForge_Deploy.md)
+### AI Generation (Ollama → Gemini fallback)
+| Endpoint | What It Does |
+|---|---|
+| `POST /v1/improve_headline` | Rewrite a weak headline N times, sorted by score |
+| `POST /v1/generate_hooks` | Scroll-stopping openers for any topic/style |
+| `POST /v1/rewrite` | Rewrite for Twitter, LinkedIn, email, or blog |
+| `POST /v1/compose_assist` | Full draft generation with platform constraints |
+| `POST /v1/tweet_ideas` | Tweet ideas for a niche with hashtags |
+| `POST /v1/content_calendar` | 7-day content calendar with ready-to-post drafts |
+| `POST /v1/thread_outline` | Full Twitter thread: hook + body + CTA close |
+| `POST /v1/generate_bio` | Optimised social bio, auto-trimmed to platform limits |
+| `POST /v1/generate_ad_copy` | Google/Meta ad copy with CTA and compliance signals |
+| `POST /v1/generate_subject_line` | AI email subject line with open-rate optimisation |
+
+### Quality Operations (QOps)
+| Endpoint | What It Does |
+|---|---|
+| `POST /v1/quality_gate` | Batch PASSED/REVIEW/FAILED verdict for up to 10 posts |
+| `GET  /v1/platform_friction` | Real-time platform state (rate limits, algo signals) |
+| `POST /v1/proof_export` | Export scored posts + engagement delta as proof report |
+
+### Utility
+| Endpoint | What It Does |
+|---|---|
+| `GET  /health` | Service health: LLM backend, usage stats |
+| `GET  /v1/status` | Lightweight ping — version, endpoint count |
+
+*(Full 45-endpoint list with request/response schemas: [RapidAPI docs](https://rapidapi.com/captainarmoreddude/api/contentforge1))*
 
 ---
 
-## Phase 2: Multi-Account State Machine
+## Self-Hosting
 
-The bot system uses an intelligent state machine for multi-account management:
+ContentForge runs fully locally with Ollama. No external AI calls needed for scoring.
 
-- **5 account states**: active, cooldown, degraded, blocked, paused
-- **Health scoring** (0–100): verified posts heal, failures degrade
-- **Automatic account rotation**: best-eligible account selected each cycle
-- **Exponential backoff**: blocked accounts retry at 1h → 6h → 24h → 72h
-- **Auto-pause**: 2+ consecutive low-confidence posts triggers a 30-min pause
-- **Transaction logging**: full audit trail in `logs/transaction_log/`
-- **Persistent state**: survives process restarts (`.mp/runtime/account_states.json`)
+```bash
+git clone https://github.com/CaptainFredric/ContentForge.git
+cd ContentForge
+pip install -r requirements.txt
+python scripts/api_prototype.py
+# → Listening on http://localhost:5000
+```
 
-### Phase 3: Publish Verification
+What runs locally with zero external calls:
+- All 12 platform scorers (deterministic, <50ms)
+- Quality gate evaluation (`PASSED / REVIEW / FAILED`)
+- Rate limiting and proof dashboard
 
-- Multi-strategy permalink resolution (URL match, text match, similarity search)
-- ~60%+ verification rate (up from ~30%)
-- Enhanced text normalization for consistent comparison
+What uses Ollama locally or falls back to Gemini:
+- Hook generation, rewrites, bio generation, subject lines, ad copy
 
----
+LLM chain: Ollama first → Gemini 2.5 Flash if Ollama unavailable → model rotation. If Ollama is running locally, nothing leaves your machine for AI calls.
 
-## Bot Accounts
-
-| Account | Niche | Firefox Profile |
-|---|---|---|
-| `niche_launch_1` (NicheNewton) | Content creation, copywriting psychology, headlines | Firefox Developer Edition |
-| `EyeCatcher` | Psychology of attention, visual storytelling, pattern interrupts | Firefox (regular) |
-
-Both accounts are pre-configured in `.mp/twitter.json` with their own Firefox profiles, voice styles, and content strategies.
+**License**: AGPL-3.0
 
 ---
 
-## Project Structure
+## Pricing (via RapidAPI)
+
+| Plan | Price | AI calls/mo | Requests/mo |
+|---|---|---|---|
+| **BASIC** | Free | 50 | 300 |
+| **PRO** | $9.99/mo | 750 | 1,000 |
+| **ULTRA** | $29.99/mo | 3,000 | 4,000 |
+| **MEGA** | $99/mo | 18,000 | 20,000 |
+
+All plans include every endpoint. Heuristic scoring calls don't count against your AI quota.
+
+**→ [Get your free API key](https://rapidapi.com/captainarmoreddude/api/contentforge1)**
+
+---
+
+## Architecture
+
+This repo contains both the ContentForge API and the MoneyPrinterV2 Twitter/YouTube automation platform that drives traffic to it.
 
 ```
-src/
-├── main.py                  # Interactive CLI menu (primary entrypoint)
-├── cron.py                  # Headless runner for scheduled posts
-├── config.py                # Config getters (reads config.json)
-├── cache.py                 # JSON persistence (.mp/ directory)
-├── constants.py             # Menu strings, Selenium selectors
-├── llm_provider.py          # Ollama SDK integration
-├── account_state_machine.py # Phase 2 multi-account state management
-├── firefox_runtime.py       # Firefox binary detection + profile management
-├── classes/
-│   ├── YouTube.py           # Full YouTube Shorts pipeline
-│   ├── Twitter.py           # Tweet generation + Selenium posting
-│   ├── Tts.py               # KittenTTS wrapper
-│   ├── AFM.py               # Amazon affiliate marketing
-│   └── Outreach.py          # Google Maps scraper + SMTP outreach
 scripts/
-├── api_prototype.py         # ContentForge Flask API (9 endpoints + health)
-├── smart_post_twitter.py    # Headless smart posting (one-shot)
-├── backfill_pending_twitter.py  # Retry failed/pending posts
-├── verify_twitter_posts_phase3.py # Post verification with similarity search
-├── session_restore.py       # Firefox cookie/session recovery
-├── preflight_local.py       # Pre-run validation
-├── setup_local.sh           # macOS bootstrap
-├── money_idle_phase2.py     # Intelligent idle mode with account rotation
-└── ...
+└── api_prototype.py         # ContentForge Flask API — all 45 endpoints
+src/
+├── main.py                  # Interactive CLI menu
+├── cron.py                  # Headless runner for scheduled posts
+├── llm_provider.py          # Ollama SDK + Gemini fallback chain
+├── account_state_machine.py # Multi-account health scoring + rotation
+└── classes/
+    ├── Twitter.py           # Tweet generation + Selenium posting
+    └── YouTube.py           # LLM script → TTS → MoviePy → upload
 deploy/
-├── render.yaml              # Render Blueprint config
-├── wsgi.py                  # WSGI entry for cloud deploy
-├── openapi.json             # OpenAPI 3.0.3 spec for RapidAPI import
-├── requirements-api.txt     # API-only dependencies
+├── render.yaml              # Render Blueprint
+├── openapi.json             # OpenAPI 3.0.3 spec (45 paths)
 └── Procfile                 # Gunicorn start command
 ```
 
----
-
-## Configuration
-
-All config lives in `config.json` at the project root. See [config.example.json](config.example.json) and [docs/Configuration.md](docs/Configuration.md).
-
-Key external dependencies:
-- **Ollama** — local LLM (optional if using Gemini)
-- **Gemini API** — cloud LLM fallback + image generation
-- **ImageMagick** — MoviePy subtitle rendering
-- **Firefox profiles** — pre-logged-in to target platforms
-- **Go** — only needed for Outreach (Google Maps scraper)
-
-> **Security**: Never commit `config.json` with real API keys. Use `config.example.json` as the template.
-
----
-
-## Documentation
-
-| Doc | What |
-|---|---|
-| [ContentForge_Deploy.md](docs/ContentForge_Deploy.md) | Full API deploy + RapidAPI monetization guide |
-| [MonetizationPlan.md](docs/MonetizationPlan.md) | Revenue strategy and roadmap |
-| [Configuration.md](docs/Configuration.md) | Config reference |
-| [TwitterBot.md](docs/TwitterBot.md) | Twitter bot setup |
-| [YouTube.md](docs/YouTube.md) | YouTube Shorts pipeline |
-| [OPERATOR_GUIDE.md](docs/OPERATOR_GUIDE.md) | Day-to-day operations |
-| [SAFEGUARDS_IMPLEMENTATION.md](docs/SAFEGUARDS_IMPLEMENTATION.md) | Safety and reliability features |
-| [ProfileMapping.md](docs/ProfileMapping.md) | Firefox profile setup |
-| [LoginRecovery.md](docs/LoginRecovery.md) | Session recovery procedures |
-| [TERMS_OF_USE.md](docs/TERMS_OF_USE.md) | API Terms of Use (RapidAPI) |
-| [TERMS_AND_CONDITIONS.md](docs/TERMS_AND_CONDITIONS.md) | Full Terms & Conditions |
-
----
-
-## Scripts (Quick Reference)
-
-```bash
-# Smart post (headless, picks best account)
-python scripts/smart_post_twitter.py --headless
-
-# Backfill failed posts for an account
-python scripts/backfill_pending_twitter.py --headless niche_launch_1
-
-# Verify posted tweets actually published
-python scripts/verify_twitter_posts_phase3.py niche_launch_1 --headless
-
-# System health diagnostic
-python scripts/health_diagnostic.py
-
-# Readiness report
-python scripts/twitter_readiness_report.py
-
-# Idle mode (continuous posting with smart rotation)
-python scripts/money_idle_phase2.py
-```
+**Bot → API funnel**: Twitter bots post content that drives traffic to the RapidAPI listing. The API generates subscription revenue. Zero upfront infra cost (Render free tier + Gemini free tier + RapidAPI free provider).
 
 ---
 
@@ -223,4 +191,4 @@ Affero General Public License v3.0. See [LICENSE](LICENSE).
 
 ## Attribution
 
-Based on [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) by [@DevBySami](https://x.com/DevBySami). Original project: automated content generation and monetization. This fork adds ContentForge API, multi-account state management, and deployment automation.
+Based on [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) by [@DevBySami](https://x.com/DevBySami).
