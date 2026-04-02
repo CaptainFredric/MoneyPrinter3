@@ -1,6 +1,6 @@
 # ContentForge — Complete Product Overview
 
-**Version: 1.7.0 | 41 Endpoints | AGPL-3.0**
+**Version: 1.8.0 | 42 Endpoints | AGPL-3.0**
 
 > A deterministic, latency-first content intelligence platform for professional creators, agencies, and automation operators. Scores content before it's published, generates improved versions on demand, tracks proof of improvement over time, and monitors the state of an automated publishing network in real time.
 
@@ -522,9 +522,9 @@ It reads `.mp/runtime/account_states.json` and computes a network-level friction
 ### Friction Level Algorithm
 
 ```
-LOW    → all accounts active OR only paused (operator choice)
-MEDIUM → at least one account in cooldown/degraded (managed recovery)
-HIGH   → any account in blocked state (requires operator intervention)
+LOW     → all accounts active (no cooldown, pause, degraded, or blocked)
+MEDIUM  → at least one account in cooldown or paused (managed recovery, normal operation)
+HIGH    → any account in degraded or blocked state (operator review recommended)
 UNKNOWN → account_states.json missing or unreadable
 ```
 
