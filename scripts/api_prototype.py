@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """ContentForge API — AI-powered content toolkit for creators and marketers.
 
-Endpoints (30 total):
+Endpoints (45 total):
   # Instant heuristic scorers (no AI, <50ms):
+  POST /v1/score_content           — Unified single-platform scorer: content + platform → score/grade/suggestions
   POST /v1/analyze_headline        — Score & grade any headline (power words, length, numbers)
   POST /v1/score_tweet             — Score a tweet draft 0-100 (hashtags, emojis, hooks, char count)
   POST /v1/score_linkedin_post     — LinkedIn reach score (hook, paragraphs, length, hashtags)
@@ -12,6 +13,7 @@ Endpoints (30 total):
   POST /v1/score_email_subject     — Email open rate score (spam triggers, urgency, length)
   POST /v1/score_tiktok            — TikTok caption engagement score
   POST /v1/score_threads           — Meta Threads post reach score (hashtag penalty)
+  POST /v1/score_reddit            — Reddit post upvote potential (specificity, question format, anti-spam)
   POST /v1/score_facebook          — Facebook organic post reach score
   POST /v1/score_pinterest         — Pinterest pin description score (keywords, CTAs, spam)
   POST /v1/score_ad_copy           — Google Ads / Meta Ads copy score (char limits, CTA, you-language)
@@ -22,27 +24,42 @@ Endpoints (30 total):
   POST /v1/compare                 — Head-to-head comparison of two texts with winner + advantages
   POST /v1/ab_test                 — Rank 2-20 drafts on a platform, pick winner with confidence level
 
-  # AI generators (Gemini 2.0 Flash, ~1-3s):
+  # AI generators (Gemini 2.5 Flash, ~1-3s):
   POST /v1/improve_headline        — Rewrite a weak headline into N better scored versions
   POST /v1/generate_hooks          — Generate scroll-stopping hooks for any topic
   POST /v1/rewrite                 — Platform-optimized rewrite (Twitter, LinkedIn, Instagram, TikTok, email)
+  POST /v1/compose_assist          — Generate 2-5 rewrites, score each, return best-performing with explanation
   POST /v1/tweet_ideas             — Tweet idea batch for any niche with hashtag options
   POST /v1/content_calendar        — Full 7-day content calendar with daily themes and drafts
   POST /v1/thread_outline          — Full Twitter thread: hook + numbered body tweets + CTA
   POST /v1/generate_bio            — Optimized social bio for Twitter (160), LinkedIn (300), or Instagram (150)
+  POST /v1/generate_subject_line   — Email subject line variants, each scored and ranked best-first
+  POST /v1/generate_ad_copy        — Short-form ad copy variants for Facebook, Google, Twitter (scored)
   POST /v1/generate_caption        — Instagram/TikTok caption with hashtags, emojis, and CTA
   POST /v1/generate_linkedin_post  — Full LinkedIn post (storytelling/professional/motivational)
   POST /v1/generate_email_sequence — 3-email drip: welcome → value → CTA with subject + preview lines
   POST /v1/generate_content_brief  — Content research brief: audience, angle, outline, keywords, hooks
 
-  # System:
-  GET  /health                     — Service status, LLM backend, and usage stats
+  # Proof Dashboard (8 endpoints):
+  POST /v1/record_score_delta      — Record before/after score pair for content provenance
+  POST /v1/record_publish_outcome  — Record engagement outcome after publishing
+  POST /v1/record_revenue          — Record revenue attribution tied to content
+  GET  /v1/dashboard_stats         — Aggregate KPIs: total events, average lift, best content
+  GET  /v1/proof_timeline          — Chronological event log with platform/timeframe filtering
+  GET  /v1/export_proof_report     — Full export as JSON or CSV for client delivery
+  GET  /v1/proof_recommendations   — AI-generated recommendations based on proof history patterns
+  GET  /v1/cohort_benchmarks       — Current vs. trailing period comparison with platform medians
+
+  # System / Operator:
+  GET  /v1/platform_friction       — Real-time account state machine health (LOW/MEDIUM/HIGH)
+  GET  /v1/status                  — Lightweight service health: ok, version, endpoint count
+  GET  /health                     — Full health: LLM backend, usage stats, uptime
 
 Run smoke test:
-  .runtime-venv/bin/python scripts/api_prototype.py --test
+  python3 scripts/api_prototype.py --test
 
 Run as server:
-  .runtime-venv/bin/python scripts/api_prototype.py
+  python3 scripts/api_prototype.py
 """
 from __future__ import annotations
 
@@ -383,6 +400,13 @@ def _count_emojis(s: str) -> int:
 # RapidAPI proxy-secret verification
 # ---------------------------------------------------------------------------
 _RAPIDAPI_SECRET = os.environ.get("RAPIDAPI_PROXY_SECRET", "")
+if not _RAPIDAPI_SECRET:
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "RAPIDAPI_PROXY_SECRET is not set — all endpoints are publicly accessible "
+        "without authentication. Set this env var in production to enforce RapidAPI "
+        "billing and rate limiting."
+    )
 
 
 def _verify_rapidapi_request() -> bool:
@@ -2980,6 +3004,233 @@ def endpoint_score_threads():
 
 
 # ---------------------------------------------------------------------------
+# 5g3. Reddit Post Score (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_reddit_post(text: str, subreddit: str = "") -> dict:
+    """Score a Reddit post title or body text 0-100 for upvote potential.
+
+    Reddit-specific signals based on community engagement patterns:
+    - Length: title 40-120 chars best (+15). Body 200-1000 chars is thorough (+12).
+    - Question format: titles ending with ? perform well on AskReddit-style posts (+10)
+    - Specificity signals (numbers, percentages, dollar amounts): +10
+    - "I built / I made / Show HN-style" opener: good for r/SideProject, r/webdev (+8)
+    - Hashtags: Reddit does not use hashtags — penalise presence (-8 each)
+    - Link spam: excessive URLs in text (-6)
+    - Clickbait openers ("You won't believe", "This one trick"): -10
+    - ALL CAPS abuse: -8
+    - Self-promotion without value signal: "buy", "sign up now", "click here" (-6 each)
+    - Conversational tone (first-person I/we + honest/real/true): +6
+    - Formatting signals in body: bullet dashes or numbered lists: +5
+    - Community engagement words ("thoughts?", "feedback", "opinions", "discuss"): +7
+    """
+    _REDDIT_CLICKBAIT = {
+        "you won't believe", "this one trick", "shocking", "doctors hate",
+        "this will blow your mind", "insane hack", "life changing secret",
+    }
+    _REDDIT_SPAM_WORDS = {"buy now", "click here", "sign up now", "limited time", "act now"}
+    _REDDIT_ENGAGEMENT_WORDS = {
+        "thoughts", "feedback", "opinions", "discuss", "what do you think",
+        "any advice", "has anyone", "looking for", "help me", "roast my",
+        "am i the only", "is it just me",
+    }
+    _REDDIT_VALUE_OPENERS = {
+        "i built", "i made", "i created", "i wrote", "i spent", "i learned",
+        "we built", "we made", "show reddit", "oc:", "[oc]", "i've been",
+        "after", "til ", "til:", "eli5",
+    }
+
+    text = (text or "").strip()
+    if not text:
+        return {"score": 0, "grade": "F", "suggestions": ["no text provided"]}
+
+    lower = text.lower()
+    words = text.split()
+    word_count = len(words)
+    char_count = len(text)
+    score = 50
+    suggestions = []
+    breakdown = {}
+
+    # --- Length scoring ---
+    if 40 <= char_count <= 120:
+        score += 15
+        breakdown["length"] = "+15 (ideal title length 40-120 chars)"
+    elif 121 <= char_count <= 300:
+        score += 10
+        breakdown["length"] = "+10 (good length)"
+    elif 301 <= char_count <= 1000:
+        score += 8
+        breakdown["length"] = "+8 (detailed post)"
+    elif char_count < 20:
+        score -= 10
+        breakdown["length"] = "-10 (too short, add more context)"
+        suggestions.append("Too brief — Reddit rewards specificity and context.")
+    else:
+        breakdown["length"] = "0 (very long — consider TL;DR)"
+        suggestions.append("Very long post — add a TL;DR at the top.")
+
+    # --- Specificity (numbers/percentages) ---
+    import re as _re
+    has_number = bool(_re.search(r'\b\d+[%$]?\b|\$\d+', text))
+    if has_number:
+        score += 10
+        breakdown["specificity"] = "+10 (contains numbers/metrics — Reddit trusts specifics)"
+    else:
+        breakdown["specificity"] = "0"
+        suggestions.append("Add a specific number, metric, or timeframe to build credibility.")
+
+    # --- Question format ---
+    has_question = text.rstrip().endswith("?")
+    if has_question:
+        score += 8
+        breakdown["question"] = "+8 (question format invites engagement)"
+    else:
+        breakdown["question"] = "0"
+
+    # --- Value openers (Show-style posts) ---
+    has_value_opener = any(lower.startswith(op) or op in lower[:50] for op in _REDDIT_VALUE_OPENERS)
+    if has_value_opener:
+        score += 8
+        breakdown["value_opener"] = "+8 (personal/maker opener builds authenticity)"
+    else:
+        breakdown["value_opener"] = "0"
+
+    # --- Community engagement words ---
+    engagement_hits = [w for w in _REDDIT_ENGAGEMENT_WORDS if w in lower]
+    if engagement_hits:
+        score += 7
+        breakdown["engagement"] = f"+7 (engagement words: {engagement_hits[:2]})"
+    else:
+        breakdown["engagement"] = "0"
+        if not has_question:
+            suggestions.append("Add a question or ask for feedback to drive comments.")
+
+    # --- Conversational / first-person ---
+    first_person = any(w in lower.split() for w in ["i", "we", "my", "our", "i've", "i'm", "we've"])
+    if first_person:
+        score += 5
+        breakdown["first_person"] = "+5 (first-person tone)"
+    else:
+        breakdown["first_person"] = "0"
+
+    # --- Formatting (lists, structure) ---
+    has_list = bool(_re.search(r'^\s*[-•*]\s|\n\d+\.', text, _re.MULTILINE))
+    if has_list and word_count > 50:
+        score += 5
+        breakdown["formatting"] = "+5 (structured with list formatting)"
+    else:
+        breakdown["formatting"] = "0"
+
+    # --- Hashtags (Reddit doesn't use them — negative signal) ---
+    hashtags = _re.findall(r'#\w+', text)
+    if hashtags:
+        penalty = min(len(hashtags) * 8, 20)
+        score -= penalty
+        breakdown["hashtags"] = f"-{penalty} (Reddit doesn't use hashtags — remove them)"
+        suggestions.append(f"Remove hashtags ({', '.join(hashtags[:3])}) — they look spammy on Reddit.")
+
+    # --- Clickbait detection ---
+    clickbait_hits = [cb for cb in _REDDIT_CLICKBAIT if cb in lower]
+    if clickbait_hits:
+        score -= 12
+        breakdown["clickbait"] = f"-12 (clickbait language detected)"
+        suggestions.append("Remove clickbait phrasing — Reddit communities are highly spam-aware.")
+
+    # --- Spam / hard sell words ---
+    spam_hits = [sw for sw in _REDDIT_SPAM_WORDS if sw in lower]
+    if spam_hits:
+        penalty = len(spam_hits) * 6
+        score -= penalty
+        breakdown["spam"] = f"-{penalty} (promotional language: {spam_hits})"
+        suggestions.append("Avoid hard-sell language — lead with value, not a pitch.")
+
+    # --- Excessive URLs ---
+    urls = _re.findall(r'https?://', text)
+    if len(urls) > 2:
+        score -= 6
+        breakdown["url_spam"] = f"-6 (too many links: {len(urls)})"
+        suggestions.append("Reduce to 1-2 links — multiple links trigger spam filters.")
+    else:
+        breakdown["url_spam"] = "0"
+
+    # --- ALL CAPS abuse ---
+    caps_words = [w for w in words if w.isupper() and len(w) > 2]
+    if len(caps_words) > 2:
+        score -= 8
+        breakdown["caps"] = f"-8 (ALL CAPS abuse: {caps_words[:3]})"
+        suggestions.append("Avoid ALL CAPS — it reads as shouting on Reddit.")
+    else:
+        breakdown["caps"] = "0"
+
+    score = max(0, min(100, score))
+    grade_map = [(90, "A+"), (85, "A"), (80, "A-"), (75, "B+"), (70, "B"),
+                 (65, "B-"), (60, "C+"), (55, "C"), (50, "C-"), (40, "D"), (0, "F")]
+    grade = next(g for threshold, g in grade_map if score >= threshold)
+
+    return {
+        "score": score,
+        "grade": grade,
+        "char_count": char_count,
+        "word_count": word_count,
+        "has_question": has_question,
+        "has_number": has_number,
+        "has_value_opener": has_value_opener,
+        "hashtag_count": len(hashtags),
+        "suggestions": suggestions[:5],
+        "breakdown": breakdown,
+    }
+
+
+@app.route("/v1/score_reddit", methods=["GET", "POST"])
+@app.route("/score-reddit", methods=["GET", "POST"])
+@app.route("/score_reddit", methods=["GET", "POST"])
+def endpoint_score_reddit():
+    """Score a Reddit post title or body text for upvote potential."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score_reddit",
+            "method": "POST",
+            "description": (
+                "Score a Reddit post title or body text 0-100 for upvote potential. "
+                "Checks specificity, question format, hashtag penalty, clickbait, "
+                "formatting, and community engagement signals. No AI — instant."
+            ),
+            "body": {"text": "your reddit post title or body", "subreddit": "SideProject"},
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/v1/score_reddit '
+                '-H "Content-Type: application/json" '
+                '-d \'{"text": "I built a content scoring API — tell me what you think"}\''
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or payload.get("content") or "").strip()
+    subreddit = (payload.get("subreddit") or "").strip().lstrip("r/")
+
+    if not text:
+        return jsonify({"error": "missing 'text' parameter"}), 400
+    if len(text) > 40000:
+        return jsonify({"error": "text too long (max 40 000 chars for Reddit body)"}), 400
+
+    result = score_reddit_post(text, subreddit)
+    gate = _quality_gate(result["score"])
+    result["quality_gate"] = gate["quality_gate"]
+    result["operational_risk"] = gate["operational_risk"]
+    if subreddit:
+        result["subreddit"] = subreddit
+
+    _log_usage("score_reddit", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 5g3. Facebook Post Score (heuristic — instant, no LLM)
 # ---------------------------------------------------------------------------
 def score_facebook_post(text: str) -> dict:
@@ -4430,6 +4681,7 @@ _PLATFORM_SCORERS = {
     "instagram": lambda text, _opts: score_instagram_caption(text),
     "tiktok": lambda text, _opts: score_tiktok_caption(text),
     "threads": lambda text, _opts: score_threads_post(text),
+    "reddit": lambda text, opts: score_reddit_post(text, opts.get("subreddit", "")),
     "facebook": lambda text, _opts: score_facebook_post(text),
     "pinterest": lambda text, _opts: score_pinterest_pin(text),
     "youtube": lambda text, opts: score_youtube_title(
@@ -4454,6 +4706,77 @@ _PLATFORM_SCORERS = {
     # headline: generic SEO/content headline scorer
     "headline": lambda text, _opts: analyze_headline(text),
 }
+
+
+# ---------------------------------------------------------------------------
+# score_content — unified single-platform scorer (main entry point)
+# ---------------------------------------------------------------------------
+@app.route("/v1/score_content", methods=["GET", "POST"])
+def endpoint_score_content():
+    """Score content for a single platform. The primary heuristic scoring endpoint.
+
+    Accepts ``content`` + ``platform`` and routes to the appropriate
+    platform scorer.  Returns score, grade, quality_gate, operational_risk,
+    and actionable suggestions.  No AI call — always <50 ms.
+    """
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score_content",
+            "method": "POST",
+            "description": (
+                "Score one piece of content for a specific platform using "
+                "deterministic heuristics. No AI call — always <50 ms."
+            ),
+            "body": {"content": "your text here", "platform": "twitter"},
+            "available_platforms": list(_PLATFORM_SCORERS.keys()),
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/v1/score_content '
+                '-H "Content-Type: application/json" '
+                '-d \'{"content": "5 habits that doubled my Twitter following", "platform": "twitter"}\''
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("content") or payload.get("text") or "").strip()
+    platform = (payload.get("platform") or "twitter").strip().lower()
+
+    if not text:
+        return jsonify({
+            "error": "missing 'content' parameter. Send JSON: {\"content\": \"...\", \"platform\": \"twitter\"}"
+        }), 400
+    if len(text) > 5000:
+        return jsonify({"error": "content too long (max 5000 chars)"}), 400
+    if platform not in _PLATFORM_SCORERS:
+        return jsonify({
+            "error": f"unknown platform '{platform}'. Available: {list(_PLATFORM_SCORERS.keys())}"
+        }), 400
+
+    try:
+        result = _PLATFORM_SCORERS[platform](text, payload)
+    except Exception as e:
+        return jsonify({"error": f"scoring failed: {e}"}), 500
+
+    gate = _quality_gate(result["score"])
+    elapsed_ms = int((time.time() - start) * 1000)
+    _log_usage("score_content", elapsed_ms)
+    return _add_rate_headers(jsonify({
+        "content": text[:200] + ("..." if len(text) > 200 else ""),
+        "platform": platform,
+        "score": result["score"],
+        "grade": result["grade"],
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
+        "suggestions": result.get("suggestions", []),
+        "breakdown": result.get("breakdown", {}),
+        "time_to_score_ms": elapsed_ms,
+    }), remaining)
 
 
 @app.route("/v1/score_multi", methods=["GET", "POST"])
@@ -5259,6 +5582,259 @@ def endpoint_generate_bio():
         "char_count": len(bio),
         "char_limit": char_limit,
         "is_valid_length": is_valid,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 8a. Generate Subject Line (AI-powered) — email subject line generator
+# ---------------------------------------------------------------------------
+@app.route("/v1/generate_subject_line", methods=["POST"])
+def endpoint_generate_subject_line():
+    """Generate and score email subject line variants using AI + heuristics.
+
+    Accepts a topic + optional context and returns N subject line variants,
+    each scored by the email subject heuristic scorer and ranked best-first.
+    """
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    topic = (payload.get("topic") or "").strip()
+    context = (payload.get("context") or payload.get("body") or "").strip()
+    tone = (payload.get("tone") or "professional").strip() or "professional"
+    preview_text = (payload.get("preview_text") or "").strip()
+    try:
+        count = max(2, min(int(payload.get("count", 3)), 5))
+    except (ValueError, TypeError):
+        count = 3
+
+    if not topic:
+        return jsonify({"error": "missing 'topic' parameter"}), 400
+    if len(topic) > 300:
+        return jsonify({"error": "topic too long (max 300 chars)"}), 400
+
+    prompt = (
+        f"Generate exactly {count} email subject line variants for this topic.\n"
+        f"Topic: {topic}\n"
+        f"{'Email context: ' + context if context else ''}\n"
+        f"Tone: {tone}\n"
+        f"Rules:\n"
+        f"- Each subject line must be under 60 characters for mobile readability\n"
+        f"- Vary the angle across variants: curiosity / urgency / benefit / personal / question\n"
+        f"- Be specific and honest — no clickbait\n"
+        f"- Avoid spam trigger words: free, guaranteed, $$, winner, act now!!!\n"
+        f"- Return ONLY a JSON array of strings\n"
+        f'Example: ["How we doubled open rates in 30 days", '
+        f'"The email mistake costing you clicks", '
+        f'"Your content scoring results are in"]'
+    )
+
+    try:
+        raw = _llm_generate(prompt)
+        match = re.search(r'\[.*?\]', raw, re.DOTALL)
+        subjects = None
+        if match:
+            try:
+                subjects = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                subjects = None
+
+        if not subjects or not isinstance(subjects, list):
+            lines = [
+                ln.strip().strip('"').strip("'").strip(',')
+                for ln in raw.split('\n') if ln.strip()
+            ]
+            subjects = [
+                ln for ln in lines
+                if 5 < len(ln) < 120
+                and not ln.startswith('[')
+                and not ln.startswith('{')
+            ]
+
+        subjects = [str(s).strip() for s in subjects if str(s).strip()][:count]
+
+        if not subjects:
+            return jsonify({"error": "LLM returned no usable subject lines — try again"}), 503
+
+        scored = []
+        for subject in subjects:
+            sr = score_email_subject(subject, preview_text)
+            gate = _quality_gate(sr.get("score", 0))
+            scored.append({
+                "subject": subject,
+                "score": sr.get("score", 0),
+                "grade": sr.get("grade", "D"),
+                "char_count": len(subject),
+                "word_count": len(subject.split()),
+                "quality_gate": gate["quality_gate"],
+                "suggestions": (sr.get("suggestions") or [])[:3],
+            })
+
+        scored.sort(key=lambda x: -x["score"])
+        best_score = scored[0]["score"] if scored else 0
+        best_gate = _quality_gate(best_score)
+
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    elapsed_ms = int((time.time() - start) * 1000)
+    _log_usage("generate_subject_line", elapsed_ms)
+    return _add_rate_headers(jsonify({
+        "topic": topic,
+        "tone": tone,
+        "variants": scored,
+        "best_score": best_score,
+        "quality_gate": best_gate["quality_gate"],
+        "operational_risk": best_gate["operational_risk"],
+        "time_to_generate_ms": elapsed_ms,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 8b. Generate Ad Copy (AI-powered) — Facebook / Google / Twitter / Instagram
+# ---------------------------------------------------------------------------
+@app.route("/v1/generate_ad_copy", methods=["POST"])
+def endpoint_generate_ad_copy():
+    """Generate short-form ad copy variants for Facebook, Google, or Twitter/X.
+
+    Accepts a product name + benefit statement and returns N scored variants,
+    each consisting of a headline and a description, ready to paste into an
+    ad platform.  Variants are scored via the heuristic score_ad_copy scorer
+    and returned ranked best-first.
+    """
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    product = (payload.get("product") or "").strip()
+    benefit = (payload.get("benefit") or "").strip()
+    platform = (payload.get("platform") or "facebook").strip().lower()
+    tone = (payload.get("tone") or "persuasive").strip()
+    try:
+        count = max(2, min(int(payload.get("count", 3)), 5))
+    except (ValueError, TypeError):
+        count = 3
+
+    if not product:
+        return jsonify({"error": "missing 'product' parameter"}), 400
+    if not benefit:
+        return jsonify({"error": "missing 'benefit' parameter"}), 400
+    if len(product) > 200:
+        return jsonify({"error": "product too long (max 200 chars)"}), 400
+    if len(benefit) > 500:
+        return jsonify({"error": "benefit too long (max 500 chars)"}), 400
+
+    if platform not in ("facebook", "meta", "google", "twitter", "instagram"):
+        platform = "facebook"
+
+    # Platform-specific character guidance for the LLM
+    char_guidance = {
+        "google": "Headline: max 30 chars. Description: max 90 chars.",
+        "facebook": "Headline: max 40 chars, punchy. Description: max 125 chars.",
+        "meta": "Headline: max 40 chars. Description: max 125 chars.",
+        "twitter": "Headline: max 70 chars. Description: max 200 chars.",
+        "instagram": "Headline: max 40 chars. Description: max 125 chars, include emoji.",
+    }.get(platform, "Headline: max 40 chars. Description: max 125 chars.")
+
+    prompt = (
+        f"Generate exactly {count} ad copy variants for this product.\n"
+        f"Product: {product}\n"
+        f"Key benefit: {benefit}\n"
+        f"Ad platform: {platform}\n"
+        f"Tone: {tone}\n"
+        f"Character constraints: {char_guidance}\n"
+        f"Rules:\n"
+        f"- Each variant must have a short punchy headline and a compelling description\n"
+        f"- Use benefit-first language, not feature-first\n"
+        f"- Include a clear CTA in the description (e.g. 'Try free', 'Get started', 'Sign up today')\n"
+        f"- Use you/your language for personal relevance\n"
+        f"- Vary the angle across variants (urgency / curiosity / social proof / savings)\n"
+        f"- Return ONLY a JSON array of objects with 'headline' and 'description' keys\n"
+        f'Example: [{{"headline": "Score Content in 5 Seconds", "description": "Try ContentForge free — instant scores for tweets, LinkedIn, TikTok."}}]'
+    )
+
+    try:
+        raw = _llm_generate(prompt)
+        match = re.search(r'\[.*?\]', raw, re.DOTALL)
+        variants = None
+        if match:
+            try:
+                variants = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                variants = None
+
+        # Fallback: parse line-by-line if JSON array extraction fails
+        if not variants or not isinstance(variants, list):
+            lines = [l.strip() for l in raw.split("\n") if l.strip()]
+            variants = []
+            for line in lines:
+                # Try parsing each line as JSON object
+                line = re.sub(r'^[\d.\-\)\]]+\s*', '', line)
+                try:
+                    obj = json.loads(line)
+                    if isinstance(obj, dict) and "headline" in obj:
+                        variants.append(obj)
+                except Exception:
+                    pass
+
+        # Ensure all variants have both fields and strip to requested count
+        cleaned = []
+        for v in variants:
+            if not isinstance(v, dict):
+                continue
+            h = str(v.get("headline") or "").strip()
+            d = str(v.get("description") or "").strip()
+            if h:
+                cleaned.append({"headline": h, "description": d})
+        variants = cleaned[:count]
+
+        if not variants:
+            return jsonify({"error": "LLM returned no usable variants — try again"}), 503
+
+        # Score each variant using the heuristic ad copy scorer
+        ad_platform = "google" if platform == "google" else "meta"
+        scored = []
+        for v in variants:
+            score_result = score_ad_copy(v["headline"], v["description"], ad_platform)
+            scored.append({
+                "headline": v["headline"],
+                "description": v["description"],
+                "score": score_result.get("score", 0),
+                "grade": score_result.get("grade", "D"),
+                "headline_char_count": len(v["headline"]),
+                "description_char_count": len(v["description"]),
+                "has_cta": score_result.get("has_cta", False),
+                "has_you_language": score_result.get("has_you_language", False),
+                "power_words_found": score_result.get("power_words_found", []),
+                "suggestions": (score_result.get("suggestions") or [])[:3],
+            })
+
+        scored.sort(key=lambda x: -x["score"])
+        best_score = scored[0]["score"] if scored else 0
+        gate = _quality_gate(best_score)
+
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    elapsed_ms = int((time.time() - start) * 1000)
+    _log_usage("generate_ad_copy", elapsed_ms)
+    return _add_rate_headers(jsonify({
+        "product": product,
+        "platform": platform,
+        "tone": tone,
+        "variants": scored,
+        "best_score": best_score,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
+        "time_to_generate_ms": elapsed_ms,
     }), remaining)
 
 
@@ -6569,7 +7145,7 @@ def endpoint_platform_friction():
 def status_quick():
     """Ultra-lightweight status ping. No LLM check, no log reads.
     Designed for uptime monitors and the Chrome extension health check."""
-    return jsonify({"ok": True, "service": "contentforge", "version": "1.7.0"})
+    return jsonify({"ok": True, "service": "contentforge", "version": "1.9.0"})
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -6624,11 +7200,11 @@ def health():
     return jsonify({
         "status": "ok",
         "service": "contentforge",
-        "version": "1.7.0",
+        "version": "1.9.0",
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
-        "endpoints": 41,
+        "endpoints": 45,
         "total_requests_served": total_requests,
         "counted_requests": counted_requests,
         "leniency_policy": "Error responses (4xx/5xx) are never counted toward usage quota.",
@@ -6666,9 +7242,9 @@ def root():
 </head>
 <body>
   <div class="card">
-    <div class="badge">Live API v1.7.0 &mdash; 41 endpoints</div>
+    <div class="badge">Live API v1.9.0 &mdash; 45 endpoints</div>
     <h1>ContentForge API</h1>
-    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 41-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
+    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 45-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
     <a class="cta" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Get your free API key &rarr;</a>
     <div class="grid">
       <div class="item"><code>POST /v1/score_tweet</code><span>Score a tweet draft<span class="tag instant">instant</span></span></div>
