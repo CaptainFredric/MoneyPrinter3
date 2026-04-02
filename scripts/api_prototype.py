@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """ContentForge API — AI-powered content toolkit for creators and marketers.
 
-Endpoints (42 total):
+Endpoints (44 total):
   # Instant heuristic scorers (no AI, <50ms):
+  POST /v1/score_content           — Unified single-platform scorer: content + platform → score/grade/suggestions
   POST /v1/analyze_headline        — Score & grade any headline (power words, length, numbers)
   POST /v1/score_tweet             — Score a tweet draft 0-100 (hashtags, emojis, hooks, char count)
   POST /v1/score_linkedin_post     — LinkedIn reach score (hook, paragraphs, length, hashtags)
@@ -31,6 +32,7 @@ Endpoints (42 total):
   POST /v1/content_calendar        — Full 7-day content calendar with daily themes and drafts
   POST /v1/thread_outline          — Full Twitter thread: hook + numbered body tweets + CTA
   POST /v1/generate_bio            — Optimized social bio for Twitter (160), LinkedIn (300), or Instagram (150)
+  POST /v1/generate_subject_line   — Email subject line variants, each scored and ranked best-first
   POST /v1/generate_ad_copy        — Short-form ad copy variants for Facebook, Google, Twitter (scored)
   POST /v1/generate_caption        — Instagram/TikTok caption with hashtags, emojis, and CTA
   POST /v1/generate_linkedin_post  — Full LinkedIn post (storytelling/professional/motivational)
@@ -4477,6 +4479,77 @@ _PLATFORM_SCORERS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# score_content — unified single-platform scorer (main entry point)
+# ---------------------------------------------------------------------------
+@app.route("/v1/score_content", methods=["GET", "POST"])
+def endpoint_score_content():
+    """Score content for a single platform. The primary heuristic scoring endpoint.
+
+    Accepts ``content`` + ``platform`` and routes to the appropriate
+    platform scorer.  Returns score, grade, quality_gate, operational_risk,
+    and actionable suggestions.  No AI call — always <50 ms.
+    """
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score_content",
+            "method": "POST",
+            "description": (
+                "Score one piece of content for a specific platform using "
+                "deterministic heuristics. No AI call — always <50 ms."
+            ),
+            "body": {"content": "your text here", "platform": "twitter"},
+            "available_platforms": list(_PLATFORM_SCORERS.keys()),
+            "example_curl": (
+                'curl -X POST https://contentforge-api-lpp9.onrender.com/v1/score_content '
+                '-H "Content-Type: application/json" '
+                '-d \'{"content": "5 habits that doubled my Twitter following", "platform": "twitter"}\''
+            ),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("content") or payload.get("text") or "").strip()
+    platform = (payload.get("platform") or "twitter").strip().lower()
+
+    if not text:
+        return jsonify({
+            "error": "missing 'content' parameter. Send JSON: {\"content\": \"...\", \"platform\": \"twitter\"}"
+        }), 400
+    if len(text) > 5000:
+        return jsonify({"error": "content too long (max 5000 chars)"}), 400
+    if platform not in _PLATFORM_SCORERS:
+        return jsonify({
+            "error": f"unknown platform '{platform}'. Available: {list(_PLATFORM_SCORERS.keys())}"
+        }), 400
+
+    try:
+        result = _PLATFORM_SCORERS[platform](text, payload)
+    except Exception as e:
+        return jsonify({"error": f"scoring failed: {e}"}), 500
+
+    gate = _quality_gate(result["score"])
+    elapsed_ms = int((time.time() - start) * 1000)
+    _log_usage("score_content", elapsed_ms)
+    return _add_rate_headers(jsonify({
+        "content": text[:200] + ("..." if len(text) > 200 else ""),
+        "platform": platform,
+        "score": result["score"],
+        "grade": result["grade"],
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
+        "suggestions": result.get("suggestions", []),
+        "breakdown": result.get("breakdown", {}),
+        "time_to_score_ms": elapsed_ms,
+    }), remaining)
+
+
 @app.route("/v1/score_multi", methods=["GET", "POST"])
 @app.route("/score-multi", methods=["GET", "POST"])
 @app.route("/score_multi", methods=["GET", "POST"])
@@ -5284,7 +5357,116 @@ def endpoint_generate_bio():
 
 
 # ---------------------------------------------------------------------------
-# 8a. Generate Ad Copy (AI-powered) — Facebook / Google / Twitter / Instagram
+# 8a. Generate Subject Line (AI-powered) — email subject line generator
+# ---------------------------------------------------------------------------
+@app.route("/v1/generate_subject_line", methods=["POST"])
+def endpoint_generate_subject_line():
+    """Generate and score email subject line variants using AI + heuristics.
+
+    Accepts a topic + optional context and returns N subject line variants,
+    each scored by the email subject heuristic scorer and ranked best-first.
+    """
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    topic = (payload.get("topic") or "").strip()
+    context = (payload.get("context") or payload.get("body") or "").strip()
+    tone = (payload.get("tone") or "professional").strip() or "professional"
+    preview_text = (payload.get("preview_text") or "").strip()
+    try:
+        count = max(2, min(int(payload.get("count", 3)), 5))
+    except (ValueError, TypeError):
+        count = 3
+
+    if not topic:
+        return jsonify({"error": "missing 'topic' parameter"}), 400
+    if len(topic) > 300:
+        return jsonify({"error": "topic too long (max 300 chars)"}), 400
+
+    prompt = (
+        f"Generate exactly {count} email subject line variants for this topic.\n"
+        f"Topic: {topic}\n"
+        f"{'Email context: ' + context if context else ''}\n"
+        f"Tone: {tone}\n"
+        f"Rules:\n"
+        f"- Each subject line must be under 60 characters for mobile readability\n"
+        f"- Vary the angle across variants: curiosity / urgency / benefit / personal / question\n"
+        f"- Be specific and honest — no clickbait\n"
+        f"- Avoid spam trigger words: free, guaranteed, $$, winner, act now!!!\n"
+        f"- Return ONLY a JSON array of strings\n"
+        f'Example: ["How we doubled open rates in 30 days", '
+        f'"The email mistake costing you clicks", '
+        f'"Your content scoring results are in"]'
+    )
+
+    try:
+        raw = _llm_generate(prompt)
+        match = re.search(r'\[.*?\]', raw, re.DOTALL)
+        subjects = None
+        if match:
+            try:
+                subjects = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                subjects = None
+
+        if not subjects or not isinstance(subjects, list):
+            lines = [
+                ln.strip().strip('"').strip("'").strip(',')
+                for ln in raw.split('\n') if ln.strip()
+            ]
+            subjects = [
+                ln for ln in lines
+                if 5 < len(ln) < 120
+                and not ln.startswith('[')
+                and not ln.startswith('{')
+            ]
+
+        subjects = [str(s).strip() for s in subjects if str(s).strip()][:count]
+
+        if not subjects:
+            return jsonify({"error": "LLM returned no usable subject lines — try again"}), 503
+
+        scored = []
+        for subject in subjects:
+            sr = score_email_subject(subject, preview_text)
+            gate = _quality_gate(sr.get("score", 0))
+            scored.append({
+                "subject": subject,
+                "score": sr.get("score", 0),
+                "grade": sr.get("grade", "D"),
+                "char_count": len(subject),
+                "word_count": len(subject.split()),
+                "quality_gate": gate["quality_gate"],
+                "suggestions": (sr.get("suggestions") or [])[:3],
+            })
+
+        scored.sort(key=lambda x: -x["score"])
+        best_score = scored[0]["score"] if scored else 0
+        best_gate = _quality_gate(best_score)
+
+    except Exception as e:
+        return jsonify({"error": f"LLM generation failed: {e}"}), 503
+
+    elapsed_ms = int((time.time() - start) * 1000)
+    _log_usage("generate_subject_line", elapsed_ms)
+    return _add_rate_headers(jsonify({
+        "topic": topic,
+        "tone": tone,
+        "variants": scored,
+        "best_score": best_score,
+        "quality_gate": best_gate["quality_gate"],
+        "operational_risk": best_gate["operational_risk"],
+        "time_to_generate_ms": elapsed_ms,
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 8b. Generate Ad Copy (AI-powered) — Facebook / Google / Twitter / Instagram
 # ---------------------------------------------------------------------------
 @app.route("/v1/generate_ad_copy", methods=["POST"])
 def endpoint_generate_ad_copy():
@@ -6734,7 +6916,7 @@ def endpoint_platform_friction():
 def status_quick():
     """Ultra-lightweight status ping. No LLM check, no log reads.
     Designed for uptime monitors and the Chrome extension health check."""
-    return jsonify({"ok": True, "service": "contentforge", "version": "1.8.0"})
+    return jsonify({"ok": True, "service": "contentforge", "version": "1.9.0"})
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -6789,11 +6971,11 @@ def health():
     return jsonify({
         "status": "ok",
         "service": "contentforge",
-        "version": "1.8.0",
+        "version": "1.9.0",
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
-        "endpoints": 42,
+        "endpoints": 44,
         "total_requests_served": total_requests,
         "counted_requests": counted_requests,
         "leniency_policy": "Error responses (4xx/5xx) are never counted toward usage quota.",
@@ -6831,9 +7013,9 @@ def root():
 </head>
 <body>
   <div class="card">
-    <div class="badge">Live API v1.8.0 &mdash; 42 endpoints</div>
+    <div class="badge">Live API v1.9.0 &mdash; 44 endpoints</div>
     <h1>ContentForge API</h1>
-    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 41-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
+    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 44-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
     <a class="cta" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Get your free API key &rarr;</a>
     <div class="grid">
       <div class="item"><code>POST /v1/score_tweet</code><span>Score a tweet draft<span class="tag instant">instant</span></span></div>

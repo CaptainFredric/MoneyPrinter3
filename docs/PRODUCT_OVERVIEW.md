@@ -1,6 +1,6 @@
 # ContentForge — Complete Product Overview
 
-**Version: 1.8.0 | 42 Endpoints | AGPL-3.0**
+**Version: 1.9.0 | 44 Endpoints | AGPL-3.0**
 
 > A deterministic, latency-first content intelligence platform for professional creators, agencies, and automation operators. Scores content before it's published, generates improved versions on demand, tracks proof of improvement over time, and monitors the state of an automated publishing network in real time.
 
@@ -93,7 +93,7 @@ Client (Browser / API / Extension)
     │       │
     │       └── Render Web Service
     │               │
-    │               ├── scripts/api_prototype.py  [Flask app, 41 endpoints]
+    │               ├── scripts/api_prototype.py  [Flask app, 44 endpoints]
     │               │       │
     │               │       ├── Heuristic scoring engine  [_PLATFORM_SCORERS dict]
     │               │       ├── _quality_gate(score)       [QOps verdict]
@@ -117,7 +117,7 @@ Client (Browser / API / Extension)
 
 - **One file for the app**: `scripts/api_prototype.py` is the entire API. No routing files, no model files, no service files. This is a deliberate choice for a solo-operated API — the entire system can be read and understood in one context window.
 - **No database**: All persistence is flat JSON files under `.mp/`. This eliminates the single biggest source of external failure modes (DB connection drops, migration failures, schema drift).
-- **Heuristic-first**: AI is never called for scoring. The heuristic engine runs in the same Python process, synchronously, in under 50ms. This means the API has no external dependencies for 19 of its 41 endpoints.
+- **Heuristic-first**: AI is never called for scoring. The heuristic engine runs in the same Python process, synchronously, in under 50ms. This means the API has no external dependencies for 19 of its 44 endpoints.
 - **Import structure**: The app is run from the project root. `deploy/wsgi.py` explicitly adds `ROOT` and `ROOT/src` to `sys.path`, making all module imports work correctly on Render without package installation.
 
 ---
@@ -941,7 +941,7 @@ This means:
 Open (AGPL):                    │  Proprietary:
 ─────────────────────────────── │  ────────────────────────────
 Heuristic scoring engine        │  Managed Render deployment
-All 41 endpoints                │  RapidAPI listing + billing
+All 44 endpoints                │  RapidAPI listing + billing
 State machine                   │  Enterprise SLA
 Proof dashboard                 │  White-label licensing
 QOps layer                      │  Custom rule sets for specific
