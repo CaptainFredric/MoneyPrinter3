@@ -1,6 +1,6 @@
 # ContentForge API — Documentation
 
-**ContentForge** is a 28-endpoint REST API for scoring and generating content across every major platform. Score any draft before you post—get a 0–100 score, a letter grade, and specific improvement tips in under 50ms. Use the AI endpoints to generate content from scratch when needed.
+**ContentForge** is a 45-endpoint REST API for scoring and generating content across 12 platforms. Score any draft before you post — get a 0–100 score, a letter grade, and specific improvement tips in under 50ms. Use the AI endpoints to generate content from scratch when needed.
 
 ---
 

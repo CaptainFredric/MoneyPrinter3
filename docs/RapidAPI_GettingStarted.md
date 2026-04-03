@@ -278,4 +278,4 @@ On the free BASIC plan, the global rate limit is 30 requests/minute. PRO and abo
 
 - **Email:** captainarmoreddude@gmail.com
 - **RapidAPI Discussions:** Use the Discussions tab on the listing page
-- **GitHub Issues:** https://github.com/CaptainFredric/MoneyPrinter3/issues
+- **GitHub Issues:** https://github.com/CaptainFredric/ContentForge/issues
