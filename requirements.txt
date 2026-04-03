@@ -1,19 +1,10 @@
 # ContentForge — core dependencies
 # Install with: pip install -r requirements.txt
-wheel
-termcolor
-schedule
-soundfile
-prettytable
-webdriver_manager
-selenium
-ollama
+# For cloud deployment only, see deploy/requirements-api.txt
+flask>=3.0
+gunicorn>=21.2
 google-genai>=1.0
+ollama>=0.4
+termcolor
 Pillow>=10.0.0
-yagmail
-assemblyai
-faster-whisper
-srt_equalizer
-undetected_chromedriver
 platformdirs
-Flask

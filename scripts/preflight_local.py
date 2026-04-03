@@ -91,7 +91,7 @@ def main() -> int:
         else:
             warn(f"firefox_profile does not exist: {firefox_profile}")
     else:
-        warn("firefox_profile is empty. Twitter/YouTube automation requires this.")
+        warn("firefox_profile is empty (only needed for browser-based features).")
 
     # Ollama (LLM)
     base = str(cfg.get("ollama_base_url", "http://127.0.0.1:11434")).rstrip("/")
@@ -127,7 +127,7 @@ def main() -> int:
         ok("nanobanana2_api_key is set")
     else:
         # Not a hard failure — Ollama handles local LLM. Gemini is only needed
-        # for image generation (YouTube Shorts) and cloud API deployment.
+        # for AI generation endpoints and cloud API deployment.
         ollama_ok = check_url(f"{str(cfg.get('ollama_base_url','http://127.0.0.1:11434')).rstrip('/')}/api/tags")[0]
         if ollama_ok:
             warn("nanobanana2_api_key is empty — Ollama will handle local LLM. Set key for image generation or cloud deploy.")
