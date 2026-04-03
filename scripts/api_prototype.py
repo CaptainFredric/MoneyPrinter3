@@ -4120,9 +4120,9 @@ def endpoint_score_youtube_description():
             "example_curl": (
                 'curl -X POST https://contentforge-api-lpp9.onrender.com/score-youtube-description '
                 '-H "Content-Type: application/json" '
-                '-d \'{"text": "Learn the 5 passive income strategies I used to hit $5K/mo in 2026. '
-                'Subscribe for weekly income reports!\\n\\n0:00 Intro\\n1:30 Strategy 1\\n5:00 Strategy 2\\n\\n'
-                'Free download: https://example.com\\n\\n#passiveincome #sidehustle #money"}\''
+                '-d \'{"text": "Learn the 5 content strategies I used to grow my newsletter to 10K subscribers. '
+                'Subscribe for weekly breakdowns!\\n\\n0:00 Intro\\n1:30 Strategy 1\\n5:00 Strategy 2\\n\\n'
+                'Free download: https://example.com\\n\\n#contentmarketing #newsletter #growth"}\''
             ),
             "note": "No API key needed for direct access. Free tier on RapidAPI: 50 calls/month.",
         }), 200
@@ -5623,7 +5623,7 @@ def endpoint_generate_content_brief():
             "example_curl": (
                 'curl -X POST https://contentforge-api-lpp9.onrender.com/generate-content-brief '
                 '-H "Content-Type: application/json" '
-                '-d \'{"topic": "how indie developers build passive income with APIs", "platform": "blog"}\''
+                '-d \'{"topic": "how indie developers grow their SaaS with content marketing", "platform": "blog"}\''
             ),
             "note": "Uses AI (Gemini 2.0 Flash). Free tier on RapidAPI: 50 calls/month.",
         }), 200
@@ -6746,7 +6746,7 @@ def _run_test():
         pprint.pprint(rv.get_json())
 
         print("\n=== YouTube Description Scorer ===")
-        rv = c.post("/v1/score_youtube_description", json={"text": "Learn the 5 passive income strategies I used to hit $5K/mo in 2026. Subscribe for weekly income reports!\n\n0:00 Intro\n1:30 Strategy 1 — APIs\n5:00 Strategy 2 — Content\n\nFree download: https://example.com/guide\n\n#passiveincome #sidehustle #money"})
+        rv = c.post("/v1/score_youtube_description", json={"text": "Learn the 5 content strategies I used to grow my newsletter to 10K subscribers. Subscribe for weekly breakdowns!\n\n0:00 Intro\n1:30 Strategy 1 — SEO\n5:00 Strategy 2 — Content\n\nFree download: https://example.com/guide\n\n#contentmarketing #newsletter #growth"})
         pprint.pprint(rv.get_json())
 
         print("\n=== Ad Copy Scorer ===")
@@ -6762,7 +6762,7 @@ def _run_test():
         pprint.pprint(rv.get_json())
 
         print("\n=== Generate Hooks ===")
-        rv = c.post("/v1/generate_hooks", json={"topic": "passive income with APIs", "count": 3})
+        rv = c.post("/v1/generate_hooks", json={"topic": "building a SaaS while working full-time", "count": 3})
         pprint.pprint(rv.get_json())
 
         print("\n=== Rewrite ===")
@@ -6816,7 +6816,7 @@ def _run_test():
         pprint.pprint(rv.get_json())
 
         print("\n=== Generate Content Brief ===")
-        rv = c.post("/v1/generate_content_brief", json={"topic": "how to build passive income with APIs", "platform": "blog"})
+        rv = c.post("/v1/generate_content_brief", json={"topic": "how indie developers grow their SaaS with content marketing", "platform": "blog"})
         pprint.pprint(rv.get_json())
 
         print("\n=== Compare (head-to-head) ===")

@@ -1718,7 +1718,7 @@
                     "type": "string",
                     "maxLength": 400,
                     "description": "Topic to generate a content brief for",
-                    "example": "how indie developers build passive income with APIs"
+                    "example": "how indie developers build building a SaaS while working full-time"
                   },
                   "platform": {
                     "type": "string",
@@ -1746,7 +1746,7 @@
                 }
               },
               "example": {
-                "topic": "how indie developers build passive income with APIs",
+                "topic": "how indie developers build building a SaaS while working full-time",
                 "platform": "blog",
                 "tone": "conversational"
               }
@@ -1951,7 +1951,7 @@
                     "type": "string",
                     "maxLength": 300,
                     "description": "The topic to generate hooks for",
-                    "example": "passive income with APIs"
+                    "example": "building a SaaS while working full-time"
                   },
                   "count": {
                     "type": "integer",
@@ -1973,7 +1973,7 @@
                 }
               },
               "example": {
-                "topic": "passive income with APIs",
+                "topic": "building a SaaS while working full-time",
                 "count": 5,
                 "style": "viral"
               }
@@ -2003,7 +2003,7 @@
                   }
                 },
                 "example": {
-                  "topic": "passive income with APIs",
+                  "topic": "building a SaaS while working full-time",
                   "style": "viral",
                   "hooks": [
                     "I made $6K last month from an API I built in a weekend",
@@ -4393,7 +4393,7 @@
                     "type": "string",
                     "maxLength": 10000,
                     "description": "YouTube video description to score",
-                    "example": "Learn the 5 passive income strategies I used to hit $5K/mo in 2026. Subscribe!\n\n0:00 Intro\n1:30 Strategy 1\n5:00 Strategy 2\n\nhttps://example.com\n\n#passiveincome #sidehustle #money"
+                    "example": "Learn the 5 content strategies I used to grow my newsletter to 10K subscribers. Subscribe!\n\n0:00 Intro\n1:30 Strategy 1\n5:00 Strategy 2\n\nhttps://example.com\n\n#contentmarketing #newsletter #growth"
                   }
                 }
               }
