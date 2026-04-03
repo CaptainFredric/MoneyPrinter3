@@ -542,24 +542,24 @@
 <nav>
   <div class="logo">Content<span>Forge</span></div>
   <div>
-    <a href="#endpoints">Endpoints</a>
-    <a href="#matrix">Revenue Matrix</a>
-    <a href="#pricing">Pricing</a>
     <a href="#try">Try It</a>
-    <a href="https://rapidapi.com/captainarmoreddude/api/contentforge1" class="nav-cta" target="_blank" rel="noopener">Get API Key →</a>
+    <a href="#how">How It Works</a>
+    <a href="#endpoints">Endpoints</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://github.com/CaptainFredric/ContentForge" class="nav-cta" target="_blank" rel="noopener">GitHub</a>
   </div>
 </nav>
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">⚡ 45 endpoints · 12 platforms · &lt;50ms heuristics · Free tier</div>
-  <h1>Stop guessing.<br>Start <em>scoring</em> your content.</h1>
+  <div class="badge">Open source · AGPL-3.0 · Self-hostable with Ollama</div>
+  <h1>Know if your post will flop<br><em>before</em> you hit send.</h1>
   <p class="hero-sub">
-    ContentForge is a <strong>Content Intelligence API</strong> — deterministic before-publish scoring for Twitter, LinkedIn, Instagram, TikTok, YouTube, Pinterest, Reddit, email, and ad copy. Know if your post will flop <em>before</em> you hit send.
+    Type a tweet, headline, or LinkedIn post. Get a grade, specific feedback, and a rewrite — in under 50 milliseconds. No AI in the scoring path. Same input, same score, every time.
   </p>
   <div class="hero-btns">
-    <a href="https://rapidapi.com/captainarmoreddude/api/contentforge1" class="btn-primary" target="_blank" rel="noopener">Start Free on RapidAPI →</a>
-    <a href="#endpoints" class="btn-secondary">See All Endpoints</a>
+    <a href="#try" class="btn-primary">Try It Now — No Signup →</a>
+    <a href="https://github.com/CaptainFredric/ContentForge" class="btn-secondary" target="_blank" rel="noopener">View Source</a>
   </div>
 </div>
 
@@ -1435,84 +1435,29 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   </div>
 </section>
 
-<!-- REVENUE MATRIX -->
-<section id="matrix" class="reveal" style="max-width:1100px;margin:0 auto 88px;padding:0 24px;">
-  <h2>Revenue Impact Matrix</h2>
-  <p class="section-sub">Concrete, non-idealized model. Plug your real numbers in and estimate upside before buying anything.</p>
-
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px;">
-    <label style="font-size:0.78rem;color:#a4a4bb;">Monthly Posts
-      <input id="mxPosts" type="number" value="120" min="1" style="margin-top:6px;width:100%;padding:10px;border-radius:10px;border:1px solid #2a2a3d;background:#111122;color:#e9e9f6;" />
-    </label>
-    <label style="font-size:0.78rem;color:#a4a4bb;">Current CTR (%)
-      <input id="mxCtr" type="number" value="2.2" min="0.1" step="0.1" style="margin-top:6px;width:100%;padding:10px;border-radius:10px;border:1px solid #2a2a3d;background:#111122;color:#e9e9f6;" />
-    </label>
-    <label style="font-size:0.78rem;color:#a4a4bb;">Expected CTR Lift (%)
-      <input id="mxLift" type="number" value="25" min="0" step="1" style="margin-top:6px;width:100%;padding:10px;border-radius:10px;border:1px solid #2a2a3d;background:#111122;color:#e9e9f6;" />
-    </label>
-    <label style="font-size:0.78rem;color:#a4a4bb;">Avg Click Value ($)
-      <input id="mxValue" type="number" value="1.8" min="0" step="0.1" style="margin-top:6px;width:100%;padding:10px;border-radius:10px;border:1px solid #2a2a3d;background:#111122;color:#e9e9f6;" />
-    </label>
-  </div>
-
-  <button class="try-btn" onclick="runRevenueMatrix()" style="max-width:280px;margin:0 auto 16px;display:block;">Calculate Revenue Impact →</button>
-  <div id="mxOutput" style="display:none;border:1px solid #2b2b42;border-radius:14px;background:#111124;padding:18px;"></div>
-
-  <div style="margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
-    <div style="border:1px solid #2a2a3d;border-radius:12px;background:#121224;padding:14px;">
-      <div style="font-size:0.75rem;color:#8d8da8;text-transform:uppercase;letter-spacing:0.5px;">Phase 1</div>
-      <div style="font-size:0.95rem;font-weight:700;color:#efeffa;margin:5px 0;">Draft Quality Gate</div>
-      <div style="font-size:0.82rem;color:#9f9fbc;">Use /v1/score_multi or /v1/ab_test before every post. Only publish B+ and above.</div>
-    </div>
-    <div style="border:1px solid #2a2a3d;border-radius:12px;background:#121224;padding:14px;">
-      <div style="font-size:0.75rem;color:#8d8da8;text-transform:uppercase;letter-spacing:0.5px;">Phase 2</div>
-      <div style="font-size:0.95rem;font-weight:700;color:#efeffa;margin:5px 0;">Rewrite Assist</div>
-      <div style="font-size:0.82rem;color:#9f9fbc;">Use /v1/compose_assist to generate + rank variants automatically. Post top winner only.</div>
-    </div>
-    <div style="border:1px solid #2a2a3d;border-radius:12px;background:#121224;padding:14px;">
-      <div style="font-size:0.75rem;color:#8d8da8;text-transform:uppercase;letter-spacing:0.5px;">Phase 3</div>
-      <div style="font-size:0.95rem;font-weight:700;color:#efeffa;margin:5px 0;">Extension Automation</div>
-      <div style="font-size:0.82rem;color:#9f9fbc;">Score in composer, suggest rewrite, then auto-insert into X/LinkedIn/Instagram/Threads/Facebook.</div>
-    </div>
-    <div style="border:1px solid #2a2a3d;border-radius:12px;background:#121224;padding:14px;">
-      <div style="font-size:0.75rem;color:#8d8da8;text-transform:uppercase;letter-spacing:0.5px;">Phase 4</div>
-      <div style="font-size:0.95rem;font-weight:700;color:#efeffa;margin:5px 0;">Monetize + Close</div>
-      <div style="font-size:0.82rem;color:#9f9fbc;">Publish matrix screenshots + API response proofs in outreach. Sell "measurable copy ops" not vague AI promises.</div>
-    </div>
-  </div>
-  <p style="margin-top:14px;text-align:center;font-size:0.82rem;color:#8f8faf;">
-    Need the full execution checklist? See
-    <a href="docs/MATRIX_V3_PLAN.md" style="color:#7c6af7;">Matrix V3 Plan</a>.
-  </p>
-</section>
-
-<!-- FOUNDING USERS -->
-<section id="founding" class="reveal" style="max-width:740px;margin:0 auto 80px;padding:0 24px;">
-  <div style="border:1px solid #3a2e6e;border-radius:20px;background:linear-gradient(135deg,#0e0e22 0%,#12102a 100%);padding:40px 36px;text-align:center;">
-    <div style="display:inline-block;background:#2a1f60;color:#b8adf7;font-size:0.72rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px;border-radius:20px;margin-bottom:18px;">Founding Users Program</div>
-    <h2 style="font-size:1.65rem;margin-bottom:12px;line-height:1.3;">Help us build the data moat.<br>Get premium access free.</h2>
-    <p style="color:#9898ba;font-size:0.92rem;max-width:540px;margin:0 auto 24px;line-height:1.65;">
-      ContentForge's heuristics are deterministic — but the weights are educated guesses. We're looking for <strong style="color:#e0e0ef;">10 power users</strong> to share real engagement data (likes, clicks, shares) for 20 posts they've scored with ContentForge. In return: <strong style="color:#7c6af7;">3 months of ULTRA plan free</strong> ($89.97 value) and your name in the changelog as a Founding User.
-    </p>
-    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-bottom:28px;">
-      <div style="background:#111126;border:1px solid #252545;border-radius:12px;padding:14px 20px;min-width:160px;">
-        <div style="font-size:1.5rem;margin-bottom:4px;">📊</div>
-        <div style="font-size:0.78rem;font-weight:600;color:#c4c4f0;">You provide</div>
-        <div style="font-size:0.74rem;color:#666688;margin-top:4px;">20 post scores + actual engagement metrics from your social accounts</div>
-      </div>
-      <div style="background:#111126;border:1px solid #252545;border-radius:12px;padding:14px 20px;min-width:160px;">
-        <div style="font-size:1.5rem;margin-bottom:4px;">🎁</div>
-        <div style="font-size:0.78rem;font-weight:600;color:#c4c4f0;">You get</div>
-        <div style="font-size:0.74rem;color:#666688;margin-top:4px;">3 months ULTRA free + Founding User credit in the repo + early access to v2.0</div>
-      </div>
-      <div style="background:#111126;border:1px solid #252545;border-radius:12px;padding:14px 20px;min-width:160px;">
-        <div style="font-size:1.5rem;margin-bottom:4px;">🔬</div>
-        <div style="font-size:0.78rem;font-weight:600;color:#c4c4f0;">We do</div>
-        <div style="font-size:0.74rem;color:#666688;margin-top:4px;">Correlation analysis, weight recalibration, publish results publicly</div>
+<!-- WHY DETERMINISTIC -->
+<section id="why" class="reveal" style="max-width:900px;margin:0 auto 80px;padding:0 24px;">
+  <h2>Why Not Just Use ChatGPT?</h2>
+  <p class="section-sub">Ask GPT to score the same tweet twice. You'll get two different answers. That's the problem.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
+    <div style="border:1px solid #2a2a3d;border-radius:14px;background:#121224;padding:24px;">
+      <div style="font-size:0.75rem;color:#ff6b6b;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">LLM-based scoring</div>
+      <div style="font-family:monospace;font-size:0.85rem;color:#888;line-height:1.8;">
+        score("Great tweet!") → <span style="color:#ff6b6b">74</span><br>
+        score("Great tweet!") → <span style="color:#ff6b6b">79</span><br>
+        score("Great tweet!") → <span style="color:#ff6b6b">71</span><br>
+        <span style="color:#555;font-size:0.75rem;">1.2s avg · $0.003/call · different every time</span>
       </div>
     </div>
-    <a href="mailto:captainarmoreddude@gmail.com?subject=Founding%20User%20Application&body=Hi%2C%20I%27m%20interested%20in%20the%20ContentForge%20Founding%20Users%20program.%20Here%27s%20a%20bit%20about%20my%20content%20workflow%3A" class="btn-primary" style="display:inline-block;">Apply — 7 spots remaining →</a>
-    <p style="margin-top:14px;font-size:0.76rem;color:#44445a;">No commitment until you have data to share. First 10 accepted.</p>
+    <div style="border:1px solid #2e4a3e;border-radius:14px;background:#0d1f18;padding:24px;">
+      <div style="font-size:0.75rem;color:#5ec8a0;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">ContentForge</div>
+      <div style="font-family:monospace;font-size:0.85rem;color:#888;line-height:1.8;">
+        score("Great tweet!") → <span style="color:#5ec8a0">42</span><br>
+        score("Great tweet!") → <span style="color:#5ec8a0">42</span><br>
+        score("Great tweet!") → <span style="color:#5ec8a0">42</span><br>
+        <span style="color:#555;font-size:0.75rem;">18ms · free · same answer forever</span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1553,43 +1498,15 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   </div>
 </section>
 
-<!-- AGENCY TIER -->
-<section id="agencies" class="reveal" style="max-width:1100px;margin:0 auto 72px;padding:0 24px;">
-  <h2 style="text-align:center;font-size:1.7rem;margin-bottom:10px;color:#e0e0e0;">ContentForge for Agencies</h2>
-  <p class="section-sub" style="text-align:center;max-width:640px;margin:0 auto 36px;">Automated quality assurance for distributed content teams. Quantifiable lift, deterministic audit trails, and policy-collision avoidance — all via API.</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-bottom:32px;">
-    <div style="padding:20px;border:1px solid #1e2260;border-radius:12px;background:#0d0d20;">
-      <div style="font-size:1.3rem;margin-bottom:8px;">🚦</div>
-      <div style="font-weight:700;font-size:0.95rem;color:#c4c4f0;margin-bottom:6px;">Pre-Publish Quality Gate</div>
-      <div style="font-size:0.78rem;color:#666688;line-height:1.55;">Every piece of content gets a deterministic <code style="color:#7c6af7;">quality_gate: PASSED | REVIEW | FAILED</code> verdict with <code style="color:#7c6af7;">operational_risk</code> level. No black boxes — the scoring logic is open source and fully auditable.</div>
-    </div>
-    <div style="padding:20px;border:1px solid #1e2260;border-radius:12px;background:#0d0d20;">
-      <div style="font-size:1.3rem;margin-bottom:8px;">📈</div>
-      <div style="font-weight:700;font-size:0.95rem;color:#c4c4f0;margin-bottom:6px;">Measurable Lift on Every Rewrite</div>
-      <div style="font-size:0.78rem;color:#666688;line-height:1.55;"><code style="color:#7c6af7;">/v1/improve_headline</code> returns <code style="color:#7c6af7;">lift_percentage</code> and an <code style="color:#7c6af7;">audit_summary</code> brief your account managers can copy-paste directly into a client Slack channel. Score 49 → 88 = <strong style="color:#4ade80;">+79% lift</strong>.</div>
-    </div>
-    <div style="padding:20px;border:1px solid #1e2260;border-radius:12px;background:#0d0d20;">
-      <div style="font-size:1.3rem;margin-bottom:8px;">🛰️</div>
-      <div style="font-weight:700;font-size:0.95rem;color:#c4c4f0;margin-bottom-6px;">Policy Collision Avoidance</div>
-      <div style="font-size:0.78rem;color:#666688;line-height:1.55;margin-top:6px;">The autonomous state machine intercepts platform friction before it becomes a visible policy event — cooldown, exponential backoff [1h→6h→24h→72h], and degraded/blocked state tracking. Account longevity over raw throughput.</div>
-    </div>
-    <div style="padding:20px;border:1px solid #1e2260;border-radius:12px;background:#0d0d20;">
-      <div style="font-size:1.3rem;margin-bottom:8px;">🌡️</div>
-      <div style="font-weight:700;font-size:0.95rem;color:#c4c4f0;margin-bottom:6px;">Platform Friction Monitor</div>
-      <div style="font-size:0.78rem;color:#666688;line-height:1.55;"><code style="color:#7c6af7;">GET /v1/platform_friction</code> returns real-time <code style="color:#7c6af7;">friction_level: LOW | MEDIUM | HIGH</code> across all tracked accounts. Know before you post whether conditions are safe — for your own manual content too.</div>
-    </div>
-  </div>
+<!-- SELF HOST -->
+<section class="reveal" style="max-width:900px;margin:0 auto 72px;padding:0 24px;">
+  <h2 style="text-align:center;font-size:1.7rem;margin-bottom:10px;color:#e0e0e0;">Self-Host It</h2>
+  <p class="section-sub" style="text-align:center;max-width:540px;margin:0 auto 24px;">Run the entire scoring engine locally. Scoring uses zero AI calls. Open source, AGPL-3.0.</p>
   <div style="border:1px solid #2a2a4a;border-radius:12px;background:#09091a;padding:20px 24px;">
-    <div style="font-size:0.75rem;font-weight:700;letter-spacing:1px;color:#7c6af7;text-transform:uppercase;margin-bottom:10px;">Example: Enriched Response Schema</div>
-    <pre style="margin:0;font-size:0.75rem;color:#a0b0d0;line-height:1.6;overflow:auto;">{
-  "original_score": 42,
-  "revised_score": 88,
-  "lift_percentage": "+109%",
-  "quality_gate": "PASSED",
-  "operational_risk": "LOW",
-  "time_to_improve_ms": 1847,
-  "audit_summary": "The original scored 42 due to absent urgency language and a length below the 30-word floor. The rewrite resolves both: urgency phrase detected, optimal length reached."
-}</pre>
+    <pre style="margin:0;font-size:0.82rem;color:#a0b0d0;line-height:1.8;overflow:auto;"><span style="color:#666;">$</span> git clone https://github.com/CaptainFredric/ContentForge.git
+<span style="color:#666;">$</span> pip install -r requirements.txt
+<span style="color:#666;">$</span> python scripts/api_prototype.py
+<span style="color:#5ec8a0;">Listening on http://localhost:5000 — all 45 endpoints active</span></pre>
   </div>
 </section>
 
