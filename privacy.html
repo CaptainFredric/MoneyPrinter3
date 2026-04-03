@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Privacy Policy — ContentForge Chrome Extension</title>
+  <meta name="description" content="Privacy Policy for the ContentForge Chrome Extension. No accounts, no tracking, no PII stored.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: #0f0f11;
+      color: #e8e8ec;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 32px; border-bottom: 1px solid #1e1e28;
+      position: sticky; top: 0; background: rgba(15,15,17,0.92);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    .logo { font-weight: 800; font-size: 1.2rem; color: #7c6af7; letter-spacing: -0.5px; }
+    .logo span { color: #e8e8ec; }
+    nav a {
+      color: #9999aa; text-decoration: none; font-size: 0.9rem; margin-left: 24px;
+      transition: color .2s;
+    }
+    nav a:hover { color: #e8e8ec; }
+    .nav-cta {
+      background: #7c6af7; color: #fff !important;
+      padding: 8px 18px; border-radius: 8px; font-weight: 600;
+      transition: background .2s, transform .2s, box-shadow .2s;
+    }
+    .nav-cta:hover {
+      background: #6a57e6 !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(124,106,247,0.3);
+    }
+
+    /* ── CONTENT ── */
+    .policy {
+      max-width: 740px;
+      margin: 64px auto 80px;
+      padding: 0 24px;
+    }
+    .policy h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .policy .effective {
+      color: #7c6af7;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 40px;
+    }
+    .policy h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 40px;
+      margin-bottom: 12px;
+      color: #e8e8ec;
+    }
+    .policy p,
+    .policy li {
+      color: #b0b0be;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    .policy p {
+      margin-bottom: 14px;
+    }
+    .policy ul {
+      margin: 12px 0 14px 24px;
+    }
+    .policy li {
+      margin-bottom: 8px;
+    }
+    .policy strong {
+      color: #e8e8ec;
+      font-weight: 600;
+    }
+    .policy code {
+      background: #1e1e28;
+      color: #5ec8a0;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.88rem;
+    }
+    .policy a {
+      color: #7c6af7;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .policy a:hover {
+      color: #9b8ff7;
+    }
+    .policy .summary-box {
+      background: #1a1a24;
+      border: 1px solid #2e2e40;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+    }
+    .policy .summary-box p {
+      margin-bottom: 0;
+      color: #ccccd4;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid #1e1e28; padding: 32px 24px;
+      text-align: center; font-size: 0.84rem; color: #555566;
+    }
+    footer a { color: #7c6af7; text-decoration: none; transition: color .2s; }
+    footer a:hover { color: #9b8ff7; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" style="text-decoration:none;margin-left:0;">
+    <div class="logo">Content<span>Forge</span></div>
+  </a>
+  <div>
+    <a href="index.html">Home</a>
+    <a href="https://github.com/CaptainFredric/ContentForge" class="nav-cta" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
+<!-- PRIVACY POLICY -->
+<div class="policy">
+  <h1>Privacy Policy</h1>
+  <p class="effective">Effective date: April 3, 2026</p>
+
+  <div class="summary-box">
+    <p><strong>The short version:</strong> ContentForge does not collect, store, or sell your personal information. The extension sends only the text you choose to score to our API, and that text is discarded immediately after processing.</p>
+  </div>
+
+  <p>This privacy policy describes how the ContentForge Chrome Extension ("the Extension") and the ContentForge API ("the API") handle your data. ContentForge is an open-source project (<a href="https://github.com/CaptainFredric/ContentForge" target="_blank" rel="noopener">source code</a>) licensed under AGPL-3.0.</p>
+
+  <h2>1. What Data We Collect</h2>
+  <p>When you use the Extension to score a post, the <strong>text content of that post</strong> is sent to the ContentForge API at <code>https://contentforge-api-lpp9.onrender.com</code> for analysis. That is the only data transmitted from the Extension.</p>
+  <p>We do <strong>not</strong> collect:</p>
+  <ul>
+    <li>Names, email addresses, or any personally identifiable information (PII)</li>
+    <li>Browsing history or page URLs</li>
+    <li>Cookies or tracking identifiers</li>
+    <li>Analytics or usage telemetry</li>
+    <li>Account credentials or authentication tokens</li>
+  </ul>
+  <p>There are no user accounts, no login, and no authentication of any kind.</p>
+
+  <h2>2. How We Use It</h2>
+  <p>The text you submit is used for one purpose: to generate a content score and feedback. The API processes the text using deterministic heuristic scoring, returns the results to the Extension, and the text is <strong>not retained</strong> after the response is sent.</p>
+  <p>We do not use your text for training models, advertising, profiling, or any purpose beyond returning your score.</p>
+
+  <h2>3. Data Storage</h2>
+  <p><strong>On the server:</strong> Nothing. The API does not persist submitted text. There is no database of user content. Text is processed in memory and discarded.</p>
+  <p><strong>On your device:</strong> The Extension stores your most recent rewrite history (up to 12 entries) locally using <code>chrome.storage.local</code>. This data never leaves your browser. You can clear it at any time by removing the Extension or clearing its data through Chrome's extension settings.</p>
+
+  <h2>4. Third Parties</h2>
+  <p>The Extension communicates with exactly one external service: the ContentForge API hosted at <code>https://contentforge-api-lpp9.onrender.com</code>. This API runs on <a href="https://render.com" target="_blank" rel="noopener">Render</a>.</p>
+  <p>We do not embed any third-party scripts, analytics services, advertising networks, or tracking pixels. There are no SDKs from Google Analytics, Facebook, Mixpanel, or similar services.</p>
+
+  <h2>5. Your Rights</h2>
+  <p>Because we do not store your personal data, there is nothing to access, correct, or delete. If you stop using the Extension, no trace of your usage remains on our servers.</p>
+  <p>To remove locally stored rewrite history, you can:</p>
+  <ul>
+    <li>Uninstall the Extension from Chrome, or</li>
+    <li>Go to <code>chrome://extensions</code>, find ContentForge, and click "Remove" or clear its site data.</li>
+  </ul>
+
+  <h2>6. Changes to This Policy</h2>
+  <p>If this policy changes, the updated version will be posted at this URL (<a href="https://captainfredric.github.io/ContentForge/privacy.html">captainfredric.github.io/ContentForge/privacy.html</a>) with a new effective date. Since there are no user accounts, we cannot send direct notifications of changes. We encourage you to review this page periodically.</p>
+
+  <h2>7. Contact</h2>
+  <p>If you have questions about this privacy policy or the Extension, contact:</p>
+  <p>
+    <strong>Aden Cisneros</strong><br>
+    <a href="mailto:captainarmoreddude@gmail.com">captainarmoreddude@gmail.com</a><br>
+    <a href="https://github.com/CaptainFredric/ContentForge" target="_blank" rel="noopener">github.com/CaptainFredric/ContentForge</a>
+  </p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    <strong style="color:#7c6af7;">ContentForge</strong> — Built by
+    <a href="https://github.com/CaptainFredric" target="_blank" rel="noopener">Aden Cisneros</a>
+    &nbsp;&middot;&nbsp;
+    <a href="index.html">Home</a>
+    &nbsp;&middot;&nbsp;
+    <a href="https://github.com/CaptainFredric/ContentForge" target="_blank" rel="noopener">GitHub</a>
+    &nbsp;&middot;&nbsp;
+    <a href="mailto:captainarmoreddude@gmail.com">Contact</a>
+  </p>
+  <p style="margin-top:8px;font-size:0.8rem;color:#444;">
+    AGPL-3.0 License &nbsp;&middot;&nbsp; No data stored or logged &nbsp;&middot;&nbsp; HTTPS everywhere
+  </p>
+</footer>
+
+</body>
+</html>
