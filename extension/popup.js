@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusText = document.getElementById("statusText");
   const suggestBtn = document.getElementById("suggestBtn");
   const insertBtn = document.getElementById("insertBtn");
+  const copyBtn = document.getElementById("copyBtn");
   const toneEl = document.getElementById("tone");
   const assistOutput = document.getElementById("assistOutput");
   const auditSummary = document.getElementById("auditSummary");
@@ -194,6 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
     suggestBtn.textContent = "Rewriting...";
     suggestBtn.disabled = true;
     insertBtn.disabled = true;
+    copyBtn.disabled = true;
     latestOriginalText = text;
 
     chrome.runtime.sendMessage(
@@ -236,6 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
         insertBtn.disabled = false;
+        copyBtn.disabled = false;
       }
     );
   });
@@ -259,7 +262,14 @@ document.addEventListener("DOMContentLoaded", () => {
         insertBtn.textContent = "Auto Insert";
 
         if (chrome.runtime.lastError || !resp || !resp.ok) {
-          showError(scoreError, "Could not auto-insert on this page. Open a supported composer (X, LinkedIn, Instagram, Threads, Facebook) and try again.");
+          // Fallback: copy to clipboard instead
+          navigator.clipboard.writeText(latestSuggestion).then(() => {
+            insertBtn.textContent = "Copied to clipboard!";
+            setTimeout(() => { insertBtn.textContent = "Auto Insert"; }, 2000);
+            showError(scoreError, "Auto-insert unavailable on this page — text copied to clipboard. Paste it into your composer.");
+          }).catch(() => {
+            showError(scoreError, "Could not auto-insert on this page. Open a supported composer (X, LinkedIn, Instagram, Threads, Facebook) and try again.");
+          });
           return;
         }
 
@@ -279,6 +289,21 @@ document.addEventListener("DOMContentLoaded", () => {
           hideError(scoreError);
         }
       });
+    });
+  });
+
+  // --- Copy to Clipboard ---
+  copyBtn.addEventListener("click", () => {
+    if (!latestSuggestion) return;
+    navigator.clipboard.writeText(latestSuggestion).then(() => {
+      copyBtn.textContent = "Copied!";
+      copyBtn.style.color = "#5ec8a0";
+      copyBtn.style.borderColor = "#5ec8a0";
+      setTimeout(() => {
+        copyBtn.textContent = "Copy";
+        copyBtn.style.color = "#9999aa";
+        copyBtn.style.borderColor = "#2e2e40";
+      }, 2000);
     });
   });
 
@@ -478,6 +503,10 @@ function renderSuggestionHistory() {
       }
       if (insertBtn) {
         insertBtn.disabled = !latestSuggestion;
+      }
+      const copyBtn = document.getElementById("copyBtn");
+      if (copyBtn) {
+        copyBtn.disabled = !latestSuggestion;
       }
     });
 
