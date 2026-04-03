@@ -17,7 +17,7 @@ RapidAPI's import dialog drops the file reference when you release it over the w
 
 ## Current Spec Status
 
-- **27 endpoints** documented (15 instant heuristic scorers + 11 AI generators + 1 health)
-- All tags correct: `Content Analysis`, `AI Content Generation`, `System`
+- **42 endpoints** documented (19 instant heuristic scorers + 13 AI generators + 8 proof dashboard + 1 system/friction + 1 health)
+- All tags correct: `Content Analysis`, `AI Content Generation`, `Proof`, `System`
 - Server: `https://contentforge-api-lpp9.onrender.com`
-- Version: `1.0.0`
+- Version: `1.8.0`

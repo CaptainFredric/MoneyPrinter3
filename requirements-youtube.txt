@@ -1,8 +1,0 @@
-# YouTube Shorts generation dependencies (TTS + video composition)
-# Only needed if you use the YouTube Shorts pipeline.
-# Install with: pip install -r requirements-youtube.txt
-#
-# Note: kittentts requires misaki>=0.9.4 which is not available on Python 3.14+.
-# If you hit install errors, use Python 3.12 for this requirements file.
-kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl
-moviepy<2.0

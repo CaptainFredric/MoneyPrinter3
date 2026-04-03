@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ContentForge",
-    "description": "# ContentForge \u2014 Content Scoring & AI Generation Toolkit\n\nYour post flopped. You'll never know exactly why if you wait until after.\n\n**ContentForge** is a 28-endpoint REST API that scores your content against platform-specific best practices *before* you hit publish \u2014 returning a 0\u2013100 score, a letter grade, and specific improvement tips in under 50ms. No guessing. No vague feedback. Just signal you can act on.\n\n**Free tier includes every endpoint. No credit card required.**\n\n---\n\n## Why ContentForge Is Different\n\nMost scoring tools are either too slow (LLM inference = 2\u201310s per call) or too vague (\"add more emotion\" isn't actionable). ContentForge uses a **pure heuristic engine** for all scoring: deterministic rules mapped to each platform's documented best practices. Same input, same score, every time \u2014 at <50ms with zero AI token cost.\n\nAI generation is opt-in, for when you actually need a draft written from scratch.\n\n---\n\n## \u26a1 16 Instant Scorers \u2014 <50ms, zero AI cost\n\nEach platform has different rules. ContentForge checks the right signals for each:\n\n| Endpoint | What It Checks |\n|---|---|\n| `/v1/score_tweet` | Length, hook, hashtags (1\u20132 optimal), emojis, CTA, power words |\n| `/v1/score_linkedin_post` | Hook strength, paragraph structure, hashtag count, professional tone, CTA |\n| `/v1/score_instagram` | Hashtag count (5\u201315 optimal), emojis, hook, line breaks, CTA |\n| `/v1/score_youtube_title` | CTR signals, optimal length (40\u201360 chars), numbers, brackets, power words |\n| `/v1/score_youtube_description` | SEO keywords, timestamps, chapter marks, links, CTA placement |\n| `/v1/score_email_subject` | Open-rate signals, spam triggers, urgency, personalization tokens, length |\n| `/v1/score_tiktok` | Hook speed, hashtag strategy, trending language, ideal length (\u2264150 chars) |\n| `/v1/score_threads` | Conversational tone, question hooks, hashtag penalty, CTA |\n| `/v1/score_facebook` | Engagement triggers, question hooks, emoji density, hashtag count |\n| `/v1/score_pinterest` | Keyword density, instructional language, hashtags, spam signals |\n| `/v1/score_ad_copy` | Headline length, benefit clarity, urgency, CTA strength, compliance signals |\n| `/v1/score_readability` | Flesch-Kincaid reading ease + grade level + avg sentence/word length |\n| `/v1/analyze_headline` | Power words (60+ tracked), numbers, questions, emotional triggers, length |\n| `/v1/analyze_hashtags` | Uniqueness, spam risk, overuse, per-platform recommendations |\n| `/v1/score_multi` | Score one piece of text across **all platforms** in a single call |\n| `/v1/batch_score` | Score up to 20 draft texts against one platform \u2014 returned best-first |\n\n---\n\n## \u2726 12 AI Generators \u2014 Gemini 2.5 Flash\n\nWhen you need a draft written, rebuilt, or expanded:\n\n| Endpoint | What It Returns |\n|---|---|\n| `/v1/improve_headline` | N AI-rewritten versions, each pre-scored and sorted best-first |\n| `/v1/generate_hooks` | Scroll-stopping openers for any topic (viral / professional / casual / bold) |\n| `/v1/rewrite` | Platform-optimized rewrite: Twitter, LinkedIn, Instagram, TikTok, email, blog |\n| `/v1/tweet_ideas` | 5\u201310 tweet angles for any niche with hashtag suggestions |\n| `/v1/content_calendar` | 7-day calendar with daily themes and ready-to-post drafts |\n| `/v1/thread_outline` | Complete Twitter thread: scroll-stopping hook + numbered body + CTA |\n| `/v1/generate_bio` | Social bio for Twitter (160 chars), LinkedIn (300), or Instagram (150) |\n| `/v1/generate_caption` | Instagram or TikTok caption with hashtags, emojis, and CTA |\n| `/v1/generate_linkedin_post` | Full LinkedIn post: hook + story + insight + CTA |\n| `/v1/generate_email_sequence` | 3-email drip: welcome \u2192 value \u2192 pitch, subject lines included |\n| `/v1/generate_content_brief` | Research brief: audience, angle, SEO keywords, outline, hooks |\n| `/v1/generate_ad_copy` | Short-form ad copy variants for Facebook, Google, and Twitter |\n\n---\n\n## Quick Example\n\n**Instant score \u2014 no AI, no wait:**\n\n```\ncurl -X POST https://contentforge-api-lpp9.onrender.com/v1/score_tweet \\\n  -H \"X-RapidAPI-Key: YOUR_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"text\": \"I shipped in 48 hours. Here is what I learned \ud83e\uddf5 #buildinpublic\"}'\n```\n\n**Response (~12ms):**\n\n```json\n{\n  \"score\": 79,\n  \"grade\": \"B\",\n  \"char_count\": 59,\n  \"hashtag_count\": 1,\n  \"emoji_count\": 1,\n  \"suggestions\": [\n    \"Add a specific number to the opening hook\",\n    \"Length is in the lower-optimal range \u2014 aim for 71\u2013100 chars\"\n  ]\n}\n```\n\n---\n\n## Who Uses ContentForge\n\n- **Bloggers & newsletter writers** \u2014 `analyze_headline` every post before publish\n- **Twitter/X power users** \u2014 draft \u2192 score \u2192 only post A/B-grade content\n- **Indie hackers & founders** \u2014 daily `tweet_ideas` for your build-in-public niche\n- **Content agencies** \u2014 generate full monthly calendars in seconds\n- **Copywriters** \u2014 `rewrite` any text for a different platform instantly\n- **Email marketers** \u2014 score subject lines for higher open rates\n- **Developers** \u2014 clean JSON, CORS enabled, consistent schemas, fits any stack\n\n---\n\n## Plans\n\nInstant endpoints (`score_*`, `analyze_*`, `batch_score`, `health`) never count against AI call quota.\n\n| Plan | Price | AI Calls/mo | Requests/mo | Rate Limit |\n|---|---|---|---|---|\n| **BASIC** | Free | 50 | 300 | 30 req/min |\n| **PRO** | $9.99/mo | 750 | 1,000 | 30 req/min |\n| **ULTRA** | $29.99/mo | 3,000 | 4,000 | 30 req/min |\n| **MEGA** | $99/mo | 18,000 | 20,000 | 30 req/min |\n\n---\n\n**Live demo (no API key needed):** https://captainfredric.github.io/ContentForge/\n\n**GitHub:** https://github.com/CaptainFredric/ContentForge\n\n**Support:** captainarmoreddude@gmail.com",
-    "version": "1.9.0",
+    "description": "# ContentForge \u2014 Content Scoring & AI Generation Toolkit\n\nYour post flopped. You'll never know exactly why if you wait until after.\n\n**ContentForge** is a 41-endpoint REST API that scores your content against platform-specific best practices *before* you hit publish \u2014 returning a 0\u2013100 score, a letter grade, and specific improvement tips in under 50ms. No guessing. No vague feedback. Just signal you can act on.\n\n**Free tier includes every endpoint. No credit card required.**\n\n---\n\n## Why ContentForge Is Different\n\nMost scoring tools are either too slow (LLM inference = 2\u201310s per call) or too vague (\"add more emotion\" isn't actionable). ContentForge uses a **pure heuristic engine** for all scoring: deterministic rules mapped to each platform's documented best practices. Same input, same score, every time \u2014 at <50ms with zero AI token cost.\n\nAI generation is opt-in, for when you actually need a draft written from scratch.\n\n---\n\n## \u26a1 19 Instant Endpoints \u2014 <50ms, zero AI cost\n\nEach platform has different rules. ContentForge checks the right signals for each:\n\n| Endpoint | What It Checks |\n|---|---|\n| `/v1/score_tweet` | Length, hook, hashtags (1\u20132 optimal), emojis, CTA, power words |\n| `/v1/score_linkedin_post` | Hook strength, paragraph structure, hashtag count, professional tone, CTA |\n| `/v1/score_instagram` | Hashtag count (5\u201315 optimal), emojis, hook, line breaks, CTA |\n| `/v1/score_youtube_title` | CTR signals, optimal length (40\u201360 chars), numbers, brackets, power words |\n| `/v1/score_youtube_description` | SEO keywords, timestamps, chapter marks, links, CTA placement |\n| `/v1/score_email_subject` | Open-rate signals, spam triggers, urgency, personalization tokens, length |\n| `/v1/score_tiktok` | Hook speed, hashtag strategy, trending language, ideal length (\u2264150 chars) |\n| `/v1/score_threads` | Conversational tone, question hooks, hashtag penalty, CTA |\n| `/v1/score_facebook` | Engagement triggers, question hooks, emoji density, hashtag count |\n| `/v1/score_pinterest` | Keyword density, instructional language, hashtags, spam signals |\n| `/v1/score_ad_copy` | Headline length, benefit clarity, urgency, CTA strength, compliance signals |\n| `/v1/score_readability` | Flesch-Kincaid reading ease + grade level + avg sentence/word length |\n| `/v1/analyze_headline` | Power words (60+ tracked), numbers, questions, emotional triggers, length |\n| `/v1/analyze_hashtags` | Uniqueness, spam risk, overuse, per-platform recommendations |\n| `/v1/score_multi` | Score one piece of text across **all platforms** in a single call |\n| `/v1/batch_score` | Score up to 20 draft texts against one platform \u2014 returned best-first |\n| `/v1/compare` | Head-to-head comparison of two texts with winner + advantages |\n| `/v1/ab_test` | A/B test 2-20 drafts on any platform \u2014 returns ranked list with confidence |\n\n---\n\n## \u2726 13 AI Generators \u2014 Gemini 2.5 Flash\n\nWhen you need a draft written, rebuilt, or expanded:\n\n| Endpoint | What It Returns |\n|---|---|\n| `/v1/improve_headline` | N AI-rewritten versions, each pre-scored and sorted best-first |\n| `/v1/generate_hooks` | Scroll-stopping openers for any topic (viral / professional / casual / bold) |\n| `/v1/rewrite` | Platform-optimized rewrite: Twitter, LinkedIn, Instagram, TikTok, email, blog |\n| `/v1/compose_assist` | Generate 2-5 rewrites, score each, and return the best-performing draft |\n| `/v1/tweet_ideas` | 5\u201310 tweet angles for any niche with hashtag suggestions |\n| `/v1/content_calendar` | 7-day calendar with daily themes and ready-to-post drafts |\n| `/v1/thread_outline` | Complete Twitter thread: scroll-stopping hook + numbered body + CTA |\n| `/v1/generate_bio` | Social bio for Twitter (160 chars), LinkedIn (300), or Instagram (150) |\n| `/v1/generate_caption` | Instagram or TikTok caption with hashtags, emojis, and CTA |\n| `/v1/generate_linkedin_post` | Full LinkedIn post: hook + story + insight + CTA |\n| `/v1/generate_email_sequence` | 3-email drip: welcome \u2192 value \u2192 pitch, subject lines included |\n| `/v1/generate_content_brief` | Research brief: audience, angle, SEO keywords, outline, hooks |\n| `/v1/generate_ad_copy` | Short-form ad copy variants for Facebook, Google, and Twitter |\n\n---\n\n## Quick Example\n\n**Instant score \u2014 no AI, no wait:**\n\n```\ncurl -X POST https://contentforge-api-lpp9.onrender.com/v1/score_tweet \\\n  -H \"X-RapidAPI-Key: YOUR_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"text\": \"I shipped in 48 hours. Here is what I learned \ud83e\uddf5 #buildinpublic\"}'\n```\n\n**Response (~12ms):**\n\n```json\n{\n  \"score\": 79,\n  \"grade\": \"B\",\n  \"char_count\": 59,\n  \"hashtag_count\": 1,\n  \"emoji_count\": 1,\n  \"suggestions\": [\n    \"Add a specific number to the opening hook\",\n    \"Length is in the lower-optimal range \u2014 aim for 71\u2013100 chars\"\n  ]\n}\n```\n\n---\n\n## Who Uses ContentForge\n\n- **Bloggers & newsletter writers** \u2014 `analyze_headline` every post before publish\n- **Twitter/X power users** \u2014 draft \u2192 score \u2192 only post A/B-grade content\n- **Indie hackers & founders** \u2014 daily `tweet_ideas` for your build-in-public niche\n- **Content agencies** \u2014 generate full monthly calendars in seconds\n- **Copywriters** \u2014 `rewrite` any text for a different platform instantly\n- **Email marketers** \u2014 score subject lines for higher open rates\n- **Developers** \u2014 clean JSON, CORS enabled, consistent schemas, fits any stack\n\n---\n\n## Plans\n\nInstant endpoints (`score_*`, `analyze_*`, `batch_score`, `health`) never count against AI call quota.\n\n| Plan | Price | AI Calls/mo | Requests/mo | Rate Limit |\n|---|---|---|---|---|\n| **BASIC** | Free | 50 | 300 | 30 req/min |\n| **PRO** | $9.99/mo | 750 | 1,000 | 30 req/min |\n| **ULTRA** | $29.99/mo | 3,000 | 4,000 | 30 req/min |\n| **MEGA** | $99/mo | 18,000 | 20,000 | 30 req/min |\n\n---\n\n**Live demo (no API key needed):** https://captainfredric.github.io/ContentForge/\n\n**GitHub:** https://github.com/CaptainFredric/ContentForge\n\n**Support:** captainarmoreddude@gmail.com\n\n---\n\n## Proof Dashboard\n\nTrack score delta, publish outcomes, and estimated revenue lift with:\n- `/v1/record_score_delta`\n- `/v1/record_publish_outcome`\n- `/v1/record_revenue`\n- `/v1/dashboard_stats`\n- `/v1/proof_timeline`\n- `/v1/export_proof_report`\n- `/v1/proof_recommendations`\n- `/v1/cohort_benchmarks`\n\n---\n\n## QOps Layer (v1.7.0)\n\nEvery scoring endpoint now returns structured quality operations fields:\n\n- `quality_gate`: `PASSED` | `REVIEW` | `FAILED` \u2014 deterministic audit verdict (\u226570 / 50-69 / <50)\n- `operational_risk`: `LOW` | `MEDIUM` | `HIGH` \u2014 risk band paired to quality gate\n\n`/v1/improve_headline` additionally returns:\n- `lift_percentage`: measurable score delta from original to best version (e.g. `\"+109%\"`)\n- `time_to_improve_ms`: end-to-end wall-clock ms\n- `audit_summary`: LLM-generated 1-2 sentence agency brief (when AI is available)\n\n`GET /v1/platform_friction` \u2014 real-time account state machine health across all tracked automation accounts. Returns `friction_level` LOW / MEDIUM / HIGH plus per-account state breakdown.\n",
+    "version": "1.8.0",
     "contact": {
       "name": "Aden Cisneros",
       "email": "captainarmoreddude@gmail.com",
@@ -66,7 +66,7 @@
                 "example": {
                   "status": "ok",
                   "service": "contentforge",
-                  "version": "1.0.0",
+                  "version": "1.1.0",
                   "llm_backend": "gemini",
                   "ai_endpoints_ready": true,
                   "total_requests_served": 42,
@@ -80,6 +80,145 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/v1/ab_test": {
+      "post": {
+        "summary": "A/B Test \u2014 Rank Multiple Drafts",
+        "description": "Submit 2-20 content drafts and a target platform. All drafts are scored and ranked best-first, with a winner recommendation, confidence level (high/medium/low), and statistical spread (min, max, avg, spread). Instant heuristic \u2014 no AI cost, <50ms.",
+        "operationId": "abTest",
+        "tags": [
+          "Instant Scoring"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "drafts",
+                  "platform"
+                ],
+                "properties": {
+                  "drafts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 2,
+                    "maxItems": 20,
+                    "description": "Array of 2-20 content drafts to test"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "description": "Target platform (tweet, linkedin, instagram, tiktok, youtube, email, headline, pinterest, ad, threads, facebook)"
+                  }
+                }
+              },
+              "example": {
+                "drafts": [
+                  "Ship fast, learn faster \ud83d\ude80 #buildinpublic",
+                  "We are pleased to announce our new product.",
+                  "Built an API in 48hr \u2014 $500 last month"
+                ],
+                "platform": "tweet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ranked drafts with winner recommendation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "type": "string"
+                    },
+                    "drafts_tested": {
+                      "type": "integer"
+                    },
+                    "rankings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "text_preview": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "integer"
+                          },
+                          "grade": {
+                            "type": "string"
+                          },
+                          "suggestions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "stats": {
+                      "type": "object",
+                      "properties": {
+                        "min": {
+                          "type": "integer"
+                        },
+                        "max": {
+                          "type": "integer"
+                        },
+                        "avg": {
+                          "type": "number"
+                        },
+                        "spread": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "recommendation": {
+                      "type": "object",
+                      "properties": {
+                        "winner": {
+                          "type": "string"
+                        },
+                        "winner_score": {
+                          "type": "integer"
+                        },
+                        "runner_up": {
+                          "type": "string"
+                        },
+                        "runner_up_score": {
+                          "type": "integer"
+                        },
+                        "margin": {
+                          "type": "integer"
+                        },
+                        "confidence": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing drafts, invalid platform, or fewer than 2 drafts"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
           }
         }
       }
@@ -364,6 +503,24 @@
                         "type": "string"
                       },
                       "description": "Actionable improvement tips"
+                    },
+                    "quality_gate": {
+                      "type": "string",
+                      "enum": [
+                        "PASSED",
+                        "REVIEW",
+                        "FAILED"
+                      ],
+                      "description": "Deterministic audit verdict. PASSED \u226570, REVIEW 50-69, FAILED <50."
+                    },
+                    "operational_risk": {
+                      "type": "string",
+                      "enum": [
+                        "LOW",
+                        "MEDIUM",
+                        "HIGH"
+                      ],
+                      "description": "Risk band paired with quality_gate. LOW=PASSED, MEDIUM=REVIEW, HIGH=FAILED."
                     }
                   }
                 },
@@ -569,6 +726,314 @@
         }
       }
     },
+    "/v1/cohort_benchmarks": {
+      "get": {
+        "summary": "Cohort Benchmarks",
+        "description": "Current period vs trailing period benchmark metrics plus platform medians.",
+        "operationId": "cohortBenchmarks",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "week",
+                "month",
+                "quarter"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Benchmark report"
+          }
+        }
+      }
+    },
+    "/v1/compare": {
+      "post": {
+        "summary": "Head-to-Head Content Comparison",
+        "description": "Compare two pieces of content head-to-head across one or more platforms. Returns per-platform scores, a winner declaration, point difference, and specific advantages each text has over the other. Instant heuristic analysis \u2014 no AI token cost. Great for A/B testing drafts or benchmarking against competitors.",
+        "operationId": "compare",
+        "tags": [
+          "Content Analysis"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text_a",
+                  "text_b"
+                ],
+                "properties": {
+                  "text_a": {
+                    "type": "string",
+                    "maxLength": 5000,
+                    "description": "First text (your draft)",
+                    "example": "Ship fast, learn faster. The only metric that matters is velocity."
+                  },
+                  "text_b": {
+                    "type": "string",
+                    "maxLength": 5000,
+                    "description": "Second text (competitor or alternative draft)",
+                    "example": "We are pleased to announce the release of our new product offering."
+                  },
+                  "platforms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Platforms to compare on (defaults to tweet, linkedin, instagram)",
+                    "example": [
+                      "tweet",
+                      "linkedin"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comparison result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text_a_preview": {
+                      "type": "string"
+                    },
+                    "text_b_preview": {
+                      "type": "string"
+                    },
+                    "platforms_compared": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "comparisons": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "score_a": {
+                            "type": "integer"
+                          },
+                          "grade_a": {
+                            "type": "string"
+                          },
+                          "score_b": {
+                            "type": "integer"
+                          },
+                          "grade_b": {
+                            "type": "string"
+                          },
+                          "difference": {
+                            "type": "integer"
+                          },
+                          "winner": {
+                            "type": "string",
+                            "enum": [
+                              "A",
+                              "B",
+                              "tie"
+                            ]
+                          },
+                          "a_advantages": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "b_advantages": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "a_wins": {
+                          "type": "integer"
+                        },
+                        "b_wins": {
+                          "type": "integer"
+                        },
+                        "ties": {
+                          "type": "integer"
+                        },
+                        "overall_winner": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "text_a_preview": "Ship fast, learn faster...",
+                  "text_b_preview": "We are pleased to announce...",
+                  "platforms_compared": [
+                    "tweet",
+                    "linkedin"
+                  ],
+                  "comparisons": {
+                    "tweet": {
+                      "score_a": 72,
+                      "grade_a": "B",
+                      "score_b": 45,
+                      "grade_b": "D",
+                      "difference": 27,
+                      "winner": "A",
+                      "a_advantages": [
+                        "Shorter, punchier opening"
+                      ],
+                      "b_advantages": [
+                        "Uses more formal language"
+                      ]
+                    }
+                  },
+                  "summary": {
+                    "a_wins": 2,
+                    "b_wins": 0,
+                    "ties": 0,
+                    "overall_winner": "A"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing text_a, text_b, or invalid platforms"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/v1/compose_assist": {
+      "post": {
+        "summary": "Compose Assist",
+        "description": "Generate multiple rewrite variants and rank them by platform score.",
+        "operationId": "composeAssist",
+        "tags": [
+          "AI Content Generation"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "platform": {
+                    "type": "string",
+                    "example": "tweet"
+                  },
+                  "tone": {
+                    "type": "string",
+                    "example": "engaging"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 5,
+                    "example": 3
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ranked rewrites with winner recommendation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "original": {
+                      "type": "string"
+                    },
+                    "original_score": {
+                      "type": "number"
+                    },
+                    "ranked_variants": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "rank_label": {
+                            "type": "string"
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "number"
+                          },
+                          "grade": {
+                            "type": "string"
+                          },
+                          "suggestions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "char_count": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "recommendation": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/content_calendar": {
       "post": {
         "summary": "Generate a 7-Day Content Calendar",
@@ -713,6 +1178,90 @@
         }
       }
     },
+    "/v1/dashboard_stats": {
+      "get": {
+        "summary": "Proof Dashboard Stats",
+        "description": "Aggregated score delta, engagement, and revenue proof metrics.",
+        "operationId": "dashboardStats",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "week",
+                "month",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregates"
+          }
+        }
+      }
+    },
+    "/v1/export_proof_report": {
+      "get": {
+        "summary": "Export Proof Report",
+        "description": "Export proof dashboard records as JSON or CSV.",
+        "operationId": "exportProofReport",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "csv"
+              ]
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "week",
+                "month",
+                "quarter",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON payload or CSV download"
+          }
+        }
+      }
+    },
     "/v1/generate_ad_copy": {
       "post": {
         "summary": "Generate Ad Copy",
@@ -746,7 +1295,7 @@
                   },
                   "platform": {
                     "type": "string",
-                    "description": "Ad platform: facebook, google, twitter, or instagram.",
+                    "description": "Ad platform: facebook, google, twitter, or instagram. Affects character limit guidance.",
                     "default": "facebook",
                     "enum": [
                       "facebook",
@@ -758,24 +1307,149 @@
                   },
                   "tone": {
                     "type": "string",
-                    "description": "Tone: persuasive, urgent, casual, professional.",
-                    "default": "persuasive"
+                    "description": "Tone for the copy: persuasive, urgent, casual, professional, etc.",
+                    "default": "persuasive",
+                    "example": "persuasive"
                   },
                   "count": {
                     "type": "integer",
-                    "description": "Number of variants (2-5).",
+                    "description": "Number of variants to generate (2-5).",
                     "default": 3,
                     "minimum": 2,
                     "maximum": 5
                   }
                 }
+              },
+              "example": {
+                "product": "ContentForge",
+                "benefit": "score your content before posting \u2014 stop publishing underperforming posts",
+                "platform": "facebook",
+                "count": 3
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Ad copy variants generated and scored"
+            "description": "Ad copy variants generated and scored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "product": {
+                      "type": "string"
+                    },
+                    "platform": {
+                      "type": "string"
+                    },
+                    "tone": {
+                      "type": "string"
+                    },
+                    "variants": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "headline": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          "grade": {
+                            "type": "string",
+                            "enum": [
+                              "A",
+                              "B",
+                              "C",
+                              "D",
+                              "F"
+                            ]
+                          },
+                          "headline_char_count": {
+                            "type": "integer"
+                          },
+                          "description_char_count": {
+                            "type": "integer"
+                          },
+                          "has_cta": {
+                            "type": "boolean"
+                          },
+                          "has_you_language": {
+                            "type": "boolean"
+                          },
+                          "power_words_found": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "suggestions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "best_score": {
+                      "type": "integer"
+                    },
+                    "quality_gate": {
+                      "type": "string",
+                      "enum": [
+                        "PASSED",
+                        "REVIEW",
+                        "FAILED"
+                      ]
+                    },
+                    "operational_risk": {
+                      "type": "string",
+                      "enum": [
+                        "LOW",
+                        "MEDIUM",
+                        "HIGH"
+                      ]
+                    },
+                    "time_to_generate_ms": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "example": {
+                  "product": "ContentForge",
+                  "platform": "facebook",
+                  "tone": "persuasive",
+                  "variants": [
+                    {
+                      "headline": "Stop Posting Blind \u2014 Score First",
+                      "description": "ContentForge scores your tweets, LinkedIn posts, and more in under 5 seconds. Try free today.",
+                      "score": 82,
+                      "grade": "A",
+                      "headline_char_count": 34,
+                      "description_char_count": 98,
+                      "has_cta": true,
+                      "has_you_language": true,
+                      "power_words_found": [
+                        "free"
+                      ],
+                      "suggestions": []
+                    }
+                  ],
+                  "best_score": 82,
+                  "quality_gate": "PASSED",
+                  "operational_risk": "LOW",
+                  "time_to_generate_ms": 1240
+                }
+              }
+            }
           },
           "400": {
             "description": "Missing or invalid parameters"
@@ -1527,6 +2201,36 @@
                           }
                         }
                       }
+                    },
+                    "lift_percentage": {
+                      "type": "string",
+                      "description": "Score improvement from original to best improved version, e.g. '+109%'."
+                    },
+                    "quality_gate": {
+                      "type": "string",
+                      "enum": [
+                        "PASSED",
+                        "REVIEW",
+                        "FAILED"
+                      ],
+                      "description": "Quality gate verdict for the best improved version."
+                    },
+                    "operational_risk": {
+                      "type": "string",
+                      "enum": [
+                        "LOW",
+                        "MEDIUM",
+                        "HIGH"
+                      ],
+                      "description": "Operational risk for the best improved version."
+                    },
+                    "time_to_improve_ms": {
+                      "type": "integer",
+                      "description": "End-to-end latency in milliseconds including LLM call if used."
+                    },
+                    "audit_summary": {
+                      "type": "string",
+                      "description": "LLM-generated 1-2 sentence agency brief explaining the improvement. Present only when AI is available."
                     }
                   }
                 },
@@ -1576,6 +2280,310 @@
           },
           "503": {
             "description": "AI generation temporarily unavailable"
+          }
+        }
+      }
+    },
+    "/v1/platform_friction": {
+      "get": {
+        "summary": "Platform Friction Monitor",
+        "description": "Returns real-time aggregate health of the account state machine. friction_level LOW means all accounts active. MEDIUM means managed cooldown/pause in progress (normal). HIGH means degraded or blocked state requires operator review. Data sourced from account_states.json \u2014 requires API auth.",
+        "operationId": "platformFriction",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "Platform friction report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "friction_level": {
+                      "type": "string",
+                      "enum": [
+                        "LOW",
+                        "MEDIUM",
+                        "HIGH",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "active_accounts": {
+                      "type": "integer"
+                    },
+                    "total_accounts": {
+                      "type": "integer"
+                    },
+                    "states": {
+                      "type": "object",
+                      "description": "Count of accounts per state"
+                    },
+                    "accounts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "account": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string"
+                          },
+                          "health_score": {
+                            "type": "integer"
+                          },
+                          "last_post_at": {
+                            "type": "string"
+                          },
+                          "consecutive_failures": {
+                            "type": "integer"
+                          },
+                          "blocked_retry_count": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden \u2014 API auth required"
+          }
+        }
+      }
+    },
+    "/v1/proof_recommendations": {
+      "get": {
+        "summary": "Proof Recommendations",
+        "description": "Action-ranked recommendations based on proof metrics and attribution gaps.",
+        "operationId": "proofRecommendations",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "week",
+                "month",
+                "quarter",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recommendations"
+          }
+        }
+      }
+    },
+    "/v1/proof_timeline": {
+      "get": {
+        "summary": "Proof Timeline",
+        "description": "Daily trendline of score deltas, estimated lift, and realized revenue.",
+        "operationId": "proofTimeline",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "week",
+                "month",
+                "quarter",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timeline rows"
+          }
+        }
+      }
+    },
+    "/v1/record_publish_outcome": {
+      "post": {
+        "summary": "Record Publish Outcome",
+        "description": "Record engagement and estimate revenue lift from score improvement.",
+        "operationId": "recordPublishOutcome",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "post_id",
+                  "platform"
+                ],
+                "properties": {
+                  "post_id": {
+                    "type": "string"
+                  },
+                  "platform": {
+                    "type": "string"
+                  },
+                  "score_before": {
+                    "type": "integer"
+                  },
+                  "score_after": {
+                    "type": "integer"
+                  },
+                  "engagement": {
+                    "type": "object"
+                  },
+                  "value_per_click": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded"
+          }
+        }
+      }
+    },
+    "/v1/record_revenue": {
+      "post": {
+        "summary": "Record Revenue Attribution",
+        "description": "Record realized revenue tied to a post.",
+        "operationId": "recordRevenue",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "post_id",
+                  "revenue_amount"
+                ],
+                "properties": {
+                  "post_id": {
+                    "type": "string"
+                  },
+                  "platform": {
+                    "type": "string"
+                  },
+                  "revenue_amount": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "revenue_source": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded"
+          }
+        }
+      }
+    },
+    "/v1/record_score_delta": {
+      "post": {
+        "summary": "Record Score Delta",
+        "description": "Record before/after score changes for a revised draft.",
+        "operationId": "recordScoreDelta",
+        "tags": [
+          "System"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "platform"
+                ],
+                "properties": {
+                  "platform": {
+                    "type": "string",
+                    "example": "tweet"
+                  },
+                  "original_text": {
+                    "type": "string"
+                  },
+                  "revised_text": {
+                    "type": "string"
+                  },
+                  "original_score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "revised_score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "suggestions_applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "posted": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded"
           }
         }
       }
@@ -2591,6 +3599,24 @@
                             "items": {
                               "type": "string"
                             }
+                          },
+                          "quality_gate": {
+                            "type": "string",
+                            "enum": [
+                              "PASSED",
+                              "REVIEW",
+                              "FAILED"
+                            ],
+                            "description": "Per-platform audit verdict."
+                          },
+                          "operational_risk": {
+                            "type": "string",
+                            "enum": [
+                              "LOW",
+                              "MEDIUM",
+                              "HIGH"
+                            ],
+                            "description": "Per-platform operational risk band."
                           }
                         }
                       }
@@ -3614,6 +4640,42 @@
         }
       }
     },
+    "/v1/status": {
+      "get": {
+        "summary": "Quick Status Check",
+        "description": "Ultra-lightweight uptime endpoint. Returns ok status and version. No LLM probe or log reads.",
+        "operationId": "statusQuick",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "API is online",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "service": {
+                      "type": "string",
+                      "example": "contentforge"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "1.2.0"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/thread_outline": {
       "post": {
         "summary": "Generate Twitter Thread Outline",
@@ -3817,353 +4879,6 @@
           },
           "503": {
             "description": "AI generation temporarily unavailable"
-          }
-        }
-      }
-    },
-    "/v1/score_content": {
-      "post": {
-        "summary": "Score content for a single platform",
-        "description": "Unified single-platform content scorer. Routes to the appropriate heuristic engine based on the platform parameter. No AI call \u2014 always <50ms.",
-        "operationId": "scoreContent",
-        "tags": [
-          "Scoring"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "content",
-                  "platform"
-                ],
-                "properties": {
-                  "content": {
-                    "type": "string",
-                    "description": "The text content to score",
-                    "maxLength": 5000
-                  },
-                  "platform": {
-                    "type": "string",
-                    "description": "Target platform",
-                    "example": "twitter",
-                    "enum": [
-                      "tweet",
-                      "twitter",
-                      "linkedin",
-                      "instagram",
-                      "tiktok",
-                      "threads",
-                      "facebook",
-                      "pinterest",
-                      "youtube",
-                      "youtube_description",
-                      "email",
-                      "email_subject",
-                      "readability",
-                      "ad_copy",
-                      "headline"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Score result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "content": {
-                      "type": "string"
-                    },
-                    "platform": {
-                      "type": "string"
-                    },
-                    "score": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 100
-                    },
-                    "grade": {
-                      "type": "string",
-                      "example": "B+"
-                    },
-                    "quality_gate": {
-                      "type": "string",
-                      "enum": [
-                        "PASSED",
-                        "REVIEW",
-                        "FAILED"
-                      ]
-                    },
-                    "operational_risk": {
-                      "type": "string",
-                      "enum": [
-                        "LOW",
-                        "MEDIUM",
-                        "HIGH"
-                      ]
-                    },
-                    "suggestions": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "breakdown": {
-                      "type": "object"
-                    },
-                    "time_to_score_ms": {
-                      "type": "integer"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or invalid parameters"
-          },
-          "429": {
-            "description": "Rate limit exceeded"
-          }
-        }
-      }
-    },
-    "/v1/generate_subject_line": {
-      "post": {
-        "summary": "Generate email subject line variants",
-        "description": "AI-powered email subject line generator. Returns N variants each scored by the email subject heuristic and ranked best-first.",
-        "operationId": "generateSubjectLine",
-        "tags": [
-          "Generation"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "topic"
-                ],
-                "properties": {
-                  "topic": {
-                    "type": "string",
-                    "description": "Email topic or subject area",
-                    "maxLength": 300
-                  },
-                  "context": {
-                    "type": "string",
-                    "description": "Optional email body context for better relevance"
-                  },
-                  "tone": {
-                    "type": "string",
-                    "description": "Writing tone",
-                    "default": "professional",
-                    "example": "casual"
-                  },
-                  "preview_text": {
-                    "type": "string",
-                    "description": "Optional preview/preheader text for scoring"
-                  },
-                  "count": {
-                    "type": "integer",
-                    "description": "Number of variants (2\u20135)",
-                    "minimum": 2,
-                    "maximum": 5,
-                    "default": 3
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Generated and scored subject line variants",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "topic": {
-                      "type": "string"
-                    },
-                    "tone": {
-                      "type": "string"
-                    },
-                    "variants": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "subject": {
-                            "type": "string"
-                          },
-                          "score": {
-                            "type": "integer"
-                          },
-                          "grade": {
-                            "type": "string"
-                          },
-                          "char_count": {
-                            "type": "integer"
-                          },
-                          "word_count": {
-                            "type": "integer"
-                          },
-                          "quality_gate": {
-                            "type": "string"
-                          },
-                          "suggestions": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "best_score": {
-                      "type": "integer"
-                    },
-                    "quality_gate": {
-                      "type": "string"
-                    },
-                    "operational_risk": {
-                      "type": "string"
-                    },
-                    "time_to_generate_ms": {
-                      "type": "integer"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or invalid parameters"
-          },
-          "429": {
-            "description": "Rate limit exceeded"
-          },
-          "503": {
-            "description": "LLM generation failed"
-          }
-        }
-      }
-    },
-    "/v1/score_reddit": {
-      "post": {
-        "summary": "Score a Reddit post for upvote potential",
-        "description": "Heuristic scorer for Reddit post titles and body text. Checks specificity, question format, hashtag penalty, clickbait, spam language, and community engagement signals. No AI \u2014 instant.",
-        "operationId": "scoreReddit",
-        "tags": [
-          "Scoring"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "text"
-                ],
-                "properties": {
-                  "text": {
-                    "type": "string",
-                    "description": "Post title or body text",
-                    "maxLength": 40000
-                  },
-                  "subreddit": {
-                    "type": "string",
-                    "description": "Optional subreddit name for context",
-                    "example": "SideProject"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Reddit score result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "score": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 100
-                    },
-                    "grade": {
-                      "type": "string",
-                      "example": "B+"
-                    },
-                    "quality_gate": {
-                      "type": "string",
-                      "enum": [
-                        "PASSED",
-                        "REVIEW",
-                        "FAILED"
-                      ]
-                    },
-                    "operational_risk": {
-                      "type": "string",
-                      "enum": [
-                        "LOW",
-                        "MEDIUM",
-                        "HIGH"
-                      ]
-                    },
-                    "char_count": {
-                      "type": "integer"
-                    },
-                    "word_count": {
-                      "type": "integer"
-                    },
-                    "has_question": {
-                      "type": "boolean"
-                    },
-                    "has_number": {
-                      "type": "boolean"
-                    },
-                    "has_value_opener": {
-                      "type": "boolean"
-                    },
-                    "hashtag_count": {
-                      "type": "integer"
-                    },
-                    "suggestions": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "breakdown": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or invalid parameters"
-          },
-          "429": {
-            "description": "Rate limit exceeded"
           }
         }
       }
