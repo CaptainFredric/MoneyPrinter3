@@ -1,6 +1,5 @@
-# Core dependencies — bots, API, affiliate, outreach
+# ContentForge — core dependencies
 # Install with: pip install -r requirements.txt
-# For YouTube Shorts generation (TTS/video), also run: pip install -r requirements-youtube.txt
 wheel
 termcolor
 schedule

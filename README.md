@@ -158,26 +158,22 @@ All plans include every endpoint. Heuristic scoring calls don't count against yo
 
 ## Architecture
 
-This repo contains both the ContentForge API and the MoneyPrinterV2 Twitter/YouTube automation platform that drives traffic to it.
-
 ```
 scripts/
 └── api_prototype.py         # ContentForge Flask API — all 45 endpoints
-src/
-├── main.py                  # Interactive CLI menu
-├── cron.py                  # Headless runner for scheduled posts
-├── llm_provider.py          # Ollama SDK + Gemini fallback chain
-├── account_state_machine.py # Multi-account health scoring + rotation
-└── classes/
-    ├── Twitter.py           # Tweet generation + Selenium posting
-    └── YouTube.py           # LLM script → TTS → MoviePy → upload
+extension/
+├── manifest.json            # Chrome extension (Manifest V3)
+├── popup.html / popup.js    # Score, compare, rewrite from the toolbar
+├── content.js / content.css # Real-time scoring badge on X, LinkedIn, etc.
+└── background.js            # Service worker — API calls + offline fallback
 deploy/
 ├── render.yaml              # Render Blueprint
 ├── openapi.json             # OpenAPI 3.0.3 spec (45 paths)
 └── Procfile                 # Gunicorn start command
+docs/
+├── ContentForge_API_Documentation.md
+└── RapidAPI_GettingStarted.md
 ```
-
-**Bot → API funnel**: Twitter bots post content that drives traffic to the RapidAPI listing. The API generates subscription revenue. Zero upfront infra cost (Render free tier + Gemini free tier + RapidAPI free provider).
 
 ---
 
@@ -189,6 +185,6 @@ PRs against `main`. One feature/fix per PR. Open an issue first. See [CONTRIBUTI
 
 Affero General Public License v3.0. See [LICENSE](LICENSE).
 
-## Attribution
+## Acknowledgements
 
-Based on [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) by [@DevBySami](https://x.com/DevBySami).
+Early development scaffolding adapted from [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) by [@DevBySami](https://x.com/DevBySami).
