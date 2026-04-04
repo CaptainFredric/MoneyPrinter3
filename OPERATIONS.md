@@ -1,7 +1,7 @@
 # ContentForge — Operational Plan
 
-**Last updated:** 2026-04-04
-**Status:** Pre-Flight (Phase 1 of 3)
+**Last updated:** 2026-04-05
+**Status:** Surge (Phase 2 of 3) — Saturday launch live
 
 ---
 
@@ -18,7 +18,7 @@
 | `/v1/extension_config` endpoint live (server-side) | Done | Aden |
 | `/v1/feedback` endpoint live (calibration signal capture) | Done | Aden |
 | Blind Taste Test template ready (`docs/blind-taste-test.md`) | Done | Aden |
-| Render API warm via cron-job.org (10min pings) | Active | cron-job.org |
+| Render API warm via cron-job.org (10min pings) | Active — **update URL to `/v1/status`** | cron-job.org |
 | Repo bloat cleaned (fonts, netlify, rapidapi-upload) | Done | Aden |
 | Silent Phase — no code changes to scoring or extension | Active | Aden |
 
