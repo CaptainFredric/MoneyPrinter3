@@ -535,25 +535,30 @@ def _llm_generate(prompt: str) -> str:
         except ImportError as ie:
             raise RuntimeError(f"google-genai package not installed: {ie}")
 
-        primary = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+        primary = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
+        # Fallback order: free-tier high-quota models first, paid/preview last.
+        # gemini-2.0-flash: 1500 RPD free.  gemini-2.5-flash: ~50 RPD free (burns fast).
         _fallback_order = [
             primary,
-            "gemini-2.5-flash-lite",
-            "gemini-2.5-flash",
             "gemini-2.0-flash",
             "gemini-2.0-flash-lite",
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite",
         ]
         seen: set = set()
         models_to_try = [m for m in _fallback_order if not (m in seen or seen.add(m))]
 
         client = genai.Client(api_key=api_key)
         last_quota_error = None
+        # max_output_tokens: 2048 covers full content calendars, email sequences,
+        # and thread outlines. 300 caused silent JSON truncation on longer outputs.
+        _max_tokens = int(os.environ.get("GEMINI_MAX_TOKENS", "2048"))
         for model_name in models_to_try:
             try:
                 response = client.models.generate_content(
                     model=model_name,
                     contents=prompt,
-                    config=types.GenerateContentConfig(temperature=0.9, max_output_tokens=300),
+                    config=types.GenerateContentConfig(temperature=0.9, max_output_tokens=_max_tokens),
                 )
                 text = (response.text or "").strip()
                 if text:
@@ -1479,11 +1484,14 @@ def score_linkedin_post(text: str) -> dict:
             "in a professional context."
         )
 
+    gate = _quality_gate(score)
     return {
         "text": txt,
         "platform": "linkedin",
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "paragraph_count": paragraph_count,
@@ -1798,11 +1806,14 @@ def score_instagram_caption(text: str) -> dict:
             "'authentic') to make the caption pop."
         )
 
+    gate = _quality_gate(score)
     return {
         "text": txt,
         "platform": "instagram",
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "hook_length": hook_len,
@@ -2105,11 +2116,14 @@ def score_youtube_title(text: str, thumbnail_text: str = "") -> dict:
                 "Use complementary text that adds context, not repetition."
             )
 
+    gate = _quality_gate(score)
     result = {
         "text": title,
         "platform": "youtube",
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "has_number": has_number,
@@ -2453,11 +2467,14 @@ def score_email_subject(text: str, preview_text: str = "") -> dict:
             "the subject line. It shows next to the subject in inbox."
         )
 
+    gate = _quality_gate(score)
     result = {
         "text": subj,
         "platform": "email",
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "has_number": has_number,
@@ -2725,10 +2742,13 @@ def score_readability(text: str) -> dict:
     else:
         reading_level = "graduate"
 
+    gate = _quality_gate(score)
     return {
         "text": text[:500] + ("..." if len(text) > 500 else ""),
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "flesch_reading_ease": fre,
         "flesch_kincaid_grade": fkgl,
         "reading_level": reading_level,
@@ -2898,10 +2918,13 @@ def score_threads_post(text: str) -> dict:
     grade_map = [(90, "A"), (75, "B"), (60, "C"), (45, "D")]
     grade = next((g for t, g in grade_map if score >= t), "F")
 
+    gate = _quality_gate(score)
     return {
         "text": text,
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "hashtag_count": hashtag_count,
@@ -3093,10 +3116,13 @@ def score_facebook_post(text: str) -> dict:
     grade_map = [(90, "A"), (75, "B"), (60, "C"), (45, "D")]
     grade = next((g for t, g in grade_map if score >= t), "F")
 
+    gate = _quality_gate(score)
     return {
         "text": text,
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "hashtag_count": hashtag_count,
@@ -3322,11 +3348,14 @@ def score_tiktok_caption(text: str) -> dict:
     if not suggestions:
         suggestions.append("Well-optimized TikTok caption! Strong hashtag mix, hook, and CTA detected.")
 
+    gate = _quality_gate(score)
     return {
         "text": text[:500] + ("..." if len(text) > 500 else ""),
         "platform": "tiktok",
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "hashtag_count": hashtag_count,
@@ -3550,11 +3579,14 @@ def analyze_hashtags(hashtags_input: str, platform: str = "twitter") -> dict:
     if not suggestions:
         suggestions.append(f"Well-balanced hashtag set for {platform}. Good mix and appropriate count.")
 
+    gate = _quality_gate(score)
     return {
         "platform": platform,
         "input": hashtags_input[:500],
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "hashtag_count": hashtag_count,
         "hashtags": [f"#{t}" for t in unique_tags],
         "platform_ideal_range": f"{lo}-{hi}",
@@ -3801,11 +3833,14 @@ def score_pinterest_pin(text: str) -> dict:
     if not suggestions:
         suggestions.append("Well-optimised Pinterest description. Strong keywords, CTA, and story format detected.")
 
+    gate = _quality_gate(score)
     return {
         "text": text[:500] + ("..." if char_count > 500 else ""),
         "platform": "pinterest",
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "hashtag_count": hashtag_count,
@@ -4068,11 +4103,14 @@ def score_youtube_description(text: str) -> dict:
             "and keywords all detected."
         )
 
+    gate = _quality_gate(score)
     return {
         "text": text[:500] + ("..." if char_count > 500 else ""),
         "platform": "youtube_description",
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "hashtag_count": hashtag_count,
@@ -4324,12 +4362,15 @@ def score_ad_copy(headline: str, description: str = "", platform: str = "google"
             "Solid ad copy! CTA, number, you-language, and character limits all look good."
         )
 
+    gate = _quality_gate(score)
     return {
         "headline": headline,
         "description": description,
         "platform": platform,
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "headline_char_count": hl_len,
         "headline_limit": hl_limit,
         "headline_within_limit": hl_within,
@@ -4625,11 +4666,14 @@ def endpoint_batch_score():
             continue
         try:
             r = scorer(text, payload)
+            g = _quality_gate(r["score"])
             results.append({
                 "index": i,
                 "text_preview": text[:120] + ("..." if len(text) > 120 else ""),
                 "score": r["score"],
                 "grade": r["grade"],
+                "quality_gate": g["quality_gate"],
+                "operational_risk": g["operational_risk"],
                 "suggestions": r.get("suggestions", [])[:2],
             })
         except Exception as e:
@@ -6699,20 +6743,33 @@ def health():
     except Exception:
         pass
 
-    # Quick LLM smoke-check so ai_endpoints_ready reflects actual availability
+    # Quick LLM smoke-check — cached for 5 minutes so keep-warm cron pings
+    # (every 10 min) don't each consume a Gemini API quota unit.
+    # 144 uncached pings/day was burning the entire free-tier RPD budget.
+    _AI_CACHE_TTL = 300  # seconds
+    _ai_cache = getattr(app, "_ai_status_cache", {"ts": 0, "ready": False, "detail": "not checked"})
+    app._ai_status_cache = _ai_cache
+
     ai_ready = False
     ai_status_detail = "no LLM configured"
     if llm_backend != "none":
-        try:
-            _llm_generate("Reply with the single word: ok")
-            ai_ready = True
-            ai_status_detail = "ok"
-        except Exception as _e:
-            err = str(_e).lower()
-            if "quota" in err or "exhausted" in err:
-                ai_status_detail = "quota exhausted — resets midnight Pacific"
-            else:
-                ai_status_detail = str(_e)[:120]
+        now_ts = time.time()
+        if now_ts - _ai_cache["ts"] < _AI_CACHE_TTL:
+            # Return cached result — don't burn quota on every ping
+            ai_ready = _ai_cache["ready"]
+            ai_status_detail = _ai_cache["detail"]
+        else:
+            try:
+                _llm_generate("Reply with the single word: ok")
+                ai_ready = True
+                ai_status_detail = "ok"
+            except Exception as _e:
+                err = str(_e).lower()
+                if "quota" in err or "exhausted" in err:
+                    ai_status_detail = "quota exhausted — resets midnight Pacific"
+                else:
+                    ai_status_detail = str(_e)[:120]
+            app._ai_status_cache = {"ts": now_ts, "ready": ai_ready, "detail": ai_status_detail}
     return jsonify({
         "status": "ok",
         "service": "contentforge",

@@ -26,14 +26,14 @@ r = requests.post("https://contentforge1.p.rapidapi.com/v1/score_tweet",
 
 ---
 
-## Current Status (v1.9.0)
+## Current Status (v1.8.0)
 
 | Component | Status | Notes |
 |---|---|---|
 | **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
 | **RapidAPI Listing** | ✅ Public | 47 endpoints, 4-tier pricing |
-| **Keep-warm cron** | ✅ Active | cron-job.org pings `/health` every 10 min, 60s timeout |
-| **Gemini backend** | ✅ Configured | `gemini-2.5-flash` on Render (AI generation fallback) |
+| **Keep-warm cron** | ✅ Active | cron-job.org pings `/v1/status` every 10 min (no LLM call) |
+| **Gemini backend** | ✅ Configured | `gemini-2.0-flash` on Render (1500 RPD free tier) |
 | **Ollama local** | ✅ Running | Scoring uses zero AI calls — pure heuristics |
 | **Twitter bots** | ✅ Active | Multi-account state machine, health scoring |
 | **Legal docs** | ✅ Done | `docs/TERMS_OF_USE.md`, `docs/TERMS_AND_CONDITIONS.md` |
@@ -56,7 +56,7 @@ ContentForge's scoring layer is pure Python heuristics. Same input → same outp
 
 ---
 
-## All 45 Endpoints
+## All 47 Endpoints
 
 ### Instant Scorers (no AI, <50ms)
 | Endpoint | What It Does |
@@ -168,7 +168,7 @@ extension/
 └── background.js            # Service worker — API calls + offline fallback
 deploy/
 ├── render.yaml              # Render Blueprint
-├── openapi.json             # OpenAPI 3.0.3 spec (45 paths)
+├── openapi.json             # OpenAPI 3.0.3 spec (47 paths)
 └── Procfile                 # Gunicorn start command
 docs/
 ├── ContentForge_API_Documentation.md
