@@ -1137,10 +1137,13 @@ def score_tweet(text: str) -> dict:
     if '?' not in txt and not txt[0:1].isdigit():
         suggestions.append("Try starting with a number or a question for a stronger hook.")
 
+    gate = _quality_gate(score)
     return {
         "text": txt,
         "score": score,
         "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
         "char_count": char_count,
         "word_count": word_count,
         "hashtag_count": len(hashtags),
