@@ -60,25 +60,25 @@ jobs:
 
       - name: Hit /health
         run: |
-          curl -sf http://127.0.0.1:5000/health | python3 -c "import sys,json; d=json.load(sys.stdin); print('health:', d.get('status','?'))"
+          curl -sf http://127.0.0.1:8081/health | python3 -c "import sys,json; d=json.load(sys.stdin); print('health:', d.get('status','?'))"
 
       - name: Hit /v1/score_tweet (instant — no AI needed)
         run: |
-          curl -sf -X POST http://127.0.0.1:5000/v1/score_tweet \
+          curl -sf -X POST http://127.0.0.1:8081/v1/score_tweet \
             -H "Content-Type: application/json" \
             -d '{"text":"Just launched ContentForge! Score your tweets for free at contentforge1.p.rapidapi.com #buildinpublic"}' \
           | python3 -c "import sys,json; d=json.load(sys.stdin); print('score_tweet score:', d.get('score','?'))"
 
       - name: Hit /v1/analyze_headline (instant — no AI needed)
         run: |
-          curl -sf -X POST http://127.0.0.1:5000/v1/analyze_headline \
+          curl -sf -X POST http://127.0.0.1:8081/v1/analyze_headline \
             -H "Content-Type: application/json" \
             -d '{"headline":"Why Nobody Reads Your Twitter Profile (And How to Fix It in 10 Minutes)"}' \
           | python3 -c "import sys,json; d=json.load(sys.stdin); print('analyze_headline score:', d.get('score','?'))"
 
       - name: Hit /v1/batch_score (instant — no AI needed)
         run: |
-          curl -sf -X POST http://127.0.0.1:5000/v1/batch_score \
+          curl -sf -X POST http://127.0.0.1:8081/v1/batch_score \
             -H "Content-Type: application/json" \
             -d '{"texts":["Draft A: Big news in tech today","Draft B: I built a tool that scores your tweets before you post — try it free"],"platform":"twitter"}' \
           | python3 -c "import sys,json; d=json.load(sys.stdin); print('batch_score best score:', d.get('best',{}).get('score','?'))"
