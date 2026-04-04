@@ -6563,6 +6563,95 @@ def endpoint_platform_friction():
 
 
 # ---------------------------------------------------------------------------
+# Extension Config  — hot-swappable DOM selectors (no CWS review needed)
+# ---------------------------------------------------------------------------
+@app.route("/v1/extension_config", methods=["GET"])
+def extension_config():
+    """Return the current CSS selector map used by the Chrome extension.
+
+    The extension fetches this on startup and caches the result in
+    chrome.storage.session.  When a platform changes its DOM, update the
+    selectors here — the extension picks them up on next popup open without
+    requiring a Chrome Web Store resubmission.
+    """
+    return jsonify({
+        "version": "1.0.0",
+        "selectors": {
+            "tweet":    '[data-testid="tweetTextarea_0"], [role="textbox"][data-testid]',
+            "linkedin": '.ql-editor[contenteditable="true"], div.editor-content [contenteditable="true"]',
+            "instagram": 'textarea[aria-label*="caption" i], textarea[placeholder*="caption" i]',
+            "threads":  'div[contenteditable="true"][role="textbox"]',
+            "facebook": 'div[contenteditable="true"][role="textbox"], div[data-contents="true"]',
+        },
+        "updated_at": "2026-04-03",
+        "note": "Selectors are fetched at extension startup and cached. No CWS review required to push selector updates.",
+    })
+
+
+# ---------------------------------------------------------------------------
+# Feedback  — "this score feels wrong" signal capture
+# ---------------------------------------------------------------------------
+FEEDBACK_LOG = ROOT_DIR / ".mp" / "feedback.json"
+
+@app.route("/v1/feedback", methods=["POST"])
+def submit_feedback():
+    """Capture heuristic feedback from users.
+
+    Body (JSON):
+      text       – the content that was scored (required)
+      platform   – platform key, e.g. "tweet" (required)
+      score      – score ContentForge returned (required)
+      expected   – "higher" | "lower" | "about_right" (required)
+      notes      – optional free-text comment
+
+    Used to surface heuristic blind spots before Product Hunt launch.
+    Each submission is a calibration data point for the Blind Taste Test.
+    """
+    body = request.get_json(silent=True) or {}
+    text     = str(body.get("text", "")).strip()
+    platform = str(body.get("platform", "")).strip()
+    score    = body.get("score")
+    expected = str(body.get("expected", "")).strip()
+    notes    = str(body.get("notes", "")).strip()[:500]
+
+    if not text or not platform or score is None or expected not in ("higher", "lower", "about_right"):
+        return jsonify({
+            "error": "Required: text, platform, score, expected ('higher'|'lower'|'about_right')"
+        }), 400
+
+    entry = {
+        "ts": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+        "platform": platform,
+        "score": score,
+        "expected": expected,
+        "notes": notes,
+        "text_preview": text[:120],
+    }
+
+    try:
+        FEEDBACK_LOG.parent.mkdir(parents=True, exist_ok=True)
+        existing = []
+        if FEEDBACK_LOG.exists():
+            try:
+                existing = json.loads(FEEDBACK_LOG.read_text())
+            except Exception:
+                existing = []
+        existing.append(entry)
+        tmp = FEEDBACK_LOG.with_suffix(".tmp")
+        tmp.write_text(json.dumps(existing, indent=2))
+        tmp.replace(FEEDBACK_LOG)
+        saved = True
+    except Exception:
+        saved = False
+
+    return jsonify({
+        "received": True,
+        "saved": saved,
+        "message": "Thank you — this helps calibrate the heuristic engine.",
+    })
+
+
+# ---------------------------------------------------------------------------
 # Status (lightweight) + Health + Root
 # ---------------------------------------------------------------------------
 @app.route("/v1/status", methods=["GET"])
@@ -6628,7 +6717,7 @@ def health():
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
-        "endpoints": 45,
+        "endpoints": 47,
         "total_requests_served": total_requests,
         "counted_requests": counted_requests,
         "leniency_policy": "Error responses (4xx/5xx) are never counted toward usage quota.",
