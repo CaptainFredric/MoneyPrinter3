@@ -6658,7 +6658,7 @@ def submit_feedback():
 def status_quick():
     """Ultra-lightweight status ping. No LLM check, no log reads.
     Designed for uptime monitors and the Chrome extension health check."""
-    return jsonify({"ok": True, "service": "contentforge", "version": "1.7.0"})
+    return jsonify({"ok": True, "service": "contentforge", "version": "1.8.0"})
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -6713,7 +6713,7 @@ def health():
     return jsonify({
         "status": "ok",
         "service": "contentforge",
-        "version": "1.7.0",
+        "version": "1.8.0",
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
@@ -6755,7 +6755,7 @@ def root():
 </head>
 <body>
   <div class="card">
-    <div class="badge">Live API v1.7.0 &mdash; 41 endpoints</div>
+    <div class="badge">Live API v1.8.0 &mdash; 47 endpoints</div>
     <h1>ContentForge API</h1>
     <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 41-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
     <a class="cta" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Get your free API key &rarr;</a>
