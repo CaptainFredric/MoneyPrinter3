@@ -14,7 +14,7 @@ I scrapped the LLM scorer and built a deterministic heuristic engine instead. Pu
 
 Same input, same score, every time. Zero variance.
 
-The API now has 45 endpoints covering 12 platforms (Twitter, LinkedIn, Instagram, TikTok, YouTube, Pinterest, Reddit, Threads, Facebook, email subjects, ad copy, and general readability). Every scoring endpoint returns in under 50ms. No model loading, no token generation, no inference cost.
+The API now has 47 endpoints covering 12 platforms (Twitter, LinkedIn, Instagram, TikTok, YouTube, Pinterest, Reddit, Threads, Facebook, email subjects, ad copy, and general readability). Every scoring endpoint returns in under 50ms. No model loading, no token generation, no inference cost.
 
 ```bash
 curl -X POST https://contentforge-api-lpp9.onrender.com/v1/score_tweet \
@@ -74,5 +74,15 @@ I also wish I'd built the extension first. The API is useful for automation pipe
 - **GitHub:** https://github.com/CaptainFredric/ContentForge (AGPL-3.0, self-hostable)
 - **Landing page / live demo:** https://captainfredric.github.io/ContentForge/ (try the scorer without signing up)
 - **RapidAPI:** https://rapidapi.com/captainarmoreddude/api/contentforge1 (free tier, 300 req/month)
+
+If you try scoring your own content and the number feels wrong, I want to hear about it — there's a feedback endpoint specifically for this:
+
+```bash
+curl -X POST https://contentforge-api-lpp9.onrender.com/v1/feedback \
+  -H "Content-Type: application/json" \
+  -d '{"text": "your post text", "platform": "tweet", "score": 42, "expected": "higher"}'
+```
+
+Every submission helps calibrate the heuristic weights. Deterministic doesn't mean infallible — it means every deduction is traceable and fixable.
 
 Happy to answer questions about the heuristic design, the extension architecture, or the trade-offs around deterministic vs. LLM scoring.

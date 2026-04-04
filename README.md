@@ -1,6 +1,6 @@
 # ContentForge — Content Intelligence API
 
-> **45 endpoints · 12 platforms · Deterministic scoring in <50ms · No AI hallucinations**
+> **47 endpoints · 12 platforms · Deterministic scoring in <50ms · No AI hallucinations**
 
 Score content before you post. ContentForge is a **Content Intelligence API** — a before-publish quality gate that grades every tweet, LinkedIn post, headline, and ad copy with a deterministic A–F score, actionable suggestions, and a `PASSED | REVIEW | FAILED` verdict in under 50ms — no LLM involved in the scoring layer.
 
@@ -31,7 +31,7 @@ r = requests.post("https://contentforge1.p.rapidapi.com/v1/score_tweet",
 | Component | Status | Notes |
 |---|---|---|
 | **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
-| **RapidAPI Listing** | ✅ Public | 45 endpoints, 4-tier pricing |
+| **RapidAPI Listing** | ✅ Public | 47 endpoints, 4-tier pricing |
 | **Keep-warm cron** | ✅ Active | cron-job.org pings `/health` every 10 min, 60s timeout |
 | **Gemini backend** | ✅ Configured | `gemini-2.5-flash` on Render (AI generation fallback) |
 | **Ollama local** | ✅ Running | Scoring uses zero AI calls — pure heuristics |
@@ -111,7 +111,7 @@ ContentForge's scoring layer is pure Python heuristics. Same input → same outp
 | `GET  /health` | Service health: LLM backend, usage stats |
 | `GET  /v1/status` | Lightweight ping — version, endpoint count |
 
-*(Full 45-endpoint list with request/response schemas: [RapidAPI docs](https://rapidapi.com/captainarmoreddude/api/contentforge1))*
+*(Full 47-endpoint list with request/response schemas: [RapidAPI docs](https://rapidapi.com/captainarmoreddude/api/contentforge1))*
 
 ---
 
@@ -160,7 +160,7 @@ All plans include every endpoint. Heuristic scoring calls don't count against yo
 
 ```
 scripts/
-└── api_prototype.py         # ContentForge Flask API — all 45 endpoints
+└── api_prototype.py         # ContentForge Flask API — all 47 endpoints
 extension/
 ├── manifest.json            # Chrome extension (Manifest V3)
 ├── popup.html / popup.js    # Score, compare, rewrite from the toolbar

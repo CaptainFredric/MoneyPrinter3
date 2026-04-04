@@ -8,7 +8,7 @@
 
 ## Pre-flight (Friday night or Saturday morning before 9am PT)
 
-- [ ] **Confirm API is alive:** `curl https://contentforge-api-lpp9.onrender.com/health` — should return `{"status":"ok","endpoints":45}`
+- [ ] **Confirm API is alive:** `curl https://contentforge-api-lpp9.onrender.com/health` — should return `{"status":"ok","endpoints":47}`
 - [ ] **Wake the Render instance:** hit the health endpoint once to ensure it's warm before traffic arrives
 - [ ] **Check Gemini quota reset:** quota resets at midnight Pacific — confirm AI generation endpoints respond (they may 429 if Gemini has issues; scoring endpoints are unaffected and that's the primary demo)
 - [ ] **Read saturday-post.md one last time** — light editing pass only, don't over-think it
@@ -80,7 +80,7 @@ That's why I built a deterministic scorer instead.
 
 **Tweet 2 (solution):**
 ```
-ContentForge: 45 endpoints, 12 platforms, <50ms
+ContentForge: 47 endpoints, 12 platforms, <50ms
 Pure heuristic engine — no LLM in the scoring path
 
 Same input → same score → every time.
