@@ -58,13 +58,14 @@ Try pasting any tweet draft into the scorer at the bottom — you'll see the qua
 
 ## Cross-post schedule (after Reddit clears)
 
-| Platform | When | Content |
-|---|---|---|
-| r/SideProject | Monday April 7 | Same post, trimmed to ~200 words + links |
-| r/selfhosted | Tuesday April 8 | Focus on self-hosting angle — AGPL-3.0, `docker run`, no vendor lock-in |
-| Twitter/X | Saturday afternoon | 3-tweet thread: problem → solution → demo link. Tag #buildinpublic |
-| LinkedIn | Sunday April 6 | Professional tone version: "quality gate for content teams", API + extension angle |
-| Product Hunt | Wait for CWS approval | Update PH with real CWS link, post comment with Saturday feedback highlights |
+| Platform | When | Content | Status |
+|---|---|---|---|
+| r/SideProject | Monday April 7 | Same post, trimmed to ~200 words + links | |
+| r/selfhosted | Tuesday April 8 | Focus on self-hosting angle — AGPL-3.0, `docker run`, no vendor lock-in | |
+| Twitter/X | Saturday afternoon | 3-tweet thread: problem → solution → demo link. Tag #buildinpublic | |
+| LinkedIn | Sunday April 6 | Professional tone version: "quality gate for content teams", API + extension angle | Drafted (90/A/PASSED per ContentForge scorer) |
+| Product Hunt | Wait for CWS approval | Update PH with real CWS link, post comment with Saturday feedback highlights | |
+| Blind Taste Test | Live now | [Discussion #4](https://github.com/CaptainFredric/ContentForge/discussions/4) — pinned. Tracking calibration results in `docs/validation.md` | Live & pinned |
 
 ---
 
