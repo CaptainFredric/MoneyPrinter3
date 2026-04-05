@@ -23,6 +23,8 @@ logs/
 .runtime-venv/
 .git.backup*/
 docs/chat_history/
+contentforge-extension.zip
+cws-assets/
 *.mp4
 *.wav
 *.srt

@@ -59,7 +59,7 @@ Public calibration > private testing. If you find a flaw, we'd rather know now.
 
 ---
 
-*Running until [end date]. Results will be posted in `/docs/validation.md` in this repo.*
+*Running until April 30, 2026. Results will be posted in `/docs/validation.md` in this repo.*
 
 ---
 

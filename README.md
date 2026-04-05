@@ -1,6 +1,6 @@
 # ContentForge — Content Intelligence API
 
-> **48 endpoints · 12 platforms · Deterministic scoring in <50ms · No AI hallucinations**
+> **50 endpoints · 12 platforms · Deterministic scoring in <50ms · No AI hallucinations**
 
 Score content before you post. ContentForge is a **Content Intelligence API** — a before-publish quality gate that grades every tweet, LinkedIn post, headline, and ad copy with a deterministic A–F score, actionable suggestions, and a `PASSED | REVIEW | FAILED` verdict in under 50ms — no LLM involved in the scoring layer.
 
@@ -31,7 +31,7 @@ r = requests.post("https://contentforge1.p.rapidapi.com/v1/score_tweet",
 | Component | Status | Notes |
 |---|---|---|
 | **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
-| **RapidAPI Listing** | ✅ Public | 48 endpoints, 4-tier pricing |
+| **RapidAPI Listing** | ✅ Public | 50 endpoints, 4-tier pricing |
 | **Keep-warm cron** | ✅ Active | cron-job.org pings `/v1/status` every 10 min (no LLM call) |
 | **Gemini backend** | ✅ Configured | `gemini-2.0-flash` on Render (1500 RPD free tier) |
 | **Ollama local** | ✅ Running | Scoring uses zero AI calls — pure heuristics |
@@ -56,7 +56,7 @@ ContentForge's scoring layer is pure Python heuristics. Same input → same outp
 
 ---
 
-## All 47 Endpoints
+## All 50 Endpoints
 
 ### Instant Scorers (no AI, <50ms)
 | Endpoint | What It Does |
@@ -112,7 +112,7 @@ ContentForge's scoring layer is pure Python heuristics. Same input → same outp
 | `GET  /health` | Service health: LLM backend, usage stats |
 | `GET  /v1/status` | Lightweight ping — version, endpoint count |
 
-*(Full 47-endpoint list with request/response schemas: [RapidAPI docs](https://rapidapi.com/captainarmoreddude/api/contentforge1))*
+*(Full 50-endpoint list with request/response schemas: [RapidAPI docs](https://rapidapi.com/captainarmoreddude/api/contentforge1))*
 
 ---
 
@@ -161,7 +161,7 @@ All plans include every endpoint. Heuristic scoring calls don't count against yo
 
 ```
 scripts/
-└── api_prototype.py         # ContentForge Flask API — all 48 endpoints (incl. /v1/auto_improve)
+└── api_prototype.py         # ContentForge Flask API — all 50 endpoints (incl. /v1/auto_improve)
 extension/
 ├── manifest.json            # Chrome extension (Manifest V3)
 ├── popup.html / popup.js    # Score, compare, rewrite from the toolbar
@@ -169,7 +169,7 @@ extension/
 └── background.js            # Service worker — API calls + offline fallback
 deploy/
 ├── render.yaml              # Render Blueprint
-├── openapi.json             # OpenAPI 3.0.3 spec (47 paths)
+├── openapi.json             # OpenAPI 3.0.3 spec (50 paths)
 └── Procfile                 # Gunicorn start command
 docs/
 ├── ContentForge_API_Documentation.md

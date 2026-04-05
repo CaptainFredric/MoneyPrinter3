@@ -526,7 +526,7 @@ def _llm_generate(prompt: str) -> str:
 
     # 3. Direct Gemini attempt (for cloud deployment where Ollama is not available)
     # Tries models in order so quota exhaustion on one automatically falls through
-    # to the next.  gemini-2.5-flash is current best free-tier.
+    # to the next.  gemini-2.0-flash is primary (1500 RPD free tier).
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if api_key:
         try:
@@ -4667,6 +4667,327 @@ def endpoint_score_ad_copy():
 
 
 # ---------------------------------------------------------------------------
+# 5f-ii. Reddit Post Scorer (heuristic — instant, no LLM)
+# ---------------------------------------------------------------------------
+def score_reddit_post(text: str, title: str = "") -> dict:
+    """Score a Reddit post/title 0-100 for engagement and upvote potential.
+
+    Reddit-specific signals (community best practices 2024-2026):
+    - Title length: 60-120 chars optimal (+15). 30-59 or 121-180 OK (+8). <30 or >180 (-5)
+    - Question in title: huge engagement driver on Reddit (+12)
+    - Number/stat in text: credibility signal (+5)
+    - Self-promotional language: Reddit communities penalize hard (-10)
+    - Formatting: paragraphs, line breaks improve readability (+8)
+    - Excessive links: spammy, penalized (-6 per link beyond 2)
+    - Personal pronouns: authenticity signals on Reddit (+5)
+    - Power words: community-specific engagement boosters (+3 each, max 4)
+    - ALL CAPS abuse: -6
+    - Hashtags: Reddit doesn't use hashtags (-5 each)
+    - Emoji overuse: Reddit leans text-heavy, 1-2 OK, 3+ penalised (-4)
+    - TL;DR presence: appreciated on longer posts (+6)
+    - Edit note presence: shows responsiveness (+3)
+    """
+    _REDDIT_POWER_WORDS = {
+        "actually", "literally", "seriously", "honestly", "finally",
+        "unpopular", "controversial", "underrated", "overrated", "proven",
+        "free", "open-source", "self-hosted", "hack", "trick", "tip",
+        "mistake", "lesson", "learned", "experience", "results",
+        "numbers", "data", "comparison", "breakdown", "guide",
+    }
+    _REDDIT_PROMO_SIGNALS = {
+        "check out my", "sign up", "subscribe to", "buy now", "use my code",
+        "use my link", "discount code", "limited time", "act now",
+        "click here", "download now", "get started free",
+    }
+
+    # Reddit posts can have title + body — combine for scoring
+    combined = f"{title}\n{text}".strip() if title else (text or "").strip()
+    if not combined:
+        return {
+            "text": combined, "score": 0, "grade": "F",
+            "title_length": 0, "body_length": 0, "word_count": 0,
+            "has_question": False, "has_number": False, "has_tldr": False,
+            "has_edit_note": False, "has_formatting": False,
+            "link_count": 0, "hashtag_count": 0, "emoji_count": 0,
+            "caps_abuse": False, "self_promotional": False,
+            "power_words_found": [], "promo_signals_found": [],
+            "suggestions": ["Post is empty — add content."],
+        }
+
+    title_text = title.strip() if title else ""
+    body_text = text.strip() if text else ""
+    title_len = len(title_text)
+    body_len = len(body_text)
+    combined_lower = combined.lower()
+    words = combined.split()
+    word_count = len(words)
+
+    # Signals
+    hashtags = re.findall(r'#\w+', combined)
+    hashtag_count = len(hashtags)
+    emojis = re.findall(
+        r'[\U0001F300-\U0001F9FF\U00002600-\U000027BF\U0001FA00-\U0001FA9F]',
+        combined, re.UNICODE,
+    )
+    emoji_count = len(emojis)
+    links = re.findall(r'https?://\S+', combined)
+    link_count = len(links)
+    has_question = "?" in combined
+    has_number = bool(re.search(r'\b\d+\b', combined))
+    has_tldr = bool(re.search(r'\btl;?dr\b', combined_lower))
+    has_edit_note = bool(re.search(r'\bedit\s*:', combined_lower))
+    has_formatting = "\n\n" in combined or "- " in combined or "* " in combined
+    has_personal_pronoun = bool(re.search(r'\b(i|me|my|we|our)\b', combined_lower))
+
+    caps_words = [w for w in words if w.isupper() and len(w) > 2 and w.lstrip("#@").isalpha()]
+    caps_abuse = len(caps_words) >= 3
+
+    power_words_found = sorted({
+        w for w in _REDDIT_POWER_WORDS
+        if re.search(rf'\b{re.escape(w)}\b', combined_lower)
+    })
+    promo_signals_found = [
+        s for s in _REDDIT_PROMO_SIGNALS if s in combined_lower
+    ]
+    self_promotional = len(promo_signals_found) >= 1
+
+    # ── Scoring ────────────────────────────────────────────────────────────
+    score = 40
+    suggestions = []
+
+    # Title length (use title if provided, else first line as proxy)
+    effective_title = title_text or combined.split("\n")[0]
+    eff_title_len = len(effective_title)
+    if 60 <= eff_title_len <= 120:
+        score += 15
+    elif 30 <= eff_title_len < 60 or 120 < eff_title_len <= 180:
+        score += 8
+    else:
+        score -= 5
+        if eff_title_len < 30:
+            suggestions.append("Title is very short — aim for 60-120 characters.")
+        else:
+            suggestions.append("Title is very long — Reddit truncates after ~180 chars.")
+
+    # Question hook
+    if has_question:
+        score += 12
+    else:
+        suggestions.append("Questions drive replies on Reddit — consider a question hook.")
+
+    # Number / stat
+    if has_number:
+        score += 5
+
+    # Formatting (body posts)
+    if body_len > 200 and has_formatting:
+        score += 8
+    elif body_len > 200 and not has_formatting:
+        score -= 3
+        suggestions.append("Long post without paragraph breaks — add formatting for readability.")
+
+    # Personal pronouns
+    if has_personal_pronoun:
+        score += 5
+
+    # TL;DR for long posts
+    if body_len > 500 and has_tldr:
+        score += 6
+    elif body_len > 500 and not has_tldr:
+        suggestions.append("Long post — consider adding a TL;DR at the end.")
+
+    # Edit note
+    if has_edit_note:
+        score += 3
+
+    # Power words
+    pw_bonus = min(len(power_words_found), 4) * 3
+    score += pw_bonus
+
+    # ── Penalties ──────────────────────────────────────────────────────────
+    # Hashtags: Reddit doesn't use them
+    if hashtag_count > 0:
+        score -= 5 * hashtag_count
+        suggestions.append("Reddit doesn't use hashtags — remove them.")
+
+    # Emoji overuse
+    if 1 <= emoji_count <= 2:
+        pass  # neutral on Reddit
+    elif emoji_count >= 3:
+        score -= 4
+        suggestions.append("Reddit leans text-heavy — limit emojis to 1-2 max.")
+
+    # Link spam
+    if link_count > 2:
+        score -= 6 * (link_count - 2)
+        suggestions.append(f"Too many links ({link_count}) — keep to 1-2 max.")
+
+    # Self-promotion
+    if self_promotional:
+        score -= 10
+        suggestions.append(
+            f"Self-promotional language detected ({', '.join(promo_signals_found[:3])}). "
+            "Reddit communities penalise overt promotion."
+        )
+
+    # ALL CAPS abuse
+    if caps_abuse:
+        score -= 6
+        suggestions.append("Reduce ALL CAPS words — perceived as shouting on Reddit.")
+
+    score = max(0, min(100, score))
+    grade_map = [(90, "A"), (75, "B"), (60, "C"), (45, "D")]
+    grade = next((g for t, g in grade_map if score >= t), "F")
+
+    gate = _quality_gate(score)
+    return {
+        "text": combined[:500] + ("..." if len(combined) > 500 else ""),
+        "score": score,
+        "grade": grade,
+        "quality_gate": gate["quality_gate"],
+        "operational_risk": gate["operational_risk"],
+        "title_length": eff_title_len,
+        "body_length": body_len,
+        "word_count": word_count,
+        "has_question": has_question,
+        "has_number": has_number,
+        "has_tldr": has_tldr,
+        "has_edit_note": has_edit_note,
+        "has_formatting": has_formatting,
+        "has_personal_pronoun": has_personal_pronoun,
+        "link_count": link_count,
+        "hashtag_count": hashtag_count,
+        "emoji_count": emoji_count,
+        "caps_abuse": caps_abuse,
+        "self_promotional": self_promotional,
+        "power_words_found": power_words_found,
+        "promo_signals_found": promo_signals_found,
+        "suggestions": suggestions,
+    }
+
+
+@app.route("/v1/score_reddit", methods=["GET", "POST"])
+@app.route("/score-reddit", methods=["GET", "POST"])
+@app.route("/score_reddit", methods=["GET", "POST"])
+def endpoint_score_reddit():
+    """Score a Reddit post/title for engagement and upvote potential."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score-reddit",
+            "method": "POST",
+            "description": (
+                "Score a Reddit post (title + optional body) 0-100 for engagement "
+                "potential. Checks title length, question hook, formatting, self-promotion "
+                "signals, hashtag misuse, link density, and Reddit-specific power words."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/score_reddit",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "text": "Body of the Reddit post (optional)",
+                    "title": "Built a scoring API with 50 endpoints — here's what I learned",
+                },
+            },
+            "scoring_signals": [
+                "Title length (60-120 chars optimal)",
+                "Question hook (+12)",
+                "Number/stat presence (+5)",
+                "Body formatting (paragraphs, lists)",
+                "TL;DR on long posts (+6)",
+                "Personal pronouns (authenticity)",
+                "Self-promotional language penalty (-10)",
+                "Hashtag misuse (-5 each — Reddit doesn't use them)",
+                "Emoji overuse penalty (3+)",
+                "Link spam (>2 links)",
+                "ALL CAPS abuse",
+                "Power words (community-specific)",
+            ],
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or payload.get("body") or "").strip()
+    title = (payload.get("title") or "").strip()
+
+    if not text and not title:
+        return jsonify({
+            "error": "missing 'text' or 'title' parameter. Send at least one."
+        }), 400
+    if len(text) > 10000:
+        return jsonify({"error": "text too long (max 10000 chars)"}), 400
+
+    result = score_reddit_post(text, title)
+    _log_usage("score_reddit", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 5f-iii. Unified Score Content — route by platform param (heuristic)
+# ---------------------------------------------------------------------------
+@app.route("/v1/score_content", methods=["GET", "POST"])
+@app.route("/score-content", methods=["GET", "POST"])
+@app.route("/score_content", methods=["GET", "POST"])
+def endpoint_score_content():
+    """Single unified scoring endpoint — pass a 'platform' parameter to route
+    to the correct platform-specific scorer."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "score_content",
+            "method": "POST",
+            "description": (
+                "Unified scoring endpoint. Pass 'text' and 'platform' to score "
+                "content on any supported platform with a single endpoint."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/score_content",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "text": "Your post text here",
+                    "platform": "tweet",
+                },
+            },
+            "available_platforms": list(_PLATFORM_SCORERS.keys()),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or "").strip()
+    platform = (payload.get("platform") or "").strip().lower()
+
+    if not text:
+        return jsonify({"error": "missing 'text' parameter"}), 400
+    if not platform:
+        return jsonify({
+            "error": f"missing 'platform' parameter. Available: {list(_PLATFORM_SCORERS.keys())}"
+        }), 400
+    if platform not in _PLATFORM_SCORERS:
+        return jsonify({
+            "error": f"unknown platform '{platform}'. Available: {list(_PLATFORM_SCORERS.keys())}"
+        }), 400
+    if len(text) > 10000:
+        return jsonify({"error": "text too long (max 10000 chars)"}), 400
+
+    result = _PLATFORM_SCORERS[platform](text, payload)
+    result["platform"] = platform  # always include the platform in response
+    _log_usage("score_content", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify(result), remaining)
+
+
+# ---------------------------------------------------------------------------
 # 5g. Multi-Platform Score (heuristic — instant, no LLM)
 # ---------------------------------------------------------------------------
 _PLATFORM_SCORERS = {
@@ -4699,6 +5020,10 @@ _PLATFORM_SCORERS = {
     ),
     # headline: generic SEO/content headline scorer
     "headline": lambda text, _opts: analyze_headline(text),
+    # reddit: title + body scorer
+    "reddit": lambda text, opts: score_reddit_post(
+        text, opts.get("title", "")
+    ),
 }
 
 
@@ -4788,12 +5113,16 @@ def endpoint_score_multi():
             if r["score"] > best_score:
                 best_score = r["score"]
                 best_platform = p
-        except Exception as e:
-            results[p] = {"score": 0, "grade": "F", "error": str(e)}
-        else:
             gate = _quality_gate(r["score"])
             results[p]["quality_gate"] = gate["quality_gate"]
             results[p]["operational_risk"] = gate["operational_risk"]
+        except Exception as e:
+            err_gate = _quality_gate(0)
+            results[p] = {
+                "score": 0, "grade": "F", "error": str(e),
+                "quality_gate": err_gate["quality_gate"],
+                "operational_risk": err_gate["operational_risk"],
+            }
 
     _log_usage("score_multi", int((time.time() - start) * 1000))
     return _add_rate_headers(jsonify({
@@ -4995,11 +5324,15 @@ def endpoint_compare():
                 winner = "tie"
                 ties += 1
 
+            gate_a = _quality_gate(score_a)
+            gate_b = _quality_gate(score_b)
             comparisons[p] = {
                 "score_a": score_a,
                 "grade_a": r_a["grade"],
+                "quality_gate_a": gate_a["quality_gate"],
                 "score_b": score_b,
                 "grade_b": r_b["grade"],
+                "quality_gate_b": gate_b["quality_gate"],
                 "difference": diff,
                 "winner": winner,
                 "a_advantages": a_advantages[:5],
@@ -5097,11 +5430,14 @@ def endpoint_ab_test():
             continue
         try:
             scored = _PLATFORM_SCORERS[platform](text, payload)
+            ab_gate = _quality_gate(scored["score"])
             results.append({
                 "label": labels[i],
                 "text_preview": text[:120] + ("..." if len(text) > 120 else ""),
                 "score": scored["score"],
                 "grade": scored["grade"],
+                "quality_gate": ab_gate["quality_gate"],
+                "operational_risk": ab_gate["operational_risk"],
                 "suggestions": scored.get("suggestions", [])[:5],
             })
         except Exception as e:
@@ -6979,7 +7315,7 @@ def health():
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
-        "endpoints": 48,
+        "endpoints": 50,
         "total_requests_served": total_requests,
         "counted_requests": counted_requests,
         "leniency_policy": "Error responses (4xx/5xx) are never counted toward usage quota.",
@@ -7017,9 +7353,9 @@ def root():
 </head>
 <body>
   <div class="card">
-    <div class="badge">Live API v1.8.0 &mdash; 48 endpoints</div>
+    <div class="badge">Live API v1.8.0 &mdash; 50 endpoints</div>
     <h1>ContentForge API</h1>
-    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 48-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
+    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 50-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
     <a class="cta" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Get your free API key &rarr;</a>
     <div class="grid">
       <div class="item"><code>POST /v1/score_tweet</code><span>Score a tweet draft<span class="tag instant">instant</span></span></div>

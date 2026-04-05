@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ContentForge — Content Intelligence API · 47 Endpoints · Before-Publish Scoring</title>
-  <meta name="description" content="48-endpoint Content Intelligence API. Deterministic heuristic scoring for Twitter, LinkedIn, Instagram, TikTok, YouTube &amp; more in &lt;50ms. AI generation via Ollama or Gemini. Free tier, no credit card.">
+  <title>ContentForge — Content Intelligence API · 50 Endpoints · Before-Publish Scoring</title>
+  <meta name="description" content="50-endpoint Content Intelligence API. Deterministic heuristic scoring for Twitter, LinkedIn, Instagram, TikTok, YouTube &amp; more in &lt;50ms. AI generation via Ollama or Gemini. Free tier, no credit card.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-  <meta property="og:title" content="ContentForge — Content Intelligence API · 47 Endpoints">
+  <meta property="og:title" content="ContentForge — Content Intelligence API · 50 Endpoints">
   <meta property="og:description" content="Stop guessing if your content will flop. ContentForge scores every post before you publish — deterministic heuristics in &lt;50ms, AI optimization fallback, proof dashboard. 12 platforms, free tier.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://captainfredric.github.io/ContentForge/">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="ContentForge — Content Intelligence API · 47 Endpoints">
+  <meta name="twitter:title" content="ContentForge — Content Intelligence API · 50 Endpoints">
   <meta name="twitter:description" content="Before-publish scoring for 12 platforms. Deterministic &lt;50ms heuristics + AI generation + proof dashboard. Free tier on RapidAPI.">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -678,7 +678,7 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 
 <!-- ENDPOINTS -->
 <section id="endpoints" class="reveal">
-  <h2>All 47 Endpoints</h2>
+  <h2>All 50 Endpoints</h2>
   <p class="section-sub">Instant scoring, AI generation, and Proof Intelligence endpoints for measurable content performance.</p>
 
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;">
@@ -868,6 +868,22 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
       </div></div>
     </div>
 
+    <div class="endpoint-card" data-ep="score_reddit" data-kind="instant">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/score_reddit</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/score_reddit')">copy</span>
+      </div>
+      <div class="ep-desc">Score a Reddit post/title for upvote potential. Checks title length, question hook, self-promotion signals, formatting, hashtag misuse, and link density.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"title": "Built a deterministic content scoring API — here's what I learned", "text": "After 3 months of building..."}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
+    </div>
+
     <div class="endpoint-card" data-ep="score_ad_copy" data-kind="instant">
       <div class="ep-method instant">POST</div>
       <div class="ep-path">
@@ -912,6 +928,22 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
       <div class="ep-expand"><div class="ep-expand-inner">
         <div class="ep-example-label">Example Request Body</div>
         <div class="ep-example-code">{"hashtags": "#ai #AI #buildinpublic #growthhack #growthhack", "platform": "instagram"}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
+    </div>
+
+    <div class="endpoint-card" data-ep="score_content" data-kind="instant">
+      <div class="ep-method instant">POST</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/score_content</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/score_content')">copy</span>
+      </div>
+      <div class="ep-desc">Unified scoring endpoint. Pass any platform as a parameter and score with a single URL. No need to remember platform-specific paths.</div>
+      <span class="ep-badge fast">⚡ Instant</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"text": "Just shipped my side project!", "platform": "tweet"}</div>
         <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
       </div></div>
     </div>
@@ -1536,7 +1568,7 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <pre style="margin:0;font-size:0.82rem;color:#a0b0d0;line-height:1.8;overflow:auto;"><span style="color:#666;">$</span> git clone https://github.com/CaptainFredric/ContentForge.git
 <span style="color:#666;">$</span> pip install -r requirements.txt
 <span style="color:#666;">$</span> python scripts/api_prototype.py
-<span style="color:#5ec8a0;">Listening on http://localhost:5000 — all 48 endpoints active</span></pre>
+<span style="color:#5ec8a0;">Listening on http://localhost:5000 — all 50 endpoints active</span></pre>
   </div>
 </section>
 

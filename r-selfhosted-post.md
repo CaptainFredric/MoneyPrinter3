@@ -11,7 +11,7 @@ Built a content scoring API that runs fully offline with no external dependencie
 - AGPL-3.0 — full source, fork it, run it, modify it
 - `pip install -r requirements.txt && python scripts/api_prototype.py` — running in under a minute
 - Zero ML dependencies in the scoring engine — pure Python, stdlib + regex only
-- 48 endpoints, <50ms, deterministic (same input = same output, always)
+- 50 endpoints, <50ms, deterministic (same input = same output, always)
 - AI generation endpoints (rewrites, hooks) use local Ollama first — if Ollama is running, nothing leaves your machine
 
 **What it scores:** Twitter/X, LinkedIn, Instagram, TikTok, YouTube titles/descriptions, Pinterest, Reddit, Threads, Facebook, email subjects, ad copy, readability. Every scoring endpoint returns the score, grade, quality_gate (PASSED/REVIEW/FAILED), and itemized deductions.
