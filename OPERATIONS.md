@@ -23,7 +23,7 @@
 | Silent Phase — no code changes to scoring or extension | Active | Aden |
 
 **Pre-flight checklist (Saturday morning before 10am PT):**
-- [ ] `curl https://contentforge-api-lpp9.onrender.com/health` → confirms `"status":"ok","endpoints":47`
+- [ ] `curl https://contentforge-api-lpp9.onrender.com/health` → confirms `"status":"ok","endpoints":48`
 - [ ] Confirm Gemini quota reset (midnight Pacific)
 - [ ] Final read-through of `saturday-post.md`
 - [ ] Check CWS review status — if approved, add link to Saturday post under Links

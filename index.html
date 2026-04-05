@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ContentForge — Content Intelligence API · 47 Endpoints · Before-Publish Scoring</title>
-  <meta name="description" content="47-endpoint Content Intelligence API. Deterministic heuristic scoring for Twitter, LinkedIn, Instagram, TikTok, YouTube &amp; more in &lt;50ms. AI generation via Ollama or Gemini. Free tier, no credit card.">
+  <meta name="description" content="48-endpoint Content Intelligence API. Deterministic heuristic scoring for Twitter, LinkedIn, Instagram, TikTok, YouTube &amp; more in &lt;50ms. AI generation via Ollama or Gemini. Free tier, no credit card.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <meta property="og:title" content="ContentForge — Content Intelligence API · 47 Endpoints">
   <meta property="og:description" content="Stop guessing if your content will flop. ContentForge scores every post before you publish — deterministic heuristics in &lt;50ms, AI optimization fallback, proof dashboard. 12 platforms, free tier.">
@@ -1046,13 +1046,29 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
       </div></div>
     </div>
 
+    <div class="endpoint-card" data-ep="auto_improve" data-kind="ai">
+      <div class="ep-method">POST</div>
+      <div class="ep-path">
+        <span class="ep-path-text">/v1/auto_improve</span>
+        <span class="ep-copy" onclick="copyPath(event,'/v1/auto_improve')">copy</span>
+      </div>
+      <div class="ep-desc">Score → if not PASSED → AI rewrites it → re-scores → loops until PASSED or max iterations. Scorer + generator in a closed feedback loop. Returns best version found + full iteration history.</div>
+      <span class="ep-badge ai">✦ AI</span>
+      <div class="ep-click-hint">↓ click for example</div>
+      <div class="ep-expand"><div class="ep-expand-inner">
+        <div class="ep-example-label">Example Request Body</div>
+        <div class="ep-example-code">{"text": "I built an API.", "platform": "tweet", "tone": "engaging", "max_iterations": 3, "target_gate": "PASSED"}</div>
+        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
+      </div></div>
+    </div>
+
     <div class="endpoint-card" data-ep="compose_assist" data-kind="ai">
       <div class="ep-method">POST</div>
       <div class="ep-path">
         <span class="ep-path-text">/v1/compose_assist</span>
         <span class="ep-copy" onclick="copyPath(event,'/v1/compose_assist')">copy</span>
       </div>
-      <div class="ep-desc">Generate 2-5 rewrite variants, score each automatically, and return the best winner plus score delta vs original draft.</div>
+      <div class="ep-desc">Generate 2-5 rewrite variants, score each automatically with quality gates, and return the best winner plus score delta vs original draft.</div>
       <span class="ep-badge ai">✦ AI</span>
       <div class="ep-click-hint">↓ click for example</div>
       <div class="ep-expand"><div class="ep-expand-inner">
@@ -1520,7 +1536,7 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <pre style="margin:0;font-size:0.82rem;color:#a0b0d0;line-height:1.8;overflow:auto;"><span style="color:#666;">$</span> git clone https://github.com/CaptainFredric/ContentForge.git
 <span style="color:#666;">$</span> pip install -r requirements.txt
 <span style="color:#666;">$</span> python scripts/api_prototype.py
-<span style="color:#5ec8a0;">Listening on http://localhost:5000 — all 47 endpoints active</span></pre>
+<span style="color:#5ec8a0;">Listening on http://localhost:5000 — all 48 endpoints active</span></pre>
   </div>
 </section>
 

@@ -1,6 +1,6 @@
 # ContentForge — Content Intelligence API
 
-> **47 endpoints · 12 platforms · Deterministic scoring in <50ms · No AI hallucinations**
+> **48 endpoints · 12 platforms · Deterministic scoring in <50ms · No AI hallucinations**
 
 Score content before you post. ContentForge is a **Content Intelligence API** — a before-publish quality gate that grades every tweet, LinkedIn post, headline, and ad copy with a deterministic A–F score, actionable suggestions, and a `PASSED | REVIEW | FAILED` verdict in under 50ms — no LLM involved in the scoring layer.
 
@@ -31,7 +31,7 @@ r = requests.post("https://contentforge1.p.rapidapi.com/v1/score_tweet",
 | Component | Status | Notes |
 |---|---|---|
 | **ContentForge API** | ✅ Live | `https://contentforge-api-lpp9.onrender.com` |
-| **RapidAPI Listing** | ✅ Public | 47 endpoints, 4-tier pricing |
+| **RapidAPI Listing** | ✅ Public | 48 endpoints, 4-tier pricing |
 | **Keep-warm cron** | ✅ Active | cron-job.org pings `/v1/status` every 10 min (no LLM call) |
 | **Gemini backend** | ✅ Configured | `gemini-2.0-flash` on Render (1500 RPD free tier) |
 | **Ollama local** | ✅ Running | Scoring uses zero AI calls — pure heuristics |
@@ -87,10 +87,11 @@ ContentForge's scoring layer is pure Python heuristics. Same input → same outp
 ### AI Generation (Ollama → Gemini fallback)
 | Endpoint | What It Does |
 |---|---|
+| `POST /v1/auto_improve` | Score → if not PASSED → AI rewrite → re-score loop (up to 5 iterations) — returns best version + full iteration history |
+| `POST /v1/compose_assist` | Generate 2–5 rewrite variants, score each, return ranked with quality gates |
 | `POST /v1/improve_headline` | Rewrite a weak headline N times, sorted by score |
 | `POST /v1/generate_hooks` | Scroll-stopping openers for any topic/style |
 | `POST /v1/rewrite` | Rewrite for Twitter, LinkedIn, email, or blog |
-| `POST /v1/compose_assist` | Full draft generation with platform constraints |
 | `POST /v1/tweet_ideas` | Tweet ideas for a niche with hashtags |
 | `POST /v1/content_calendar` | 7-day content calendar with ready-to-post drafts |
 | `POST /v1/thread_outline` | Full Twitter thread: hook + body + CTA close |
@@ -160,7 +161,7 @@ All plans include every endpoint. Heuristic scoring calls don't count against yo
 
 ```
 scripts/
-└── api_prototype.py         # ContentForge Flask API — all 47 endpoints
+└── api_prototype.py         # ContentForge Flask API — all 48 endpoints (incl. /v1/auto_improve)
 extension/
 ├── manifest.json            # Chrome extension (Manifest V3)
 ├── popup.html / popup.js    # Score, compare, rewrite from the toolbar

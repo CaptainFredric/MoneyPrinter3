@@ -926,11 +926,15 @@ def endpoint_compose_assist():
     scored = []
     for i, variant in enumerate(clean_variants, start=1):
         r = _PLATFORM_SCORERS[platform](variant, payload)
+        v_score = r.get("score", 0)
+        v_gate = _quality_gate(v_score)
         scored.append({
             "rank_label": chr(64 + i),
             "text": variant,
-            "score": r.get("score", 0),
+            "score": v_score,
             "grade": r.get("grade", "D"),
+            "quality_gate": v_gate["quality_gate"],
+            "operational_risk": v_gate["operational_risk"],
             "suggestions": (r.get("suggestions") or [])[:4],
             "char_count": len(variant),
         })
@@ -938,6 +942,7 @@ def endpoint_compose_assist():
     scored.sort(key=lambda x: x["score"], reverse=True)
     original_result = _PLATFORM_SCORERS[platform](text, payload)
     original_score = original_result.get("score", 0)
+    orig_gate = _quality_gate(original_score)
     winner = scored[0]
     if original_score >= winner["score"]:
         winner = {
@@ -945,6 +950,8 @@ def endpoint_compose_assist():
             "text": text,
             "score": original_score,
             "grade": original_result.get("grade", "C"),
+            "quality_gate": orig_gate["quality_gate"],
+            "operational_risk": orig_gate["operational_risk"],
             "suggestions": [],
             "char_count": len(text),
         }
@@ -955,14 +962,209 @@ def endpoint_compose_assist():
         "tone": tone,
         "original": text,
         "original_score": original_score,
+        "original_quality_gate": orig_gate["quality_gate"],
         "ranked_variants": scored,
         "recommendation": {
             "winner": winner["rank_label"],
             "winner_score": winner["score"],
             "winner_grade": winner["grade"],
+            "winner_quality_gate": winner["quality_gate"],
             "winner_text": winner["text"],
             "score_delta_vs_original": winner["score"] - original_score,
         },
+    }), remaining)
+
+
+# ---------------------------------------------------------------------------
+# 3C. Auto-Improve — Score → Rewrite Loop Until PASSED (or max iterations)
+# ---------------------------------------------------------------------------
+@app.route("/v1/auto_improve", methods=["GET", "POST"])
+def endpoint_auto_improve():
+    """Score a post, and if it doesn't pass the quality gate, automatically
+    rewrite it and re-score up to ``max_iterations`` times.  Returns the first
+    PASSED version or the best attempt found, together with the full iteration
+    history so callers can see exactly how the score evolved.
+
+    This is the "generator + auto-scorer assimilated" endpoint: one call
+    combines the deterministic heuristic scorer and the AI rewriter into a
+    closed feedback loop."""
+    if request.method == "GET":
+        return jsonify({
+            "endpoint": "auto_improve",
+            "method": "POST",
+            "description": (
+                "Score text for a platform. If FAILED or REVIEW, rewrite with AI "
+                "and re-score — repeat until PASSED or max_iterations reached. "
+                "Returns best version found and full iteration history."
+            ),
+            "usage": {
+                "url": "https://contentforge-api-lpp9.onrender.com/v1/auto_improve",
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "text": "I built an API",
+                    "platform": "tweet",
+                    "tone": "engaging",
+                    "max_iterations": 3,
+                    "target_gate": "PASSED",
+                },
+            },
+            "notes": (
+                "max_iterations: 1–5 (default 3). "
+                "target_gate: 'PASSED' (default) or 'REVIEW'. "
+                "Each iteration costs one AI call. "
+                "Scoring is always deterministic (no AI quota consumed for scoring)."
+            ),
+            "available_platforms": list(_PLATFORM_SCORERS.keys()),
+        }), 200
+
+    if not _verify_rapidapi_request():
+        return jsonify({"error": "forbidden"}), 403
+    allowed, remaining = _check_rate_limit()
+    if not allowed:
+        return jsonify({"error": "rate limit exceeded (30/min)"}), 429
+
+    start = time.time()
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or "").strip()
+    platform = (payload.get("platform") or "tweet").strip().lower()
+    tone = (payload.get("tone") or "engaging").strip()
+    target_gate = (payload.get("target_gate") or "PASSED").strip().upper()
+
+    try:
+        max_iterations = int(payload.get("max_iterations", 3))
+    except (ValueError, TypeError):
+        max_iterations = 3
+    max_iterations = max(1, min(5, max_iterations))
+
+    if not text:
+        return jsonify({"error": "missing 'text' parameter"}), 400
+    if len(text) > 2000:
+        return jsonify({"error": "text too long (max 2000 chars)"}), 400
+    if platform not in _PLATFORM_SCORERS:
+        return jsonify({"error": f"invalid platform. Available: {list(_PLATFORM_SCORERS.keys())}"}), 400
+    if target_gate not in ("PASSED", "REVIEW"):
+        target_gate = "PASSED"
+
+    _GATE_ORDER = {"PASSED": 2, "REVIEW": 1, "FAILED": 0}
+    target_threshold = _GATE_ORDER[target_gate]
+
+    platform_hint = {
+        "tweet": "under 280 chars, punchy hook, 1-2 hashtags max",
+        "twitter": "under 280 chars, punchy hook, 1-2 hashtags max",
+        "linkedin": "short paragraphs, professional tone, clear CTA",
+        "instagram": "strong hook, visual language, CTA + hashtags",
+        "tiktok": "under 150 chars, trendy phrasing, concise",
+        "headline": "30-80 chars, use numbers/question/power words",
+        "email": "under 60 chars, curiosity + clarity",
+        "email_subject": "under 60 chars, curiosity + clarity",
+        "youtube": "40-70 chars, CTR-oriented wording",
+        "youtube_description": "200-400 chars, keywords in first 2 lines",
+        "threads": "under 500 chars, conversational, clear point",
+        "facebook": "under 400 chars, story-driven, question or CTA",
+        "pinterest": "under 200 chars, descriptive, searchable keywords",
+        "readability": "clear sentences, varied length, active voice",
+        "ad_copy": "under 90 chars headline, strong CTA, benefit-first",
+    }.get(platform, "fit platform norms and keep it clear")
+
+    # ── Initial score ──────────────────────────────────────────────────────
+    def _score(t):
+        r = _PLATFORM_SCORERS[platform](t, payload)
+        s = r.get("score", 0)
+        g = _quality_gate(s)
+        return {
+            "text": t,
+            "score": s,
+            "grade": r.get("grade", "F"),
+            "quality_gate": g["quality_gate"],
+            "operational_risk": g["operational_risk"],
+            "suggestions": (r.get("suggestions") or [])[:5],
+        }
+
+    history = []
+    current = _score(text)
+    history.append({"iteration": 0, "label": "original", **current})
+
+    iterations_used = 0
+    ai_calls_used = 0
+
+    # ── Rewrite loop ───────────────────────────────────────────────────────
+    for iteration in range(1, max_iterations + 1):
+        if _GATE_ORDER.get(current["quality_gate"], 0) >= target_threshold:
+            break  # already at or above target gate — stop early
+
+        # Build a prompt that feeds the scorer's own suggestions back in
+        suggestions_text = ""
+        if current["suggestions"]:
+            suggestions_text = (
+                "\n\nThe scorer flagged these specific issues — address them:\n"
+                + "\n".join(f"- {s}" for s in current["suggestions"])
+            )
+
+        rewrite_prompt = (
+            f"Rewrite the following {platform} post to score higher on a content quality gate.\n"
+            f"Platform constraints: {platform_hint}.\n"
+            f"Tone: {tone}.\n"
+            f"Current score: {current['score']}/100 — gate: {current['quality_gate']}.\n"
+            f"Target: reach '{target_gate}' gate (≥{'70' if target_gate == 'PASSED' else '50'} score)."
+            f"{suggestions_text}\n\n"
+            "Return ONLY the rewritten text, no explanation, no quotes, no labels.\n\n"
+            f"Original: {current['text']}"
+        )
+
+        try:
+            rewritten = _llm_generate(rewrite_prompt).strip().strip('"').strip("'")
+            ai_calls_used += 1
+        except Exception as e:
+            # AI unavailable — record the error and stop iterating
+            history.append({
+                "iteration": iteration,
+                "label": f"rewrite_{iteration}",
+                "error": f"LLM unavailable: {e}",
+            })
+            break
+
+        iterations_used += 1
+        candidate = _score(rewritten)
+        history.append({"iteration": iteration, "label": f"rewrite_{iteration}", **candidate})
+
+        # Keep whichever version scores higher
+        if candidate["score"] > current["score"]:
+            current = candidate
+
+    # ── Best result ────────────────────────────────────────────────────────
+    original_entry = history[0]
+    score_delta = current["score"] - original_entry["score"]
+    gate_improved = (
+        _GATE_ORDER.get(current["quality_gate"], 0)
+        > _GATE_ORDER.get(original_entry["quality_gate"], 0)
+    )
+    target_reached = _GATE_ORDER.get(current["quality_gate"], 0) >= target_threshold
+
+    _log_usage("auto_improve", int((time.time() - start) * 1000))
+    return _add_rate_headers(jsonify({
+        "platform": platform,
+        "target_gate": target_gate,
+        "iterations_used": iterations_used,
+        "ai_calls_used": ai_calls_used,
+        "target_reached": target_reached,
+        "best": {
+            "text": current["text"],
+            "score": current["score"],
+            "grade": current["grade"],
+            "quality_gate": current["quality_gate"],
+            "operational_risk": current["operational_risk"],
+            "suggestions": current["suggestions"],
+            "score_delta_vs_original": score_delta,
+            "gate_improved": gate_improved,
+        },
+        "original": {
+            "text": original_entry["text"],
+            "score": original_entry["score"],
+            "grade": original_entry["grade"],
+            "quality_gate": original_entry["quality_gate"],
+        },
+        "iteration_history": history,
     }), remaining)
 
 
@@ -6777,7 +6979,7 @@ def health():
         "llm_backend": llm_backend,
         "ai_endpoints_ready": ai_ready,
         "ai_status": ai_status_detail,
-        "endpoints": 47,
+        "endpoints": 48,
         "total_requests_served": total_requests,
         "counted_requests": counted_requests,
         "leniency_policy": "Error responses (4xx/5xx) are never counted toward usage quota.",
@@ -6815,9 +7017,9 @@ def root():
 </head>
 <body>
   <div class="card">
-    <div class="badge">Live API v1.8.0 &mdash; 47 endpoints</div>
+    <div class="badge">Live API v1.8.0 &mdash; 48 endpoints</div>
     <h1>ContentForge API</h1>
-    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 41-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
+    <p class="sub">Score your content before you post. Quality gate every draft. AI rewrites with measurable lift. 48-endpoint REST API &mdash; <50ms instant scoring, AI generation, proof intelligence.</p>
     <a class="cta" href="https://rapidapi.com/captainarmoreddude-default-default/api/contentforge1" target="_blank">Get your free API key &rarr;</a>
     <div class="grid">
       <div class="item"><code>POST /v1/score_tweet</code><span>Score a tweet draft<span class="tag instant">instant</span></span></div>
