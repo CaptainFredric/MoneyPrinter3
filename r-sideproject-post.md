@@ -25,3 +25,18 @@ AI is still in the system (Gemini for rewrites and content generation) — just 
 - API (free tier): https://rapidapi.com/captainarmoreddude/api/contentforge1
 
 Open to feedback on the heuristic weights — there's a `/v1/feedback` endpoint specifically for "this score feels wrong" reports.
+
+---
+
+**Calibration challenge (lifetime Ultra access on the line):**
+
+The heuristic weights are based on platform best-practices documentation, not yet validated against a real performance corpus. I'm running a Blind Taste Test to fix that.
+
+Submit 10 historical posts — 5 that performed well, 5 that flopped — without telling me which is which. I'll run them through the scoring engine and return a ranked order. You tell me if I got it right.
+
+**If the engine correctly identifies your top performers:** You get **lifetime Ultra API access** (3,000 AI calls/month, every endpoint, no expiry) + your anonymized results appear in the public validation report.
+**If it gets it wrong:** The mismatch tells me exactly which signal weights are off — that's a direct R&D contribution, and you still get a full score breakdown for all 10 posts.
+
+Details + submission template: https://github.com/CaptainFredric/ContentForge/discussions/4
+
+Need 10 more participants to hit statistical confidence before the Product Hunt relaunch.

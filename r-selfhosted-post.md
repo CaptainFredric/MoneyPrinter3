@@ -30,3 +30,15 @@ For AI generation locally: install Ollama, pull llama3.2:3b (or any model), and 
 **GitHub:** https://github.com/CaptainFredric/ContentForge
 
 Interested in feedback on the self-hosting experience — particularly Docker setup, which is on the roadmap.
+
+---
+
+**Calibration challenge (lifetime Ultra access):**
+
+The scoring weights are built from platform documentation, not validated against real engagement data yet. Running a Blind Taste Test to fix that — and I need people who actually create content.
+
+Submit 10 historical posts (5 top performers, 5 flops) without labeling which is which. The engine ranks them. You verify the ranking. If it gets your top 5 right, you get **lifetime Ultra API access** (3,000 AI calls/month, no expiry). Either way, you get a full deterministic score breakdown for all 10 posts — the same audit trail you'd run in a self-hosted pipeline.
+
+Submission template: https://github.com/CaptainFredric/ContentForge/discussions/4
+
+10 more participants needed across platforms before the Product Hunt relaunch.
