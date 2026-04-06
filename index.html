@@ -682,7 +682,7 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   <p class="section-sub">Instant scoring, AI generation, and Proof Intelligence endpoints for measurable content performance.</p>
 
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;">
-    <button class="ep-filter-btn active" data-filter="all" onclick="filterEndpoints('all',this)">All 40</button>
+    <button class="ep-filter-btn active" data-filter="all" onclick="filterEndpoints('all',this)">All 50</button>
     <button class="ep-filter-btn" data-filter="instant" onclick="filterEndpoints('instant',this)">⚡ Instant</button>
     <button class="ep-filter-btn" data-filter="ai" onclick="filterEndpoints('ai',this)">✦ AI Generation</button>
     <button class="ep-filter-btn" data-filter="system" onclick="filterEndpoints('system',this)">⬡ System + Proof</button>
@@ -1744,8 +1744,11 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     const t = text.toLowerCase();
     return POWER_WORDS.filter(w => t.includes(w));
   }
-  function renderResult(score, grade, meta, suggestions, found) {
+  function renderResult(score, grade, quality_gate, operational_risk, meta, suggestions, found) {
     const gradeClass = 'grade-' + grade.toLowerCase();
+    const gateColor = quality_gate === 'PASSED' ? '#4ade80' : quality_gate === 'REVIEW' ? '#facc15' : '#f87171';
+    const gateBg   = quality_gate === 'PASSED' ? '#14532d' : quality_gate === 'REVIEW' ? '#422006' : '#450a0a';
+    const riskColor = operational_risk === 'LOW' ? '#5ec8a0' : operational_risk === 'MEDIUM' ? '#facc15' : '#f87171';
     const resultEl = document.getElementById('tryResult');
     resultEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:16px;flex-wrap:wrap;">
@@ -1754,6 +1757,10 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
           <div style="color:#9999aa;font-size:0.8rem;">Grade: <strong style="color:#f0f0f5">${grade}</strong></div>
         </div>
         <div style="flex:1;min-width:200px;">
+          <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="background:${gateBg};color:${gateColor};font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">${quality_gate}</span>
+            <span style="color:${riskColor};font-size:0.72rem;font-weight:600;">Risk: ${operational_risk}</span>
+          </div>
           <div style="color:#9999aa;font-size:0.81rem;line-height:1.7;">${meta}</div>
           ${found.length ? `<div style="color:#7c6af7;font-size:0.81rem;margin-top:4px;">Power words: ${found.slice(0,6).join(', ')}</div>` : ''}
         </div>
@@ -1936,8 +1943,10 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     }
 
     score = Math.max(0, Math.min(100, score));
-    const grade = score >= 80 ? 'A' : score >= 60 ? 'B' : score >= 40 ? 'C' : 'D';
-    return { score, grade, meta, suggestions, found };
+    const grade = score >= 90 ? 'A' : score >= 75 ? 'B' : score >= 60 ? 'C' : score >= 45 ? 'D' : 'F';
+    const quality_gate = score >= 70 ? 'PASSED' : score >= 50 ? 'REVIEW' : 'FAILED';
+    const operational_risk = score >= 70 ? 'LOW' : score >= 50 ? 'MEDIUM' : 'HIGH';
+    return { score, grade, quality_gate, operational_risk, meta, suggestions, found };
   }
 
   function runPlatformScore() {
@@ -1947,8 +1956,8 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     btn.disabled = true;
     btn.textContent = 'Scoring...';
     setTimeout(() => {
-      const { score, grade, meta, suggestions, found } = scoreContent(currentPlatform, text);
-      renderResult(score, grade, meta, suggestions, found);
+      const { score, grade, quality_gate, operational_risk, meta, suggestions, found } = scoreContent(currentPlatform, text);
+      renderResult(score, grade, quality_gate, operational_risk, meta, suggestions, found);
       btn.disabled = false;
       btn.textContent = 'Score It →';
     }, 400);
