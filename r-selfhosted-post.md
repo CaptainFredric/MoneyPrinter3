@@ -28,6 +28,7 @@ python scripts/api_prototype.py
 For AI generation locally: install Ollama, pull llama3.2:3b (or any model), and set `OLLAMA_HOST=http://localhost:11434`. No Ollama? Set `GEMINI_API_KEY` for cloud fallback.
 
 **GitHub:** https://github.com/CaptainFredric/ContentForge
+**Live demo (before you clone):** https://nullmark.tech/r/contentforge
 
 Interested in feedback on the self-hosting experience — particularly Docker setup which is on the roadmap!
 

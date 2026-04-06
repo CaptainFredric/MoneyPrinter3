@@ -36,7 +36,7 @@ r/webdev Showoff Saturday thread goes live at ~9-10am PT. Comment early — new 
 ### Step 3 — First reply (pin your demo link)
 Post as a reply immediately after:
 ```
-**Quick demo (no sign-up):** https://captainfredric.github.io/ContentForge/
+**Quick demo (no sign-up):** https://nullmark.tech/r/contentforge
 
 Try pasting any tweet draft into the scorer at the bottom — you'll see the quality_gate field and itemized deductions.
 ```
@@ -91,7 +91,7 @@ chrome extension scores as you type 👇
 
 **Tweet 3 (demo):**
 ```
-Try it: https://captainfredric.github.io/ContentForge/
+Try it: https://nullmark.tech/r/contentforge
 
 Paste any draft → get a 0-100 score + quality_gate + itemized deductions in under 50ms.
 

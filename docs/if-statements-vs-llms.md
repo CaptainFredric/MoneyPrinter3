@@ -184,7 +184,7 @@ The heuristic is the ruler. It does not need to understand why 12 inches is 12 i
 ---
 
 **GitHub (AGPL-3.0):** https://github.com/CaptainFredric/ContentForge
-**API and demo:** https://captainfredric.github.io/ContentForge/
+**API and demo:** https://nullmark.tech/r/contentforge
 **Free tier:** https://rapidapi.com/captainarmoreddude/api/contentforge1
 
 ---

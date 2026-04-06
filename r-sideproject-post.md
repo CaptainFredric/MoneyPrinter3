@@ -21,7 +21,7 @@ AI is still in the system (Gemini for rewrites and content generation), just not
 
 **Links:**
 - GitHub (AGPL-3.0): https://github.com/CaptainFredric/ContentForge
-- Live demo: https://captainfredric.github.io/ContentForge/
+- Live demo: https://nullmark.tech/r/contentforge
 - API (free tier): https://rapidapi.com/captainarmoreddude/api/contentforge1
 
 Open to feedback on the heuristic weights! There's a `/v1/feedback` endpoint specifically for "this score feels wrong" reports.
