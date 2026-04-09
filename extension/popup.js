@@ -161,6 +161,28 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         suggList.innerHTML = "";
+        const detailItems = [];
+
+        if (Array.isArray(resp.signal_breakdown)) {
+          resp.signal_breakdown.slice(0, 4).forEach((entry) => {
+            const sign = entry.points > 0 ? "+" : "";
+            detailItems.push(`${entry.signal}: ${sign}${entry.points} — ${entry.reason}`);
+          });
+        }
+        if (Array.isArray(resp.power_words_found) && resp.power_words_found.length) {
+          detailItems.push(`Power words: ${resp.power_words_found.slice(0, 5).join(", ")}`);
+        }
+        if (Array.isArray(resp.spam_phrases_found) && resp.spam_phrases_found.length) {
+          detailItems.push(`Spam flags: ${resp.spam_phrases_found.slice(0, 3).join(", ")}`);
+        }
+
+        detailItems.forEach((item) => {
+          const li = document.createElement("li");
+          li.style.color = "#9ca3af";
+          li.textContent = item;
+          suggList.appendChild(li);
+        });
+
         if (resp._note) {
           const li = document.createElement("li");
           li.style.color = "#f59e0b";

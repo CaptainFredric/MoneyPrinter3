@@ -40,6 +40,35 @@ r = requests.post("https://contentforge1.p.rapidapi.com/v1/score_tweet",
 
 ---
 
+## Calibration Status
+
+ContentForge is deterministic today. That means the same input always produces the same score and audit trail.
+
+It is **not the same thing as saying the engine is fully validated against outcome data yet**. Calibration is still in progress, and the public log lives in [docs/validation.md](docs/validation.md).
+
+Current practical framing:
+- Use it as an explainable pre-flight quality gate.
+- Treat scores as heuristic guidance, not guaranteed performance prediction.
+- Expect weights to keep improving as blind test data comes in.
+
+Calibration tooling now lives in:
+- [docs/calibration_dataset_template.csv](docs/calibration_dataset_template.csv)
+- [docs/calibration_dataset_template.json](docs/calibration_dataset_template.json)
+- [scripts/calibrate_content.py](scripts/calibrate_content.py)
+- [docs/chrome-extension-readiness.md](docs/chrome-extension-readiness.md)
+
+Quick start:
+
+```bash
+python scripts/calibrate_content.py \
+  --input docs/calibration_dataset_template.csv \
+  --report-json docs/calibration_report.json \
+  --report-md docs/calibration_report.md \
+  --examples-json docs/calibration_examples.json
+```
+
+---
+
 ## Why Deterministic Scoring?
 
 Every LLM-based scorer has the same flaw: ask it to score the same tweet twice and you'll get two different answers. For a professional content workflow, that's not a tool — that's a vibe check.
