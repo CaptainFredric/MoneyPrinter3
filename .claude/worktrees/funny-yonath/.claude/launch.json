@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ContentForge API (Flask dev)",
+      "runtimeExecutable": "/Users/erendiracisneros/Documents/GitHub/PromisesFrontend/MoneyPrinterV2/ContentForge/venv/bin/python",
+      "runtimeArgs": ["/Users/erendiracisneros/Documents/GitHub/PromisesFrontend/MoneyPrinterV2/ContentForge/scripts/api_prototype.py"],
+      "port": 8081
+    },
+    {
+      "name": "ContentForge API (Gunicorn)",
+      "runtimeExecutable": "/Users/erendiracisneros/Documents/GitHub/PromisesFrontend/MoneyPrinterV2/ContentForge/venv/bin/gunicorn",
+      "runtimeArgs": ["deploy.wsgi:app", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "120", "--chdir", "/Users/erendiracisneros/Documents/GitHub/PromisesFrontend/MoneyPrinterV2/ContentForge"],
+      "port": 8000
+    },
+    {
+      "name": "Ollama LLM server",
+      "runtimeExecutable": "ollama",
+      "runtimeArgs": ["serve"],
+      "port": 11434
+    }
+  ]
+}
