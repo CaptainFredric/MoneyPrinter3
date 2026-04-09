@@ -5,48 +5,48 @@
 > 132 characters max for Chrome Web Store
 
 ```
-Score your posts before you hit send. Get a 0-100 score, letter grade, and improvement tips as you type. No signup needed.
+Score drafts before you publish. Get a live 0 to 100 score, grade, and rewrite help on supported social sites. No signup.
 ```
 
-(122 characters — no platform name list)
+(121 characters)
 
 ---
 
 ## Detailed Description
 
-**ContentForge scores your content before you hit send.**
+**ContentForge scores draft copy before you publish it.**
 
-Ever publish a post and just hope it performs? ContentForge removes the guesswork. It analyzes your writing against platform-specific best practices and gives you a clear 0-100 score, a letter grade, and actionable suggestions — all in under 50 milliseconds.
+ContentForge gives your draft a clear 0 to 100 score, letter grade, and specific improvement tips before you post. The goal is simple: catch weak hooks, vague headlines, spammy phrasing, and missing structure while you are still editing.
 
 **How it works:**
 
-A floating score badge appears while you compose on supported social platforms. The badge updates in real time as you type, color-coded from red (needs work) to green (ready to post). No tab-switching, no copy-pasting into a separate tool. Your score is right there, next to the compose box.
+A floating score badge appears while you compose on supported social platforms. The badge updates as you type, shifting from weak to strong as the draft improves. You can inspect the score, grade, and top suggestions without leaving the page.
 
 **Popup scoring for any platform:**
 
-Click the extension icon to score content even on sites without badge injection. Select your target platform from the dropdown, paste your draft, and get an instant breakdown. Each platform has its own scoring ruleset tuned to that platform's character limits, formatting conventions, and engagement patterns. The extension supports 12 platforms in total.
+Click the extension icon to score content even on pages without badge injection. Select a platform, paste your draft, and get an instant breakdown. The popup is especially useful for headline testing, email subjects, YouTube titles, and quick draft comparisons.
 
-**A/B Compare:**
+**Compare two drafts:**
 
-Stuck between two drafts? Paste both into the Compare tab and see a head-to-head breakdown. ContentForge picks the winner and shows you exactly why one draft outscores the other.
+If you are choosing between two versions, paste both into the Compare tab. ContentForge shows which one scores higher and why.
 
 **AI Rewrite:**
 
-When your score is low, choose a tone — Engaging, Professional, Casual, or Bold — and let AI generate an optimized rewrite. One click inserts the rewrite directly into the compose box. AI is strictly opt-in; it never runs unless you ask for it.
+When a draft scores poorly, choose a tone and ask for a rewrite. The extension generates a stronger version and can insert it back into a supported composer. AI only runs when the user explicitly asks for it.
 
 **Deterministic scoring:**
 
-This is not an LLM scoring your content. ContentForge uses a heuristic engine — pure rules mapped to best practices. The same input produces the same score every time. No variance, no hallucinations. Every deduction is itemized so you can see exactly what to fix.
+This is not an LLM guessing at a score. ContentForge uses deterministic rules tuned for each platform. The same input produces the same score every time, and the user can inspect the reasons behind the score.
 
 **Works offline:**
 
-If the API is cold or your connection drops, ContentForge falls back to local heuristics built into the extension. You still get a score, a grade, and suggestions — no internet required.
+If the API is cold or your connection drops, ContentForge falls back to local heuristics built into the extension. The user still gets a score, grade, and suggestions.
 
 **Privacy-first, no account needed:**
 
-No signup, no login, no API key required. No data is stored on our servers. No tracking or analytics. Open source under AGPL-3.0.
+No signup, login, or API key is required. Rewrite history is stored locally in the browser. The extension sends only the text the user chooses to score to the ContentForge API. No ad tracking or analytics are included.
 
-ContentForge is built for creators, marketers, founders, and anyone who writes for an audience online. It turns "I think this is good" into "I know this scores 87."
+ContentForge is built for creators, marketers, founders, and anyone who wants a faster edit loop before publishing.
 
 ---
 
@@ -73,5 +73,6 @@ readability, A/B testing, content quality, creator tools, copywriting
 - **License:** AGPL-3.0
 - **Version:** 0.6.0
 - **Manifest version:** 3
-- **Permissions used:** storage, activeTab, tabs
+- **Permissions used:** storage
 - **Host permissions:** ContentForge API endpoint only
+- **Supported site access:** x.com, twitter.com, linkedin.com, instagram.com, threads.net, facebook.com

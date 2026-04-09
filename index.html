@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ContentForge — Content Intelligence API · 50 Endpoints · Before-Publish Scoring</title>
-  <meta name="description" content="50-endpoint Content Intelligence API. Deterministic heuristic scoring for Twitter, LinkedIn, Instagram, TikTok, YouTube &amp; more in &lt;50ms. AI generation via Ollama or Gemini. Free tier, no credit card.">
+  <title>ContentForge — Headline Scorer and Before Publish Content API</title>
+  <meta name="description" content="Score headlines, tweets, and launch copy before you publish. Deterministic scoring, rewrite help, and a public calibration log.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-  <meta property="og:title" content="ContentForge — Content Intelligence API · 50 Endpoints">
-  <meta property="og:description" content="Stop guessing if your content will flop. ContentForge scores every post before you publish — deterministic heuristics in &lt;50ms, AI optimization fallback, proof dashboard. 12 platforms, free tier.">
+  <meta property="og:title" content="ContentForge — Headline Scorer and Before Publish API">
+  <meta property="og:description" content="Score headlines, tweets, and launch copy before you publish. Deterministic scoring, rewrite help, and a public calibration log.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://captainfredric.github.io/ContentForge/">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="ContentForge — Content Intelligence API · 50 Endpoints">
-  <meta name="twitter:description" content="Before-publish scoring for 12 platforms. Deterministic &lt;50ms heuristics + AI generation + proof dashboard. Free tier on RapidAPI.">
+  <meta name="twitter:title" content="ContentForge — Headline Scorer and Before Publish API">
+  <meta name="twitter:description" content="Score headlines, tweets, and launch copy before you publish. Deterministic scoring, rewrite help, and a public calibration log.">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -270,6 +270,130 @@
     .audience-card:hover .audience-icon { transform: scale(1.15); }
     .audience-card h3 { font-size: 0.95rem; color: #f0f0f5; margin-bottom: 6px; }
     .audience-card p { font-size: 0.85rem; color: #9999aa; line-height: 1.5; }
+
+    /* ── CALIBRATION PROOF ── */
+    .proof-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .proof-summary-card {
+      background: #141418;
+      border: 1px solid #1e1e28;
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .proof-summary-card .label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7f7f99;
+      margin-bottom: 6px;
+    }
+    .proof-summary-card .value {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #f0f0f5;
+    }
+    .proof-summary-card .meta {
+      font-size: 0.82rem;
+      color: #9a9ab2;
+      margin-top: 4px;
+    }
+    .proof-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .proof-card {
+      background: #141418;
+      border: 1px solid #1e1e28;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .proof-card.hit { border-color: #244a34; }
+    .proof-card.miss { border-color: #4a2a2a; }
+    .proof-topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .proof-kind {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 3px 9px;
+    }
+    .proof-kind.hit { background: #123321; color: #7ae2a6; }
+    .proof-kind.miss { background: #3a1515; color: #f29a9a; }
+    .proof-platform {
+      font-size: 0.74rem;
+      color: #9797af;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .proof-card p {
+      font-size: 0.92rem;
+      color: #d8d8e4;
+      line-height: 1.55;
+      margin-bottom: 12px;
+    }
+    .proof-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .proof-metrics div {
+      background: #101014;
+      border: 1px solid #232330;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .proof-metrics span {
+      display: block;
+      font-size: 0.7rem;
+      color: #7e7e95;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .proof-metrics strong {
+      font-size: 1rem;
+      color: #f0f0f5;
+    }
+    .proof-note {
+      font-size: 0.8rem;
+      color: #9d9db5;
+    }
+    .proof-empty {
+      background: #141418;
+      border: 1px dashed #343446;
+      border-radius: 12px;
+      padding: 22px;
+      color: #b5b5c6;
+    }
+    .proof-empty h3 {
+      font-size: 1rem;
+      color: #f0f0f5;
+      margin-bottom: 8px;
+    }
+    .proof-empty p {
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      color: #9d9db5;
+    }
+    .proof-empty a {
+      color: #7c6af7;
+      text-decoration: none;
+      font-weight: 700;
+    }
 
     /* ── ENDPOINTS GRID ── */
     .endpoints-grid {
@@ -533,6 +657,7 @@
       .stats { gap: 24px; }
       .demo { flex-direction: column; }
       .demo-arrow { transform: rotate(90deg); }
+      .proof-metrics { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -543,6 +668,7 @@
   <div class="logo">Content<span>Forge</span></div>
   <div>
     <a href="#try">Try It</a>
+    <a href="#proof">Proof</a>
     <a href="https://github.com/CaptainFredric/ContentForge/tree/main/extension" target="_blank" rel="noopener">Extension</a>
     <a href="#how">How It Works</a>
     <a href="#endpoints">Endpoints</a>
@@ -553,15 +679,15 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">Open source · AGPL-3.0 · Self-hostable with Ollama</div>
-  <h1>Know if your post will flop<br><em>before</em> you hit send.</h1>
+  <div class="badge">Open source · deterministic scoring · public calibration log</div>
+  <h1>Score the headline<br><em>before</em> you ship the post.</h1>
   <p class="hero-sub">
-    Type a tweet, headline, or LinkedIn post. Get a grade, specific feedback, and a rewrite — in under 50 milliseconds. No AI in the scoring path. Same input, same score, every time.
+    Start with the headline doctor, then score the rest of your launch copy. ContentForge gives you a grade, specific feedback, and rewrite help before you publish. Same input, same score, every time.
   </p>
   <div class="hero-btns">
-    <a href="#try" class="btn-primary">Try It Now — No Signup →</a>
+    <a href="#try" class="btn-primary">Try Headline Scorer →</a>
     <a href="https://chromewebstore.google.com/detail/contentforge-score-before/jjbhcmnmjhhepiinipaamjnfogalnibb" class="btn-secondary" target="_blank" rel="noopener">Chrome Extension</a>
-    <a href="https://github.com/CaptainFredric/ContentForge" class="btn-secondary" target="_blank" rel="noopener">View Source</a>
+    <a href="#proof" class="btn-secondary">View Calibration</a>
   </div>
 </div>
 
@@ -570,8 +696,8 @@
   <div style="background:#141418;border:1px solid #2e2e40;border-radius:12px;padding:28px 32px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
     <div style="font-size:2.5rem;line-height:1;">🧩</div>
     <div style="flex:1;min-width:200px;">
-      <h3 style="font-size:1.05rem;font-weight:700;color:#e8e8ec;margin-bottom:4px;">Score as you type — right in your browser</h3>
-      <p style="font-size:0.85rem;color:#8888aa;line-height:1.5;margin:0;">A floating score badge appears while you compose on X, LinkedIn, Instagram, Threads, and Facebook. No copy-pasting. No context switching. Includes AI rewrite and A/B compare.</p>
+      <h3 style="font-size:1.05rem;font-weight:700;color:#e8e8ec;margin-bottom:4px;">Headline doctor in the browser</h3>
+      <p style="font-size:0.85rem;color:#8888aa;line-height:1.5;margin:0;">A floating score badge appears while you compose on X, LinkedIn, Instagram, Threads, and Facebook. The popup gives you deeper scoring, compare mode, and rewrite help for headlines and launch copy.</p>
     </div>
     <a href="https://chromewebstore.google.com/detail/contentforge-score-before/jjbhcmnmjhhepiinipaamjnfogalnibb" class="btn-secondary" target="_blank" rel="noopener" style="white-space:nowrap;padding:10px 20px;font-size:0.85rem;">Add to Chrome →</a>
   </div>
@@ -596,22 +722,54 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 <!-- BEFORE & AFTER DEMO -->
 <section class="reveal">
   <h2>See the Difference</h2>
-  <p class="section-sub">Run a weak headline through <code style="color:#7c6af7">/v1/improve_headline</code> — AI rewrites it, scores each version, and returns the best.</p>
+  <p class="section-sub">Start with a weak headline, rewrite it, then check whether the new version actually earns the pass.</p>
   <div class="demo">
     <div class="demo-card before reveal reveal-delay-1">
       <span class="demo-label before">Before</span>
-      <div class="demo-text">"How to make money online"</div>
-      <div class="demo-meta">Score: <strong style="color:#e87777">49</strong> &nbsp; Grade: <strong style="color:#e87777">C</strong> &nbsp; <span style="background:#450a0a;color:#f87171;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:20px;">FAILED</span></div>
-      <div class="demo-meta" style="margin-top:6px;">Generic, no specificity, no hook</div>
+      <div class="demo-text">"Tips for better landing pages"</div>
+      <div class="demo-meta">Score: <strong style="color:#e87777">52</strong> &nbsp; Grade: <strong style="color:#e87777">D</strong> &nbsp; <span style="background:#422006;color:#facc15;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:20px;">REVIEW</span></div>
+      <div class="demo-meta" style="margin-top:6px;">Too generic, no number, not enough specificity</div>
     </div>
     <div class="demo-arrow">→</div>
     <div class="demo-card after reveal reveal-delay-2">
       <span class="demo-label after">After</span>
-      <div class="demo-text">"Can You Really Earn $5,000 a Month Online? Discover the Secrets"</div>
-      <div class="demo-meta">Score: <strong style="color:#5ec8a0">100</strong> &nbsp; Grade: <strong style="color:#5ec8a0">A</strong> &nbsp; <span style="background:#14532d;color:#4ade80;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:20px;">PASSED</span> &nbsp; <span style="color:#9090c0;font-size:0.7rem;">+104% lift</span></div>
-      <div class="demo-meta" style="margin-top:6px;">Power words: <em>earn, secret, discover</em> · Question hook · Specific number</div>
+      <div class="demo-text">"7 landing page headline fixes that lifted demo requests 32%"</div>
+      <div class="demo-meta">Score: <strong style="color:#5ec8a0">82</strong> &nbsp; Grade: <strong style="color:#5ec8a0">B</strong> &nbsp; <span style="background:#14532d;color:#4ade80;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:20px;">PASSED</span> &nbsp; <span style="color:#9090c0;font-size:0.7rem;">+30 points</span></div>
+      <div class="demo-meta" style="margin-top:6px;">Specific number · outcome driven · clearer promise</div>
     </div>
   </div>
+</section>
+
+<!-- CALIBRATION PROOF -->
+<section id="proof" class="reveal">
+  <h2>Public Calibration Log</h2>
+  <p class="section-sub">When the scorer gets a ranking right, the evidence lands here. When it misses, the miss is logged too.</p>
+
+  <div class="proof-strip">
+    <div class="proof-summary-card">
+      <div class="label">Cohorts Tested</div>
+      <div class="value" id="proofCohorts">0</div>
+      <div class="meta">Historical draft groups scored against real outcomes</div>
+    </div>
+    <div class="proof-summary-card">
+      <div class="label">Drafts Scored</div>
+      <div class="value" id="proofDrafts">0</div>
+      <div class="meta">Rows processed by the calibration harness</div>
+    </div>
+    <div class="proof-summary-card">
+      <div class="label">Top Pick Accuracy</div>
+      <div class="value" id="proofAccuracy">0%</div>
+      <div class="meta">How often the top predicted draft matched the top real outcome</div>
+    </div>
+    <div class="proof-summary-card">
+      <div class="label">Average Correlation</div>
+      <div class="value" id="proofSpearman">n/a</div>
+      <div class="meta">Rank correlation between score and outcome inside each cohort</div>
+    </div>
+  </div>
+
+  <div class="proof-grid" id="proofExamples"></div>
+  <div class="proof-empty" id="proofEmpty" style="display:none"></div>
 </section>
 
 <!-- WHO IT'S FOR -->
@@ -627,7 +785,7 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <div class="audience-card reveal reveal-delay-2">
       <div class="audience-icon">✍️</div>
       <h3>Bloggers &amp; Newsletter Writers</h3>
-      <p>Test 10 headlines in a loop, pick the highest-scoring one. Open rates go up, guaranteed.</p>
+      <p>Test 10 headlines in a loop, pick the strongest one, and keep a real calibration log instead of trusting your gut.</p>
     </div>
     <div class="audience-card reveal reveal-delay-3">
       <div class="audience-icon">🚀</div>
@@ -1718,13 +1876,14 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 
   // ── Platform Scorers (client-side heuristic replicas) ──
   const POWER_WORDS = [
-    'secret','proven','free','new','easy','instant','guaranteed','discover',
+    'secret','proven','free','easy','instant','guaranteed','discover',
     'shocking','ultimate','exclusive','limited','urgent','massive','breakthrough',
     'insider','hack','mistake','simple','powerful','surprising','essential',
     'critical','warning','hidden','revealed','truth','best','money','earn',
-    'fast','quick','boost','strategy','tip','formula','blueprint','save','boost',
+    'fast','quick','boost','strategy','tip','formula','blueprint','save',
     'transform','unlock','stop','start','must','need','want','love','hate','fear',
-    'amazing','incredible','unbelievable','special','rare','unique','perfect','new'
+    'amazing','incredible','unbelievable','special','rare','unique','perfect',
+    'guide','playbook','framework','lessons','checklist'
   ];
 
   const SPAM_WORDS = ['click here','buy now','100% free','act now','limited time','winner','congratulations','risk free'];
@@ -1740,9 +1899,14 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   function extractHashtags(text) {
     return text.match(/#\w+/g) || [];
   }
+  function escapeRegex(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  function keywordMatches(text, keywords) {
+    return keywords.filter(word => new RegExp(`(^|[^\\w])${escapeRegex(word)}(?=$|[^\\w])`, 'i').test(text));
+  }
   function powerWordsIn(text) {
-    const t = text.toLowerCase();
-    return POWER_WORDS.filter(w => t.includes(w));
+    return keywordMatches(text.toLowerCase(), POWER_WORDS);
   }
   function renderResult(score, grade, quality_gate, operational_risk, meta, suggestions, found) {
     const gradeClass = 'grade-' + grade.toLowerCase();
@@ -1793,21 +1957,44 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     let score = 40, suggestions = [], meta = '';
 
     if (platform === 'headline') {
-      if (len >= 30 && len <= 80) score += 20;
-      else if (len >= 20 && len <= 100) score += 10;
-      else if (len < 15) score -= 15;
-      score += Math.min(15, found.length * 5);
-      if (hasNum) score += 10;
-      if (hasQ) score += 8;
+      const spamFound = keywordMatches(text.toLowerCase(), SPAM_WORDS);
+      const exclamations = (text.match(/!/g)||[]).length;
       const capsWords = words.filter(w => /[a-zA-Z]/.test(w) && w === w.toUpperCase());
-      if (wc > 2 && capsWords.length / wc >= 0.5) score -= 15;
-      if ((text.match(/!/g)||[]).length > 2) score -= 8;
-      meta = `${len} chars · ${wc} words · ${hasNum?'✓':'✗'} number · ${found.length} power words`;
-      if (len < 30) suggestions.push('Make it longer and more specific.');
+      const headlineShape = /^\s*how\s+to\b/i.test(text) ? 'how-to'
+        : /\?\s*$/.test(text) ? 'question'
+        : hasNum ? 'listicle'
+        : /\b(vs\.?|versus)\b/i.test(text) ? 'comparison'
+        : 'statement';
+
+      if (len >= 30 && len <= 80) score += 18;
+      else if (len >= 24 && len <= 100) score += 8;
+      else if (len < 24) score -= 12;
+      else score -= 8;
+
+      if (wc >= 6 && wc <= 14) score += 6;
+      else if (wc < 4) score -= 8;
+      else if (wc > 18) score -= 6;
+
+      score += Math.min(12, found.length * 3);
+      if (found.length > 4) score -= 6;
+      if (hasNum) score += 8;
+      if (/\?\s*$/.test(text)) score += 5;
+      if (/^\s*how\s+to\b/i.test(text) || /:/.test(text)) score += 4;
+      score -= Math.min(20, spamFound.length * 10);
+      score -= Math.min(20, exclamations * 8);
+      if (wc > 2 && capsWords.length / wc >= 0.45) score -= 12;
+      else if (wc > 2 && capsWords.length / wc >= 0.25) score -= 5;
+      if (!hasNum && !/\?\s*$/.test(text) && !/^\s*how\s+to\b/i.test(text)) score -= 6;
+
+      meta = `${len} chars · ${wc} words · ${headlineShape} · ${hasNum?'✓':'✗'} number · ${found.length} power words`;
+      if (len < 30 || wc < 4) suggestions.push('Make it longer and more specific.');
       if (len > 80) suggestions.push('Consider shortening to 30–80 characters.');
       if (!hasNum) suggestions.push('Add a number (e.g. "5 ways", "$6K/mo").');
-      if (found.length === 0) suggestions.push('Add a power word (proven, secret, hack, free, etc.).');
-      if (!hasQ && !hasNum) suggestions.push('Try starting with a question or a number.');
+      if (found.length === 0) suggestions.push('Add one strong power word, not a pile of them.');
+      if (!/\?\s*$/.test(text) && !hasNum && !/^\s*how\s+to\b/i.test(text)) suggestions.push('Use a stronger structure: question, number, or "how to".');
+      if (spamFound.length) suggestions.push(`Remove spam phrasing: ${spamFound.join(', ')}.`);
+      if (exclamations > 0) suggestions.push('Drop exclamation marks unless the headline really earns them.');
+      if (found.length > 4) suggestions.push('Too many power words makes the headline feel salesy.');
 
     } else if (platform === 'tweet') {
       if (len >= 71 && len <= 280) score += 15;
@@ -2050,6 +2237,99 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     out.style.display = 'block';
   }
 
+  function escapeMarkup(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function renderCalibrationCard(example) {
+    const kind = example.kind === 'miss' ? 'miss' : 'hit';
+    const actualRank = example.actual_rank ?? '—';
+    const predictedRank = example.predicted_rank ?? '—';
+    const score = example.predicted_score ?? '—';
+    const actualOutcome = example.actual_outcome ?? '—';
+    const powerWords = Array.isArray(example.power_words_found) && example.power_words_found.length
+      ? `<div class="proof-note">Power words: ${escapeMarkup(example.power_words_found.join(', '))}</div>`
+      : '';
+    const note = kind === 'hit'
+      ? 'This draft was ranked first by the scorer and also finished first on the real outcome metric.'
+      : `The scorer missed this draft by ${escapeMarkup(example.rank_error)} rank slot(s).`;
+
+    return `
+      <article class="proof-card ${kind}">
+        <div class="proof-topline">
+          <span class="proof-kind ${kind}">${kind === 'hit' ? 'validated hit' : 'logged miss'}</span>
+          <span class="proof-platform">${escapeMarkup(example.platform || 'unknown')}</span>
+        </div>
+        <p>${escapeMarkup(example.text_preview || '')}</p>
+        <div class="proof-metrics">
+          <div><span>Score</span><strong>${escapeMarkup(score)}</strong></div>
+          <div><span>Outcome</span><strong>${escapeMarkup(actualOutcome)}</strong></div>
+          <div><span>Predicted Rank</span><strong>${escapeMarkup(predictedRank)}</strong></div>
+          <div><span>Actual Rank</span><strong>${escapeMarkup(actualRank)}</strong></div>
+        </div>
+        <div class="proof-note">${note}</div>
+        ${powerWords}
+      </article>
+    `;
+  }
+
+  function renderCalibrationEmpty(payload) {
+    const emptyEl = document.getElementById('proofEmpty');
+    const examplesEl = document.getElementById('proofExamples');
+    if (!emptyEl || !examplesEl) return;
+    const emptyState = payload.empty_state || {};
+    examplesEl.innerHTML = '';
+    emptyEl.innerHTML = `
+      <h3>${escapeMarkup(emptyState.title || 'Public proof is still being built')}</h3>
+      <p>${escapeMarkup(emptyState.body || 'Run the calibration harness on your historical posts to publish real examples here.')}</p>
+      <a href="${escapeMarkup(emptyState.cta_href || 'docs/blind-taste-test.md')}">${escapeMarkup(emptyState.cta_label || 'Join the calibration log')}</a>
+    `;
+    emptyEl.style.display = 'block';
+  }
+
+  async function loadCalibrationExamples() {
+    const cohortsEl = document.getElementById('proofCohorts');
+    const draftsEl = document.getElementById('proofDrafts');
+    const accuracyEl = document.getElementById('proofAccuracy');
+    const spearmanEl = document.getElementById('proofSpearman');
+    const examplesEl = document.getElementById('proofExamples');
+    const emptyEl = document.getElementById('proofEmpty');
+    if (!cohortsEl || !draftsEl || !accuracyEl || !spearmanEl || !examplesEl || !emptyEl) return;
+
+    try {
+      const response = await fetch('docs/calibration_examples.json');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const summary = payload.summary || {};
+      cohortsEl.textContent = String(summary.cohort_count ?? 0);
+      draftsEl.textContent = String(summary.draft_count ?? 0);
+      accuracyEl.textContent = `${summary.top_pick_accuracy_pct ?? 0}%`;
+      spearmanEl.textContent = summary.avg_spearman ?? 'n/a';
+
+      if (Array.isArray(payload.examples) && payload.examples.length) {
+        emptyEl.style.display = 'none';
+        examplesEl.innerHTML = payload.examples.slice(0, 4).map(renderCalibrationCard).join('');
+        return;
+      }
+
+      renderCalibrationEmpty(payload);
+    } catch (error) {
+      renderCalibrationEmpty({
+        empty_state: {
+          title: 'Calibration feed unavailable',
+          body: 'The page could not load calibration examples. Run the harness locally and publish docs/calibration_examples.json.',
+          cta_label: 'Open the blind test guide',
+          cta_href: 'docs/blind-taste-test.md',
+        },
+      });
+    }
+  }
+
   // ── Endpoint Card Click-Expand ──
   document.querySelectorAll('.endpoint-card[data-ep]').forEach(card => {
     card.addEventListener('click', (e) => {
@@ -2075,6 +2355,8 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   document.getElementById('tryInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runPlatformScore();
   });
+
+  loadCalibrationExamples();
 </script>
 </body>
 </html>

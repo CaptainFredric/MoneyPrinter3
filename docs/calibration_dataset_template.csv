@@ -1,0 +1,5 @@
+cohort_id,platform,label,text,actual_outcome,post_url,notes,impressions,clicks,likes,comments,shares,saves
+headline_batch_apr09,headline,variant_a,"7 landing page headline fixes that lifted demo requests 32%",132,https://example.com/post/a,"Use the same metric inside each cohort",1200,48,27,4,3,0
+headline_batch_apr09,headline,variant_b,"Tips for better landing pages",54,https://example.com/post/b,"actual_outcome can be clicks, signups, CTR x 100, or your own composite",1180,19,12,1,1,0
+tweet_launch_week1,tweet,variant_a,"Built a scoring API in 48 hours. $500 last month. Here is what changed.",218,https://example.com/post/c,"group sibling drafts or same campaign windows",5500,82,41,7,5,0
+tweet_launch_week1,tweet,variant_b,"Working on something cool today.",39,https://example.com/post/d,"avoid mixing unrelated posts across very different time periods",5300,11,6,0,0,0

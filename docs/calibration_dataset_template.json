@@ -1,0 +1,28 @@
+{
+  "records": [
+    {
+      "cohort_id": "headline_batch_apr09",
+      "platform": "headline",
+      "label": "variant_a",
+      "text": "7 landing page headline fixes that lifted demo requests 32%",
+      "actual_outcome": 132,
+      "post_url": "https://example.com/post/a",
+      "notes": "Use the same metric inside each cohort",
+      "impressions": 1200,
+      "clicks": 48,
+      "likes": 27
+    },
+    {
+      "cohort_id": "headline_batch_apr09",
+      "platform": "headline",
+      "label": "variant_b",
+      "text": "Tips for better landing pages",
+      "actual_outcome": 54,
+      "post_url": "https://example.com/post/b",
+      "notes": "actual_outcome can be clicks, signups, CTR x 100, or your own composite",
+      "impressions": 1180,
+      "clicks": 19,
+      "likes": 12
+    }
+  ]
+}

@@ -71,7 +71,17 @@ Public calibration > private testing. If you find a flaw, we'd rather know now.
 2. Rank by score descending
 3. Compare to participant's "actual metrics" label
 4. Record: `correct_rank / total_posts` for each submission
-5. Track in `/docs/validation.md`:
+5. Or run the calibration harness locally:
+
+```bash
+python scripts/calibrate_content.py \
+  --input docs/calibration_dataset_template.csv \
+  --report-json docs/calibration_report.json \
+  --report-md docs/calibration_report.md \
+  --examples-json docs/calibration_examples.json
+```
+
+6. Track summary rows in `/docs/validation.md`:
 
 ```
 | Participant | Platform | Posts | Correct Rankings | Accuracy |

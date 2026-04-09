@@ -438,6 +438,61 @@ def _quality_gate(score: int) -> dict:
         return {"quality_gate": "FAILED", "operational_risk": "HIGH"}
 
 
+_HEADLINE_POWER_WORDS = [
+    "urgent", "limited", "exclusive", "expires", "deadline", "today",
+    "free", "guaranteed", "money", "profit", "income", "revenue", "earn",
+    "cash", "wealth", "savings", "roi", "returns",
+    "proven", "tested", "experts", "trusted", "endorsed", "award",
+    "official", "certified",
+    "secret", "hidden", "unknown", "revealed", "discover", "inside",
+    "truth", "expose", "uncover", "mystery", "forbidden",
+    "easy", "instant", "simple", "fast", "quick", "effortless",
+    "automated", "hands-off",
+    "ultimate", "best", "top", "breakthrough", "massive", "powerful",
+    "essential", "critical", "shocking", "surprising", "incredible",
+    "unbelievable", "insane",
+    "mistake", "wrong", "avoid", "warning", "danger", "failed", "lose",
+    "never", "stop", "quit",
+    "hack", "trick", "tip", "strategy", "system", "formula", "blueprint",
+    "insider", "shortcut", "boost", "playbook", "framework", "lessons",
+    "checklist", "guide",
+]
+
+_HEADLINE_SPAM_PHRASES = [
+    "act now", "click here", "buy now", "limited time", "100% free",
+    "guaranteed", "risk free", "once in a lifetime", "don't miss out",
+]
+
+_HEADLINE_STRUCTURE_PATTERNS = {
+    "how_to": re.compile(r"^\s*how\s+to\b", re.IGNORECASE),
+    "question": re.compile(r"\?\s*$"),
+    "listicle": re.compile(r"\b\d+\b"),
+    "comparison": re.compile(r"\b(vs\.?|versus)\b", re.IGNORECASE),
+    "colon": re.compile(r":"),
+}
+
+
+def _find_keyword_matches(text: str, keywords: list[str]) -> list[str]:
+    text_lower = text.lower()
+    matches = []
+    for keyword in keywords:
+        pattern = re.compile(rf"(?<!\w){re.escape(keyword.lower())}(?!\w)")
+        if pattern.search(text_lower):
+            matches.append(keyword)
+    return sorted(set(matches))
+
+
+def _append_signal(signals: list[dict], signal: str, points: int, reason: str):
+    if points == 0:
+        return
+    signals.append({
+        "signal": signal,
+        "points": int(points),
+        "effect": "bonus" if points > 0 else "penalty",
+        "reason": reason,
+    })
+
+
 # ---------------------------------------------------------------------------
 # Idempotency cache — Leniency Tier 3
 # Identical request (same IP + endpoint + body hash) within IDEMPOTENCY_TTL
@@ -589,7 +644,7 @@ def _llm_generate(prompt: str) -> str:
 def analyze_headline(text: str) -> dict:
     if not isinstance(text, str):
         text = str(text or "")
-    txt = text.strip()
+    txt = re.sub(r"\s+", " ", text).strip()
     length = len(txt)
     words = txt.split()
     word_count = len(words)
@@ -598,69 +653,121 @@ def analyze_headline(text: str) -> dict:
     caps_words = sum(1 for w in words if any(c.isalpha() for c in w) and w.isupper())
     caps_ratio = (caps_words / word_count) if word_count else 0.0
     has_number = any(char.isdigit() for char in txt)
-
-    power_words = [
-        # Urgency / scarcity
-        "urgent", "limited", "exclusive", "expires", "deadline", "now", "today",
-        # Money / results
-        "free", "guaranteed", "money", "profit", "income", "revenue", "earn",
-        "cash", "rich", "wealth", "savings", "roi", "returns",
-        # Social proof / authority
-        "proven", "tested", "experts", "trusted", "endorsed", "award",
-        "official", "certified",
-        # Curiosity / mystery
-        "secret", "hidden", "unknown", "revealed", "discover", "inside",
-        "truth", "expose", "uncover", "mystery", "forbidden",
-        # Ease / speed
-        "easy", "instant", "simple", "fast", "quick", "effortless", "done",
-        "automated", "no-effort", "hands-off",
-        # Superlatives / intensity
-        "ultimate", "best", "top", "new", "breakthrough", "massive", "powerful",
-        "essential", "critical", "shocking", "surprising", "incredible",
-        "unbelievable", "insane", "mind-blowing",
-        # Negative hooks
-        "mistake", "wrong", "avoid", "warning", "danger", "failed", "lose",
-        "never", "stop", "quit",
-        # Positive hooks
-        "hack", "trick", "tip", "strategy", "system", "formula", "blueprint",
-        "insider", "cheat", "shortcut", "boost",
+    txt_lower = txt.lower()
+    power_words_found = _find_keyword_matches(txt, _HEADLINE_POWER_WORDS)
+    spam_phrases_found = _find_keyword_matches(txt, _HEADLINE_SPAM_PHRASES)
+    structure_matches = [
+        name for name, pattern in _HEADLINE_STRUCTURE_PATTERNS.items() if pattern.search(txt)
     ]
-    pw_found = [w for w in power_words if w in txt.lower()]
+    headline_type = (
+        "how_to" if "how_to" in structure_matches else
+        "question" if "question" in structure_matches else
+        "listicle" if "listicle" in structure_matches else
+        "comparison" if "comparison" in structure_matches else
+        "statement"
+    )
 
+    signals = []
     score = 50
     if 30 <= length <= 80:
-        score += 20
+        score += 18
+        _append_signal(signals, "length_optimal", 18, "Headline length is in the strongest range.")
+    elif 24 <= length <= 100:
+        score += 8
+        _append_signal(signals, "length_acceptable", 8, "Headline length is usable but not ideal.")
+    elif length < 24:
+        score -= 12
+        _append_signal(signals, "length_short", -12, "Headline is too short to communicate a clear promise.")
     else:
-        score -= max(0, (abs(55 - length) // 5))
+        penalty = -14 if length > 120 else -6
+        score += penalty
+        _append_signal(signals, "length_long", penalty, "Headline is longer than the strongest click range.")
+
+    if 6 <= word_count <= 14:
+        score += 6
+        _append_signal(signals, "word_count_strong", 6, "Word count supports clarity without bloat.")
+    elif word_count < 4:
+        score -= 8
+        _append_signal(signals, "word_count_sparse", -8, "Too few words makes the promise feel vague.")
+    elif word_count > 18:
+        score -= 6
+        _append_signal(signals, "word_count_dense", -6, "Too many words weakens scanability.")
+
     if has_number:
-        score += 10
+        score += 8
+        _append_signal(signals, "specific_number", 8, "Specific numbers increase perceived concreteness.")
     if questions == 1:
         score += 5
-    score -= min(20, exclamations * 8)
-    if 0 < caps_ratio < 0.4:
-        score += 5
-    if caps_ratio >= 0.6:
-        score -= 15
-    score += min(15, len(pw_found) * 5)
+        _append_signal(signals, "single_question", 5, "A single question can create curiosity.")
+    elif questions > 1:
+        score -= 4
+        _append_signal(signals, "question_overload", -4, "Multiple question marks feel noisy.")
+
+    if "colon" in structure_matches:
+        score += 4
+        _append_signal(signals, "clear_structure", 4, "Colon structure usually improves scannability.")
+    if headline_type in {"how_to", "comparison"}:
+        score += 6
+        _append_signal(signals, "high_intent_structure", 6, "Headline uses a structure associated with clear intent.")
+
+    exclamation_penalty = -min(20, exclamations * 8)
+    score += exclamation_penalty
+    _append_signal(signals, "exclamation_penalty", exclamation_penalty, "Too many exclamation marks reduce trust.")
+
+    if 0 < caps_ratio < 0.25:
+        score += 3
+        _append_signal(signals, "caps_emphasis", 3, "A small amount of emphasis can help scanning.")
+    elif caps_ratio >= 0.45:
+        caps_penalty = -15 if caps_ratio >= 0.6 else -12
+        score += caps_penalty
+        _append_signal(signals, "caps_abuse", caps_penalty, "Too much all-caps makes the headline feel pushy.")
+    elif caps_ratio >= 0.25:
+        score -= 5
+        _append_signal(signals, "caps_overuse", -5, "Heavy emphasis starts to feel shouty.")
+
+    power_word_bonus = min(12, len(power_words_found) * 3)
+    score += power_word_bonus
+    _append_signal(signals, "power_words", power_word_bonus, "Matched emotionally charged or specific language.")
+
+    if len(power_words_found) > 4:
+        score -= 6
+        _append_signal(signals, "power_word_overload", -6, "Too many power words makes the headline feel salesy.")
+
+    spam_penalty = -min(20, len(spam_phrases_found) * 10)
+    score += spam_penalty
+    _append_signal(signals, "spam_phrases", spam_penalty, "Spammy phrases undermine credibility.")
+
+    if not any((has_number, questions == 1, headline_type == "how_to", "colon" in structure_matches)):
+        score -= 6
+        _append_signal(signals, "generic_shape", -6, "Headline lacks a concrete number or strong structure.")
+
+    if re.search(r"\b(you|your)\b", txt_lower):
+        score += 3
+        _append_signal(signals, "audience_focus", 3, "Audience-focused language can improve click intent.")
+
     score = max(0, min(100, int(score)))
 
-    grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
+    grade = "A" if score >= 90 else "B" if score >= 75 else "C" if score >= 60 else "D" if score >= 45 else "F"
 
     suggestions = []
-    if length < 30:
+    if length < 30 or word_count < 4:
         suggestions.append("Make the headline longer and more specific.")
-    if length > 120:
+    if length > 80:
         suggestions.append("Shorten to the core message (under 80 chars ideal).")
-    if exclamations > 1:
-        suggestions.append("Drop extra exclamation marks — they look spammy.")
+    if exclamations > 0:
+        suggestions.append("Drop exclamation marks unless the headline really earns them.")
     if caps_ratio >= 0.6:
         suggestions.append("Avoid ALL-CAPS — it reduces credibility.")
     if not has_number:
         suggestions.append("Add a number for specificity (e.g. '5 ways', '$6K/mo').")
-    if not pw_found:
-        suggestions.append("Add a power word (e.g. 'proven', 'secret', 'simple').")
-    if questions == 0 and not has_number:
-        suggestions.append("Try framing as a question to boost curiosity.")
+    if not power_words_found:
+        suggestions.append("Add one concrete power word (e.g. 'proven', 'simple', 'mistake').")
+    if questions == 0 and not has_number and headline_type != "how_to":
+        suggestions.append("Use a stronger structure: a number, a question, or a 'how to' angle.")
+    if spam_phrases_found:
+        suggestions.append(f"Remove spammy phrasing: {', '.join(spam_phrases_found[:3])}.")
+    if len(power_words_found) > 4:
+        suggestions.append("Use fewer power words so the headline sounds credible, not hyped.")
 
     gate = _quality_gate(score)
     return {
@@ -673,8 +780,12 @@ def analyze_headline(text: str) -> dict:
         "word_count": word_count,
         "has_number": has_number,
         "question_mark": questions > 0,
-        "power_words_found": pw_found,
+        "headline_type": headline_type,
+        "power_words_found": power_words_found,
+        "spam_phrases_found": spam_phrases_found,
+        "structure_matches": structure_matches,
         "caps_ratio": round(caps_ratio, 2),
+        "signal_breakdown": signals,
         "suggestions": suggestions,
     }
 
@@ -5638,7 +5749,11 @@ def endpoint_improve_headline():
                 "text": version,
                 "score": analysis["score"],
                 "grade": analysis["grade"],
+                "quality_gate": analysis["quality_gate"],
+                "operational_risk": analysis["operational_risk"],
                 "power_words_found": analysis["power_words_found"],
+                "spam_phrases_found": analysis["spam_phrases_found"],
+                "suggestions": analysis["suggestions"],
             })
 
         # Sort by score descending

@@ -1,0 +1,21 @@
+{
+  "generated_at": null,
+  "summary": {
+    "generated_at": null,
+    "cohort_count": 0,
+    "draft_count": 0,
+    "platforms": [],
+    "top_pick_hits": 0,
+    "top_pick_accuracy_pct": 0.0,
+    "avg_spearman": null
+  },
+  "cohorts": [],
+  "examples": [],
+  "misses": [],
+  "empty_state": {
+    "title": "Public proof is still being built",
+    "body": "Run the calibration harness on your own historical posts to replace this empty state with real examples.",
+    "cta_label": "Join the calibration log",
+    "cta_href": "docs/blind-taste-test.md"
+  }
+}

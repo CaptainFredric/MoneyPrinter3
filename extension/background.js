@@ -318,6 +318,8 @@ function localScore(text, platform) {
   const hasCTA = /\b(check out|click|sign up|subscribe|follow|join|grab|get|try|learn more|link in bio|dm me|shop now)\b/i.test(text);
   const excessiveCaps = (text.replace(/[^A-Z]/g, "").length / Math.max(len, 1)) > 0.5 && len > 10;
   const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const quality_gate_for = (score) => score >= 70 ? "PASSED" : score >= 50 ? "REVIEW" : "FAILED";
+  const operational_risk_for = (score) => score >= 70 ? "LOW" : score >= 50 ? "MEDIUM" : "HIGH";
 
   let score = 50;
   const suggestions = [];
@@ -330,6 +332,68 @@ function localScore(text, platform) {
     pinterest: [50, 300], ad_copy: [30, 150], readability: [100, 3000],
   };
   const [minLen, maxLen] = ideal[platform] || [30, 500];
+
+  if (platform === "headline") {
+    const lower = text.toLowerCase();
+    const powerWords = [
+      "secret", "proven", "free", "simple", "mistake", "warning", "strategy",
+      "guide", "checklist", "framework", "playbook", "boost", "revealed",
+    ];
+    const spamPhrases = ["act now", "click here", "buy now", "limited time", "100% free"];
+    const power_words_found = powerWords.filter((word) => new RegExp(`(^|[^\\w])${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=$|[^\\w])`, "i").test(text));
+    const spam_phrases_found = spamPhrases.filter((phrase) => lower.includes(phrase));
+    const exclamations = (text.match(/!/g) || []).length;
+    const hasNumber = /\d/.test(text);
+    const singleQuestion = /\?\s*$/.test(text);
+    const structure_matches = [];
+    if (/^\s*how\s+to\b/i.test(text)) structure_matches.push("how_to");
+    if (singleQuestion) structure_matches.push("question");
+    if (hasNumber) structure_matches.push("listicle");
+    if (/:/.test(text)) structure_matches.push("colon");
+
+    if (len >= 30 && len <= 80) score += 18;
+    else if (len < 24) {
+      score -= 12;
+      suggestions.push("Make the headline longer and more specific.");
+    } else if (len > 80) {
+      score -= 8;
+      suggestions.push("Shorten to under 80 characters if possible.");
+    }
+
+    if (wordCount >= 6 && wordCount <= 14) score += 6;
+    else if (wordCount < 4) score -= 8;
+    if (hasNumber) score += 8;
+    if (singleQuestion) score += 5;
+    if (structure_matches.includes("how_to") || structure_matches.includes("colon")) score += 4;
+    score += Math.min(12, power_words_found.length * 3);
+    score -= Math.min(20, spam_phrases_found.length * 10);
+    score -= Math.min(20, exclamations * 8);
+    if (wordCount > 2 && capsWords.length / wordCount >= 0.45) score -= 12;
+    else if (wordCount > 2 && capsWords.length / wordCount >= 0.25) score -= 5;
+
+    if (!hasNumber) suggestions.push("Add a number for specificity.");
+    if (!power_words_found.length) suggestions.push("Add one strong power word.");
+    if (!singleQuestion && !hasNumber && !structure_matches.includes("how_to")) {
+      suggestions.push("Use a stronger structure like a question, number, or 'how to'.");
+    }
+    if (spam_phrases_found.length) {
+      suggestions.push(`Remove spammy phrasing: ${spam_phrases_found.join(", ")}.`);
+    }
+
+    score = Math.max(10, Math.min(95, score));
+    const grade = score >= 90 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : score >= 45 ? "D" : "F";
+    return {
+      score,
+      grade,
+      quality_gate: quality_gate_for(score),
+      operational_risk: operational_risk_for(score),
+      suggestions: suggestions.slice(0, 4),
+      power_words_found,
+      spam_phrases_found,
+      structure_matches,
+      _note: "Offline estimate — connect to API for calibrated headline analysis",
+    };
+  }
 
   if (len < minLen) {
     score -= 15;
@@ -376,6 +440,8 @@ function localScore(text, platform) {
   return {
     score,
     grade,
+    quality_gate: quality_gate_for(score),
+    operational_risk: operational_risk_for(score),
     suggestions: suggestions.slice(0, 4),
     _note: "Offline estimate — connect to API for full analysis",
   };

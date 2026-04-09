@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "ContentForge — Score Before You Post",
   "version": "0.6.0",
-  "description": "Real-time content scoring for Twitter, LinkedIn, Instagram & more. See your score as you type.",
-  "permissions": ["storage", "activeTab", "tabs"],
+  "description": "Score drafts before you publish. Get a live quality score and rewrite help on supported social sites.",
+  "permissions": ["storage"],
   "host_permissions": [
     "https://contentforge-api-lpp9.onrender.com/*"
   ],

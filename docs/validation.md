@@ -6,6 +6,38 @@
 
 ---
 
+## Current Read
+
+No aggregate performance claim should be made yet.
+
+Until the table below has real submissions, ContentForge should be described as:
+- deterministic
+- explainable
+- under active calibration
+
+That is the honest state of the engine today.
+
+---
+
+## Method
+
+The blind taste test is meant to answer one question:
+
+Can the heuristic engine rank historically better performing posts above historically worse ones without seeing the original metrics first?
+
+Minimum standard before stronger public claims:
+1. At least 5 real submissions
+2. At least 3 platforms represented
+3. Clear notes on misses, not just wins
+
+Calibration assets:
+- `docs/calibration_dataset_template.csv`
+- `docs/calibration_dataset_template.json`
+- `scripts/calibrate_content.py`
+- `docs/calibration_examples.json`
+
+---
+
 ## Results
 
 | # | Participant | Platform | Posts | Top 5 Correct | Accuracy | Date |
