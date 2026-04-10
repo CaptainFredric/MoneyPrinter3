@@ -1,8 +1,8 @@
-# ContentForge — Content Intelligence API
+# ContentForge — Deterministic Headline Scorer and Content Quality Gate
 
-> **50 endpoints · 12 platforms · Deterministic scoring in <50ms · No AI hallucinations**
+> **Start with the headline doctor · 50 endpoints behind it · Deterministic scoring in <50ms**
 
-Score content before you post. ContentForge is a **Content Intelligence API** — a before-publish quality gate that grades every tweet, LinkedIn post, headline, and ad copy with a deterministic A–F score, actionable suggestions, and a `PASSED | REVIEW | FAILED` verdict in under 50ms — no LLM involved in the scoring layer.
+Score content before you post. ContentForge is a deterministic **headline scorer and before-publish quality gate** that grades headlines, tweets, LinkedIn posts, and ad copy with an explainable A–F score, actionable suggestions, and a `PASSED | REVIEW | FAILED` verdict in under 50ms.
 
 Think of it as a **digital ruler for content quality**. A ruler doesn't need a dataset to tell you something is 12 inches long — it just needs to be correctly calibrated. ContentForge's heuristic engine is that ruler: zero variance on the same input, zero hallucinations, fully auditable open-source logic. AI (Ollama or Gemini) kicks in only for generation endpoints like rewrites, hooks, and subject lines.
 
@@ -56,6 +56,7 @@ Calibration tooling now lives in:
 - [docs/calibration_dataset_template.json](docs/calibration_dataset_template.json)
 - [scripts/calibrate_content.py](scripts/calibrate_content.py)
 - [docs/chrome-extension-readiness.md](docs/chrome-extension-readiness.md)
+- [docs/reddit-launch-notes.md](docs/reddit-launch-notes.md)
 
 Quick start:
 
@@ -66,6 +67,19 @@ python scripts/calibrate_content.py \
   --report-md docs/calibration_report.md \
   --examples-json docs/calibration_examples.json
 ```
+
+---
+
+## Launch Feedback So Far
+
+Early launch feedback on Reddit pushed the positioning in a clearer direction:
+
+- The calibration challenge got more useful engagement than the broad feature pitch.
+- People understood "same input, same score" quickly, but trusted it more once the proof story was explicit.
+- Before or after comparison is easier to believe than a giant endpoint list.
+- The Chrome extension and headline workflow are easier to grasp than the full API surface on first contact.
+
+The current landing page and docs now reflect that narrower first impression. Full notes live in [docs/reddit-launch-notes.md](docs/reddit-launch-notes.md).
 
 ---
 

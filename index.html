@@ -679,10 +679,10 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">Open source · deterministic scoring · public calibration log</div>
+  <div class="badge">Open source · deterministic headline scoring · public calibration log</div>
   <h1>Score the headline<br><em>before</em> you ship the post.</h1>
   <p class="hero-sub">
-    Start with the headline doctor, then score the rest of your launch copy. ContentForge gives you a grade, specific feedback, and rewrite help before you publish. Same input, same score, every time.
+    Start with one headline, compare two options, then ship the stronger one. ContentForge gives you a grade, specific feedback, and rewrite help before you publish. Same input, same score, every time.
   </p>
   <div class="hero-btns">
     <a href="#try" class="btn-primary">Try Headline Scorer →</a>
@@ -705,18 +705,19 @@
 
 <!-- CODE PREVIEW -->
 <div class="code-card reveal">
-  <pre><code><span class="c-dim"># Score a tweet before posting — instant, no AI needed</span>
+  <pre><code><span class="c-dim"># Pick the better headline before posting — instant, no AI needed</span>
 <span class="c-key">import</span> requests
 
-r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.com/v1/score_tweet"</span>,
+r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.com/v1/ab_test"</span>,
     headers=HEADERS,
-    json={<span class="c-str">"text"</span>: <span class="c-str">"I'm working on a new project."</span>})
-<span class="c-dim"># → score: 32  grade: </span><span class="c-grade-c">C</span><span class="c-dim">  ← skip this one</span>
-
-r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.com/v1/score_tweet"</span>,
-    headers=HEADERS,
-    json={<span class="c-str">"text"</span>: <span class="c-str">"Got 100 signups in 24 hours 🚀 Here's the copy that converted: #buildinpublic"</span>})
-<span class="c-dim"># → score: 91  grade: </span><span class="c-grade-a">A</span><span class="c-dim">  ← post this one</span></code></pre>
+    json={
+      <span class="c-str">"platform"</span>: <span class="c-str">"headline"</span>,
+      <span class="c-str">"drafts"</span>: [
+        <span class="c-str">"I built a deterministic content scoring API"</span>,
+        <span class="c-str">"Submit 10 historical posts and I'll rank them blind"</span>
+      ]
+    })
+<span class="c-dim"># → winner: B  confidence: medium  ← ship this one first</span></code></pre>
 </div>
 
 <!-- BEFORE & AFTER DEMO -->
@@ -770,6 +771,55 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 
   <div class="proof-grid" id="proofExamples"></div>
   <div class="proof-empty" id="proofEmpty" style="display:none"></div>
+</section>
+
+<section class="reveal">
+  <h2>Early Launch Notes</h2>
+  <p class="section-sub">Before the public calibration log fills up, the launch itself is already teaching us what people trust and what they ignore.</p>
+  <div class="proof-grid">
+    <article class="proof-card hit">
+      <div class="proof-topline">
+        <span class="proof-kind hit">signal</span>
+        <span class="proof-platform">r/webdev</span>
+      </div>
+      <p>Blind Taste Test announcement</p>
+      <div class="proof-metrics">
+        <div><span>Score</span><strong>5</strong></div>
+        <div><span>Comments</span><strong>6</strong></div>
+        <div><span>Views</span><strong>~3.8K</strong></div>
+        <div><span>Takeaway</span><strong>proof ask</strong></div>
+      </div>
+      <div class="proof-note">The strongest response came when the uncertainty was explicit and the calibration challenge gave people a concrete role.</div>
+    </article>
+    <article class="proof-card miss">
+      <div class="proof-topline">
+        <span class="proof-kind miss">signal</span>
+        <span class="proof-platform">r/SideProject</span>
+      </div>
+      <p>Broad API feature pitch</p>
+      <div class="proof-metrics">
+        <div><span>Score</span><strong>2</strong></div>
+        <div><span>Comments</span><strong>1</strong></div>
+        <div><span>Views</span><strong>226</strong></div>
+        <div><span>Takeaway</span><strong>too broad</strong></div>
+      </div>
+      <div class="proof-note">The first impression was doing too many jobs at once. The project read as a platform before it read as one useful tool.</div>
+    </article>
+    <article class="proof-card miss">
+      <div class="proof-topline">
+        <span class="proof-kind miss">signal</span>
+        <span class="proof-platform">r/webdev</span>
+      </div>
+      <p>Technical explainer without fast proof</p>
+      <div class="proof-metrics">
+        <div><span>Score</span><strong>0</strong></div>
+        <div><span>Upvote Ratio</span><strong>0.14</strong></div>
+        <div><span>Takeaway</span><strong>show usage</strong></div>
+        <div><span>Fix</span><strong>compare first</strong></div>
+      </div>
+      <div class="proof-note">Explainability matters, but the extension and the before or after workflow are easier to trust than architecture on first contact.</div>
+    </article>
+  </div>
 </section>
 
 <!-- WHO IT'S FOR -->
@@ -1571,7 +1621,7 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 <!-- LIVE TRY-IT -->
 <section id="try" class="reveal">
   <h2>Try It Live</h2>
-  <p class="section-sub">Instant heuristic scoring in the browser — no API key needed.</p>
+  <p class="section-sub">Instant heuristic scoring in the browser. Score one draft or compare two before you publish.</p>
   <div class="try-it">
     <h3>Score Your Content</h3>
 
@@ -1614,9 +1664,9 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     <!-- A/B Compare Demo -->
     <div style="margin-top:48px;border-top:1px solid #1e1e28;padding-top:32px;">
       <h3 style="margin-bottom:8px;">⚔️ A/B Compare</h3>
-      <p style="font-size:0.85rem;color:#9999aa;margin-bottom:16px;">Paste two drafts — see which one wins across platforms, and why.</p>
-      <textarea class="try-input" id="cmpInputA" placeholder="Draft A: Ship fast, learn faster. The only metric is velocity." maxlength="2000" rows="2" style="resize:vertical;margin-bottom:8px;"></textarea>
-      <textarea class="try-input" id="cmpInputB" placeholder="Draft B: We are pleased to announce the release of our new offering." maxlength="2000" rows="2" style="resize:vertical;"></textarea>
+      <p style="font-size:0.85rem;color:#9999aa;margin-bottom:16px;">Paste two drafts and see which one wins across platforms. The current defaults mirror an early launch lesson: concrete proof beats broad product description.</p>
+      <textarea class="try-input" id="cmpInputA" placeholder="Draft A: I built a deterministic content scoring API. Same tweet, same score, every time!" maxlength="2000" rows="2" style="resize:vertical;margin-bottom:8px;"></textarea>
+      <textarea class="try-input" id="cmpInputB" placeholder="Draft B: Submit 10 historical posts and I'll rank them blind against real outcomes." maxlength="2000" rows="2" style="resize:vertical;"></textarea>
       <button class="try-btn" id="cmpBtn" onclick="runCompareDemo()" style="margin-top:12px;">Compare Drafts →</button>
       <div class="try-result" id="cmpResult"></div>
     </div>
@@ -1756,6 +1806,10 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   <details style="margin-bottom:12px;border:1px solid #1e1e3a;border-radius:10px;padding:14px 18px;background:#0d0d1a;">
     <summary style="cursor:pointer;font-weight:600;font-size:0.95rem;color:#e0e0e0;">Can I see the scoring logic?</summary>
     <p style="margin-top:10px;font-size:0.85rem;color:#8888aa;line-height:1.6;">Yes. ContentForge is open source: <a href="https://github.com/CaptainFredric/ContentForge" target="_blank" rel="noopener" style="color:#7c6af7;">github.com/CaptainFredric/ContentForge</a>. Every scoring rule is public and auditable.</p>
+  </details>
+  <details style="margin-bottom:12px;border:1px solid #1e1e3a;border-radius:10px;padding:14px 18px;background:#0d0d1a;">
+    <summary style="cursor:pointer;font-weight:600;font-size:0.95rem;color:#e0e0e0;">What did early launch feedback actually show?</summary>
+    <p style="margin-top:10px;font-size:0.85rem;color:#8888aa;line-height:1.6;">The clearest pattern was that public calibration and before or after comparison got more trust than a giant feature list. The live notes are tracked in <a href="docs/reddit-launch-notes.md" style="color:#7c6af7;">docs/reddit-launch-notes.md</a>, and they are already shaping the product narrative.</p>
   </details>
 </section>
 

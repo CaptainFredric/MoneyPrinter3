@@ -14,8 +14,8 @@
   "misses": [],
   "empty_state": {
     "title": "Public proof is still being built",
-    "body": "Run the calibration harness on your own historical posts to replace this empty state with real examples.",
-    "cta_label": "Join the calibration log",
-    "cta_href": "docs/blind-taste-test.md"
+    "body": "Run the calibration harness on your own historical posts to replace this empty state with real examples. Until then, the early launch notes show what public feedback has already taught us.",
+    "cta_label": "Read launch notes",
+    "cta_href": "docs/reddit-launch-notes.md"
   }
 }

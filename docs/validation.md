@@ -36,6 +36,11 @@ Calibration assets:
 - `scripts/calibrate_content.py`
 - `docs/calibration_examples.json`
 
+Launch feedback notes:
+- `docs/reddit-launch-notes.md`
+
+The Reddit launch notes are qualitative market signal only. They are useful for positioning and UX decisions, but they do not count as calibration proof.
+
 ---
 
 ## Results
