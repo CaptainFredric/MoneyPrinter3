@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ContentForge — Headline Scorer and Before Publish Content API</title>
-  <meta name="description" content="Score headlines, tweets, and launch copy before you publish. Deterministic scoring, rewrite help, and a public calibration log.">
+  <title>ContentForge — Deterministic Headline Scorer</title>
+  <meta name="description" content="Score headlines, compare drafts, and ship stronger posts before you publish. Deterministic scoring, rewrite help, and a public calibration log.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-  <meta property="og:title" content="ContentForge — Headline Scorer and Before Publish API">
-  <meta property="og:description" content="Score headlines, tweets, and launch copy before you publish. Deterministic scoring, rewrite help, and a public calibration log.">
+  <meta property="og:title" content="ContentForge — Deterministic Headline Scorer">
+  <meta property="og:description" content="Score headlines, compare drafts, and ship stronger posts before you publish. Deterministic scoring, rewrite help, and a public calibration log.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://captainfredric.github.io/ContentForge/">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="ContentForge — Headline Scorer and Before Publish API">
-  <meta name="twitter:description" content="Score headlines, tweets, and launch copy before you publish. Deterministic scoring, rewrite help, and a public calibration log.">
+  <meta name="twitter:title" content="ContentForge — Deterministic Headline Scorer">
+  <meta name="twitter:description" content="Score headlines, compare drafts, and ship stronger posts before you publish. Deterministic scoring, rewrite help, and a public calibration log.">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -669,24 +669,23 @@
   <div>
     <a href="#try">Try It</a>
     <a href="#proof">Proof</a>
-    <a href="https://github.com/CaptainFredric/ContentForge/tree/main/extension" target="_blank" rel="noopener">Extension</a>
     <a href="#how">How It Works</a>
-    <a href="#endpoints">Endpoints</a>
-    <a href="#pricing">Pricing</a>
+    <a href="#developers">Developers</a>
+    <a href="#faq">FAQ</a>
     <a href="https://github.com/CaptainFredric/ContentForge" class="nav-cta" target="_blank" rel="noopener">GitHub</a>
   </div>
 </nav>
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">Open source · deterministic headline scoring · public calibration log</div>
+  <div class="badge">Deterministic headline scoring · compare mode · public calibration log</div>
   <h1>Score the headline<br><em>before</em> you ship the post.</h1>
   <p class="hero-sub">
     Start with one headline, compare two options, then ship the stronger one. ContentForge gives you a grade, specific feedback, and rewrite help before you publish. Same input, same score, every time.
   </p>
   <div class="hero-btns">
     <a href="#try" class="btn-primary">Try Headline Scorer →</a>
-    <a href="https://chromewebstore.google.com/detail/contentforge-score-before/jjbhcmnmjhhepiinipaamjnfogalnibb" class="btn-secondary" target="_blank" rel="noopener">Chrome Extension</a>
+    <a href="#extension" class="btn-secondary">Extension Status</a>
     <a href="#proof" class="btn-secondary">View Calibration</a>
   </div>
 </div>
@@ -696,28 +695,11 @@
   <div style="background:#141418;border:1px solid #2e2e40;border-radius:12px;padding:28px 32px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
     <div style="font-size:2.5rem;line-height:1;">🧩</div>
     <div style="flex:1;min-width:200px;">
-      <h3 style="font-size:1.05rem;font-weight:700;color:#e8e8ec;margin-bottom:4px;">Headline doctor in the browser</h3>
-      <p style="font-size:0.85rem;color:#8888aa;line-height:1.5;margin:0;">A floating score badge appears while you compose on X, LinkedIn, Instagram, Threads, and Facebook. The popup gives you deeper scoring, compare mode, and rewrite help for headlines and launch copy.</p>
+      <h3 style="font-size:1.05rem;font-weight:700;color:#e8e8ec;margin-bottom:4px;">Chrome extension is still under review</h3>
+      <p style="font-size:0.85rem;color:#8888aa;line-height:1.5;margin:0;">The browser workflow is real, but the public install path is still waiting on Chrome Web Store approval. Until that clears, the live scorer below is the cleanest way to try the product.</p>
     </div>
-    <a href="https://chromewebstore.google.com/detail/contentforge-score-before/jjbhcmnmjhhepiinipaamjnfogalnibb" class="btn-secondary" target="_blank" rel="noopener" style="white-space:nowrap;padding:10px 20px;font-size:0.85rem;">Add to Chrome →</a>
+    <a href="https://github.com/CaptainFredric/ContentForge/tree/main/extension" class="btn-secondary" target="_blank" rel="noopener" style="white-space:nowrap;padding:10px 20px;font-size:0.85rem;">Preview Extension Files →</a>
   </div>
-</div>
-
-<!-- CODE PREVIEW -->
-<div class="code-card reveal">
-  <pre><code><span class="c-dim"># Pick the better headline before posting — instant, no AI needed</span>
-<span class="c-key">import</span> requests
-
-r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.com/v1/ab_test"</span>,
-    headers=HEADERS,
-    json={
-      <span class="c-str">"platform"</span>: <span class="c-str">"headline"</span>,
-      <span class="c-str">"drafts"</span>: [
-        <span class="c-str">"I built a deterministic content scoring API"</span>,
-        <span class="c-str">"Submit 10 historical posts and I'll rank them blind"</span>
-      ]
-    })
-<span class="c-dim"># → winner: B  confidence: medium  ← ship this one first</span></code></pre>
 </div>
 
 <!-- BEFORE & AFTER DEMO -->
@@ -822,776 +804,24 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   </div>
 </section>
 
-<!-- WHO IT'S FOR -->
-<section class="reveal">
-  <h2>Built For</h2>
-  <p class="section-sub">Whether you're a solo creator or running an agency, ContentForge fits your workflow.</p>
-  <div class="audience-grid">
-    <div class="audience-card reveal reveal-delay-1">
-      <div class="audience-icon">🐦</div>
-      <h3>Twitter Growth Hackers</h3>
-      <p>Score every tweet before posting. Only publish A-grade content. Use tweet_ideas for an endless pipeline.</p>
+<section id="developers" class="reveal" style="max-width:900px;margin:0 auto 80px;padding:0 24px;">
+  <h2>Developer Access</h2>
+  <p class="section-sub">The landing page should stay focused on the scorer, but the technical path is still here if you want to wire it into your own workflow.</p>
+  <div class="steps">
+    <div class="step reveal reveal-delay-1">
+      <div class="step-num">⚔️</div>
+      <h3>A/B test drafts with the API</h3>
+      <p>Use the compare and scoring endpoints when you want to rank drafts in code instead of by hand. The API is secondary on this page, but it remains the path for automation and paid usage.</p>
     </div>
-    <div class="audience-card reveal reveal-delay-2">
-      <div class="audience-icon">✍️</div>
-      <h3>Bloggers &amp; Newsletter Writers</h3>
-      <p>Test 10 headlines in a loop, pick the strongest one, and keep a real calibration log instead of trusting your gut.</p>
-    </div>
-    <div class="audience-card reveal reveal-delay-3">
-      <div class="audience-icon">🚀</div>
-      <h3>Indie Hackers</h3>
-      <p>Score every build-in-public post before you ship it. Thread outlines, daily tweet ideas, bio optimization — all via API.</p>
-    </div>
-    <div class="audience-card reveal reveal-delay-4">
-      <div class="audience-icon">🏢</div>
-      <h3>Agencies &amp; Teams</h3>
-      <p>Generate content calendars for multiple clients. Score client-submitted copy. Standardize quality at scale.</p>
-    </div>
-    <div class="audience-card reveal reveal-delay-1">
-      <div class="audience-icon">🤖</div>
-      <h3>Bot &amp; Automation Builders</h3>
-      <p>Plug ContentForge into your Zapier flows, CMS hooks, or custom bots. Clean JSON, CORS enabled.</p>
-    </div>
-    <div class="audience-card reveal reveal-delay-2">
-      <div class="audience-icon">📧</div>
-      <h3>Email Marketers</h3>
-      <p>Score subject lines before sending. A/B test 5 variations programmatically. Avoid spam triggers automatically.</p>
-    </div>
-    <div class="audience-card reveal reveal-delay-3">
-      <div class="audience-icon">📣</div>
-      <h3>Ad Managers</h3>
-      <p>Score Google and Meta ad copy for CTR signals. Check CTA strength, urgency language, and character limits.</p>
-    </div>
-    <div class="audience-card reveal reveal-delay-4">
-      <div class="audience-icon">📌</div>
-      <h3>Pinterest Creators</h3>
-      <p>Score pin descriptions for saves and SEO. Ensure instructional language, right hashtag count, and keyword density.</p>
-    </div>
-    <div class="audience-card reveal reveal-delay-1">
-      <div class="audience-icon">🎵</div>
-      <h3>TikTok &amp; Short Video Creators</h3>
-      <p>Score captions for the FYP. Check length, hashtag strategy, and trending language before you post.</p>
+    <div class="step reveal reveal-delay-2">
+      <div class="step-num">🧪</div>
+      <h3>Self-host and inspect the rules</h3>
+      <p>The deterministic scoring logic is open source, readable, and runnable locally. If the core promise is “same input, same score,” the source needs to stay auditable.</p>
     </div>
   </div>
-</section>
-
-<!-- STATS -->
-<div class="stats reveal">
-  <div class="stat"><div class="stat-num" data-count="40">0</div><div class="stat-label">API Endpoints</div></div>
-  <div class="stat"><div class="stat-num" data-count="19">0</div><div class="stat-label">Instant (no AI)</div></div>
-  <div class="stat"><div class="stat-num" data-count="13">0</div><div class="stat-label">AI-powered</div></div>
-  <div class="stat"><div class="stat-num" data-count="100">0</div><div class="stat-label">Power Words Tracked</div></div>
-  <div class="stat"><div class="stat-num" style="font-size:1.8rem">Free</div><div class="stat-label">BASIC Plan</div></div>
-</div>
-
-<!-- ENDPOINTS -->
-<section id="endpoints" class="reveal">
-  <h2>All 50 Endpoints</h2>
-  <p class="section-sub">Instant scoring, AI generation, and Proof Intelligence endpoints for measurable content performance.</p>
-
-  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;">
-    <button class="ep-filter-btn active" data-filter="all" onclick="filterEndpoints('all',this)">All 50</button>
-    <button class="ep-filter-btn" data-filter="instant" onclick="filterEndpoints('instant',this)">⚡ Instant</button>
-    <button class="ep-filter-btn" data-filter="ai" onclick="filterEndpoints('ai',this)">✦ AI Generation</button>
-    <button class="ep-filter-btn" data-filter="system" onclick="filterEndpoints('system',this)">⬡ System + Proof</button>
-  </div>
-
-  <div class="endpoints-grid">
-
-    <!-- ⚡ INSTANT SCORERS (15) -->
-
-    <div class="endpoint-card" data-ep="analyze_headline" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/analyze_headline</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/analyze_headline')">copy</span>
-      </div>
-      <div class="ep-desc">Score any headline 0–100 with letter grade, power word detection, and specific improvement suggestions.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "5 AI Tools That Print Money While You Sleep"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_tweet" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_tweet</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_tweet')">copy</span>
-      </div>
-      <div class="ep-desc">Score any tweet draft for engagement potential before you post. Checks length, hashtags, emojis, power words.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "Built an API in 48hr. $500 last month 💸 #buildinpublic"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_linkedin_post" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_linkedin_post</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_linkedin_post')">copy</span>
-      </div>
-      <div class="ep-desc">Score a LinkedIn post 0–100. Evaluates hook strength, paragraph structure, hashtags, list usage, and CTA presence.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"post": "I spent 3 years building tools nobody used.\n\nThen I changed one thing..."}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_instagram" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_instagram</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_instagram')">copy</span>
-      </div>
-      <div class="ep-desc">Score an Instagram caption for engagement. Checks hashtag count (5–15 optimal), emojis, hook, CTA, and line breaks.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"caption": "Stop scrolling 👇\n\n30 days of cold showers changed me.\n\n#productivity #morningroutine"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_youtube_title" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_youtube_title</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_youtube_title')">copy</span>
-      </div>
-      <div class="ep-desc">Score a YouTube title for click-through rate. Checks optimal length (40–60 chars), numbers, brackets, and power words.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"title": "I Tried Making $1,000 in 24 Hours [Honest Results]", "thumbnail_text": "$1K IN 24H??"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_youtube_description" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_youtube_description</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_youtube_description')">copy</span>
-      </div>
-      <div class="ep-desc">Score a YouTube description for SEO and watch time. Checks length, keyword placement, timestamps, links, and CTAs.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"description": "In this video I show you exactly how to build a REST API from scratch..."}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_email_subject" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_email_subject</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_email_subject')">copy</span>
-      </div>
-      <div class="ep-desc">Score an email subject line for open rate. Checks length, personalization tokens, power words, spam signals, and urgency.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"subject": "Quick question about your content strategy, {{first_name}}"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_tiktok" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_tiktok</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_tiktok')">copy</span>
-      </div>
-      <div class="ep-desc">Score a TikTok caption for viral potential. Checks length (ideal ≤ 150), hashtag count, emojis, trending signals.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"caption": "POV: you just automated your content strategy 🤖✨ #contentcreator #growthhack"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_threads" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_threads</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_threads')">copy</span>
-      </div>
-      <div class="ep-desc">Score a Threads post. Checks length (ideal 150–500), conversational tone, questions, CTA, and hashtag usage.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "Hot take: most creators should post less and optimize more. Agree?"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_facebook" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_facebook</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_facebook')">copy</span>
-      </div>
-      <div class="ep-desc">Score a Facebook post. Evaluates length, emoji density, questions, CTAs, hashtag count, and engagement triggers.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "Just hit 10k followers! 🎉 Here's what actually worked for me this year..."}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_pinterest" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_pinterest</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_pinterest')">copy</span>
-      </div>
-      <div class="ep-desc">Score a Pinterest pin description for saves and discovery. Checks length (150–500), keywords, hashtags, and instructional language.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"description": "Save this for later! 10 digital tools that will 10x your productivity as a creator 📌"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_reddit" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_reddit</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_reddit')">copy</span>
-      </div>
-      <div class="ep-desc">Score a Reddit post/title for upvote potential. Checks title length, question hook, self-promotion signals, formatting, hashtag misuse, and link density.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"title": "Built a deterministic content scoring API — here's what I learned", "text": "After 3 months of building..."}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_ad_copy" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_ad_copy</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_ad_copy')">copy</span>
-      </div>
-      <div class="ep-desc">Score Google/Meta ad copy. Evaluates headline length, benefit clarity, urgency, CTA strength, and compliance signals.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"headline": "Save 30% on AI Tools Today Only", "body": "Limited offer — get ContentForge Pro free for 7 days.", "platform": "google"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_readability" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_readability</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_readability')">copy</span>
-      </div>
-      <div class="ep-desc">Compute Flesch-Kincaid readability for any text. Returns reading ease score, grade level, avg sentence/word length.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "The API returns a JSON payload containing the score and grade."}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="analyze_hashtags" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/analyze_hashtags</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/analyze_hashtags')">copy</span>
-      </div>
-      <div class="ep-desc">Analyze a list of hashtags — extracts unique tags, detects duplicates, overused tags, and gives per-platform recommendations.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"hashtags": "#ai #AI #buildinpublic #growthhack #growthhack", "platform": "instagram"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_content" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_content</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_content')">copy</span>
-      </div>
-      <div class="ep-desc">Unified scoring endpoint. Pass any platform as a parameter and score with a single URL. No need to remember platform-specific paths.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "Just shipped my side project!", "platform": "tweet"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="score_multi" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/score_multi</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/score_multi')">copy</span>
-      </div>
-      <div class="ep-desc">Score one piece of text across multiple platforms in a single call. Get Twitter, LinkedIn, Instagram scores simultaneously.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "Just shipped my first SaaS 🚀 #buildinpublic", "platforms": ["twitter","instagram","threads"]}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="batch_score" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/batch_score</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/batch_score')">copy</span>
-      </div>
-      <div class="ep-desc">Score up to 20 content drafts against one platform in a single call. Returns all scores ranked best-first — perfect for A/B testing drafts before posting.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"texts": ["Draft A: Big news in tech today", "Draft B: I built a tool that scores your tweets before you post — try it free"], "platform": "twitter"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="compare" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/compare</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/compare')">copy</span>
-      </div>
-      <div class="ep-desc">Head-to-head comparison of two content drafts across multiple platforms. Returns per-platform scores, a winner, and specific advantages — perfect for A/B testing before you post.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text_a": "Ship fast, learn faster.", "text_b": "We are pleased to announce our new product.", "platforms": ["tweet", "linkedin"]}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="ab_test" data-kind="instant">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/ab_test</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/ab_test')">copy</span>
-      </div>
-      <div class="ep-desc">Submit 2-20 drafts and a target platform. Returns all drafts ranked by score with a winner recommendation, confidence level, and statistical spread — the ultimate A/B testing tool for content.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"drafts": ["Ship fast, learn faster 🚀", "We are pleased to announce our new product.", "Built an API in 48hr — $500 last month #buildinpublic"], "platform": "tweet"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="status" data-kind="instant">
-      <div class="ep-method instant">GET</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/status</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/status')">copy</span>
-      </div>
-      <div class="ep-desc">Ultra-lightweight uptime check. Returns {"ok": true} with no LLM probe or log reads. Use for monitoring dashboards and extension health checks.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Response</div>
-        <div class="ep-example-code">{"ok": true, "service": "contentforge", "version": "1.8.0"}</div>
-        <a class="ep-rapid-link" href="https://contentforge-api-lpp9.onrender.com/v1/status" target="_blank" rel="noopener">Try it live →</a>
-      </div></div>
-    </div>
-
-    <!-- ✦ AI GENERATORS (12) -->
-
-    <div class="endpoint-card" data-ep="improve_headline" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/improve_headline</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/improve_headline')">copy</span>
-      </div>
-      <div class="ep-desc">Submit a weak headline, get back N AI-rewritten versions sorted by score. The analyze → improve cycle.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "How to make money online", "count": 3}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="generate_hooks" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/generate_hooks</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/generate_hooks')">copy</span>
-      </div>
-      <div class="ep-desc">Generate scroll-stopping hook lines for any topic. Choose count and tone (bold, curious, direct, viral, etc.).</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"topic": "building a SaaS while working full-time", "count": 5, "style": "viral"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="rewrite" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/rewrite</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/rewrite')">copy</span>
-      </div>
-      <div class="ep-desc">Rewrite any text for a specific platform (Twitter, LinkedIn, email, blog) and tone in one call.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "I built an API.", "platform": "twitter", "tone": "engaging"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="auto_improve" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/auto_improve</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/auto_improve')">copy</span>
-      </div>
-      <div class="ep-desc">Score → if not PASSED → AI rewrites it → re-scores → loops until PASSED or max iterations. Scorer + generator in a closed feedback loop. Returns best version found + full iteration history.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "I built an API.", "platform": "tweet", "tone": "engaging", "max_iterations": 3, "target_gate": "PASSED"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="compose_assist" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/compose_assist</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/compose_assist')">copy</span>
-      </div>
-      <div class="ep-desc">Generate 2-5 rewrite variants, score each automatically with quality gates, and return the best winner plus score delta vs original draft.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"text": "I built a scoring API for creators.", "platform": "tweet", "tone": "engaging", "count": 3}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="tweet_ideas" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/tweet_ideas</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/tweet_ideas')">copy</span>
-      </div>
-      <div class="ep-desc">Generate a batch of tweet ideas with hashtags for any niche. Never run out of content ideas.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"niche": "indie hacking", "count": 5, "hashtags": true}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="content_calendar" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/content_calendar</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/content_calendar')">copy</span>
-      </div>
-      <div class="ep-desc">Build a 7-day content calendar for any niche and platform with themes and ready-to-post drafts.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"niche": "indie hacking", "days": 7, "platform": "twitter"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="thread_outline" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/thread_outline</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/thread_outline')">copy</span>
-      </div>
-      <div class="ep-desc">Generate a complete Twitter thread: scroll-stopping hook, numbered body tweets, and CTA closing tweet.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"topic": "build a micro-SaaS in a weekend", "tweet_count": 7}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="generate_bio" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/generate_bio</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/generate_bio')">copy</span>
-      </div>
-      <div class="ep-desc">Generate an optimized social bio for Twitter (160 chars), LinkedIn (300), or Instagram (150). Auto-trimmed to limit.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"name": "Aden", "niche": "indie dev building APIs", "platform": "twitter"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="generate_caption" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/generate_caption</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/generate_caption')">copy</span>
-      </div>
-      <div class="ep-desc">Generate optimized Instagram or TikTok captions for any topic, with auto-generated hashtags and emoji suggestions.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"topic": "morning productivity routine", "platform": "instagram", "tone": "motivational"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="generate_linkedin_post" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/generate_linkedin_post</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/generate_linkedin_post')">copy</span>
-      </div>
-      <div class="ep-desc">Generate a full LinkedIn post (hook + body + CTA) from a topic or key points. Follows LinkedIn best practices.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"topic": "lessons learned from my first SaaS failure", "tone": "authentic"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="generate_email_sequence" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/generate_email_sequence</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/generate_email_sequence')">copy</span>
-      </div>
-      <div class="ep-desc">Generate a 3-email drip sequence (welcome, value, pitch) for any product or audience. Subject lines included.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"product": "ContentForge API", "audience": "indie hackers and solopreneurs", "tone": "friendly"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="generate_content_brief" data-kind="ai">
-      <div class="ep-method">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/generate_content_brief</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/generate_content_brief')">copy</span>
-      </div>
-      <div class="ep-desc">Generate a full content brief from a topic: target audience, key messages, SEO keywords, outline, and CTAs.</div>
-      <span class="ep-badge ai">✦ AI</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"topic": "How to grow on LinkedIn as a software developer", "content_type": "blog post"}</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
-    <!-- ⬡ SYSTEM + PROOF INTELLIGENCE -->
-
-    <div class="endpoint-card" data-ep="record_score_delta" data-kind="system">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/record_score_delta</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/record_score_delta')">copy</span>
-      </div>
-      <div class="ep-desc">Record before/after score changes for one revision so you can prove quality improvements over time.</div>
-      <span class="ep-badge fast">⚡ Proof</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"platform": "tweet", "original_text": "I like ai", "revised_text": "Built this in 48h 🚀", "posted": true}</div>
-        <a class="ep-rapid-link" href="https://contentforge-api-lpp9.onrender.com/v1/record_score_delta" target="_blank" rel="noopener">Try endpoint →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="record_publish_outcome" data-kind="system">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/record_publish_outcome</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/record_publish_outcome')">copy</span>
-      </div>
-      <div class="ep-desc">Record engagement outcomes plus estimated revenue lift per post using your score delta and baseline assumptions.</div>
-      <span class="ep-badge fast">⚡ Proof</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"post_id":"x-123","platform":"tweet","score_before":52,"score_after":78,"engagement":{"impressions":5000,"clicks":80},"value_per_click":1.8}</div>
-        <a class="ep-rapid-link" href="https://contentforge-api-lpp9.onrender.com/v1/record_publish_outcome" target="_blank" rel="noopener">Try endpoint →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="record_revenue" data-kind="system">
-      <div class="ep-method instant">POST</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/record_revenue</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/record_revenue')">copy</span>
-      </div>
-      <div class="ep-desc">Attach realized revenue attribution to a post for evidence-based client reporting and close-proof case studies.</div>
-      <span class="ep-badge fast">⚡ Proof</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request Body</div>
-        <div class="ep-example-code">{"post_id":"x-123","platform":"tweet","revenue_amount":12.5,"revenue_source":"affiliate"}</div>
-        <a class="ep-rapid-link" href="https://contentforge-api-lpp9.onrender.com/v1/record_revenue" target="_blank" rel="noopener">Try endpoint →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="dashboard_stats" data-kind="system">
-      <div class="ep-method instant">GET</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/dashboard_stats</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/dashboard_stats')">copy</span>
-      </div>
-      <div class="ep-desc">Aggregated proof metrics: average score delta, engagement totals, estimated lift, realized revenue, and top wins.</div>
-      <span class="ep-badge fast">⚡ Proof</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request</div>
-        <div class="ep-example-code">GET /v1/dashboard_stats?period=week&platform=all</div>
-        <a class="ep-rapid-link" href="https://contentforge-api-lpp9.onrender.com/v1/dashboard_stats" target="_blank" rel="noopener">Try endpoint →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="proof_timeline" data-kind="system">
-      <div class="ep-method instant">GET</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/proof_timeline</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/proof_timeline')">copy</span>
-      </div>
-      <div class="ep-desc">Daily trendline for proof metrics: average score delta, estimated lift, realized revenue, and combined signal by day.</div>
-      <span class="ep-badge fast">⚡ Proof</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request</div>
-        <div class="ep-example-code">GET /v1/proof_timeline?period=month&platform=all</div>
-        <a class="ep-rapid-link" href="https://contentforge-api-lpp9.onrender.com/v1/proof_timeline" target="_blank" rel="noopener">Try endpoint →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="export_proof_report" data-kind="system">
-      <div class="ep-method instant">GET</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/export_proof_report</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/export_proof_report')">copy</span>
-      </div>
-      <div class="ep-desc">Export investor/client-ready proof reports as JSON or CSV for case studies, pipeline reviews, and close-proof reporting.</div>
-      <span class="ep-badge fast">⚡ Proof</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request</div>
-        <div class="ep-example-code">GET /v1/export_proof_report?format=csv&period=month&platform=all</div>
-        <a class="ep-rapid-link" href="https://contentforge-api-lpp9.onrender.com/v1/export_proof_report?format=csv&period=month" target="_blank" rel="noopener">Try endpoint →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="proof_recommendations" data-kind="system">
-      <div class="ep-method instant">GET</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/proof_recommendations</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/proof_recommendations')">copy</span>
-      </div>
-      <div class="ep-desc">Action-ranked next steps based on your score deltas, attribution quality, and weak-channel detection.</div>
-      <span class="ep-badge fast">⚡ Proof</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request</div>
-        <div class="ep-example-code">GET /v1/proof_recommendations?period=month&platform=all</div>
-        <a class="ep-rapid-link" href="https://contentforge-api-lpp9.onrender.com/v1/proof_recommendations?period=month" target="_blank" rel="noopener">Try endpoint →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="cohort_benchmarks" data-kind="system">
-      <div class="ep-method instant">GET</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/v1/cohort_benchmarks</span>
-        <span class="ep-copy" onclick="copyPath(event,'/v1/cohort_benchmarks')">copy</span>
-      </div>
-      <div class="ep-desc">Compare current period performance vs trailing window and platform medians for score/revenue signal benchmarking.</div>
-      <span class="ep-badge fast">⚡ Proof</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request</div>
-        <div class="ep-example-code">GET /v1/cohort_benchmarks?period=month&platform=all</div>
-        <a class="ep-rapid-link" href="https://contentforge-api-lpp9.onrender.com/v1/cohort_benchmarks?period=month" target="_blank" rel="noopener">Try endpoint →</a>
-      </div></div>
-    </div>
-
-    <div class="endpoint-card" data-ep="health" data-kind="system">
-      <div class="ep-method instant">GET</div>
-      <div class="ep-path">
-        <span class="ep-path-text">/health</span>
-        <span class="ep-copy" onclick="copyPath(event,'/health')">copy</span>
-      </div>
-      <div class="ep-desc">Service health check. Returns status, LLM backend, and per-endpoint usage statistics.</div>
-      <span class="ep-badge fast">⚡ Instant</span>
-      <div class="ep-click-hint">↓ click for example</div>
-      <div class="ep-expand"><div class="ep-expand-inner">
-        <div class="ep-example-label">Example Request</div>
-        <div class="ep-example-code">GET /health — no body required</div>
-        <a class="ep-rapid-link" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">Test on RapidAPI →</a>
-      </div></div>
-    </div>
-
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
+    <a href="https://rapidapi.com/captainarmoreddude/api/contentforge1" class="btn-secondary" target="_blank" rel="noopener">RapidAPI Listing</a>
+    <a href="https://github.com/CaptainFredric/ContentForge" class="btn-secondary" target="_blank" rel="noopener">View Source</a>
   </div>
 </section>
 
@@ -1673,38 +903,6 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   </div>
 </section>
 
-<!-- PRICING -->
-<section id="pricing" class="reveal">
-  <h2>Simple Pricing</h2>
-  <p class="section-sub">Start free. Scale when you need more. All plans include every endpoint.</p>
-  <div class="pricing-grid">
-    <a class="price-card" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">
-      <div class="price-name">BASIC</div>
-      <div class="price-amount">$0<span>/mo</span></div>
-      <div class="price-desc">50 AI calls/mo<br>300 requests/mo<br>30 req/min rate limit<br>No credit card needed</div>
-      <span class="price-btn">Get Started Free →</span>
-    </a>
-    <a class="price-card featured" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">
-      <div class="price-name">PRO</div>
-      <div class="price-amount">$9.99<span>/mo</span></div>
-      <div class="price-desc">750 AI calls/mo<br>1,000 requests/mo<br>30 req/min rate limit<br>Great for solo creators</div>
-      <span class="price-btn">Subscribe →</span>
-    </a>
-    <a class="price-card" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">
-      <div class="price-name">ULTRA</div>
-      <div class="price-amount">$29.99<span>/mo</span></div>
-      <div class="price-desc">3,000 AI calls/mo<br>4,000 requests/mo<br>30 req/min rate limit<br>For agencies &amp; teams</div>
-      <span class="price-btn">Subscribe →</span>
-    </a>
-    <a class="price-card" href="https://rapidapi.com/captainarmoreddude/api/contentforge1" target="_blank" rel="noopener">
-      <div class="price-name">MEGA</div>
-      <div class="price-amount">$99<span>/mo</span></div>
-      <div class="price-desc">18,000 AI calls/mo<br>20,000 requests/mo<br>30 req/min rate limit<br>For high-volume use</div>
-      <span class="price-btn">Subscribe →</span>
-    </a>
-  </div>
-</section>
-
 <!-- WHY DETERMINISTIC -->
 <section id="why" class="reveal" style="max-width:900px;margin:0 auto 80px;padding:0 24px;">
   <h2>Why Not Just Use ChatGPT?</h2>
@@ -1734,9 +932,11 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
 <!-- CTA -->
 <div style="max-width:1100px;margin:0 auto 80px;padding:0 24px;">
   <div class="cta-section reveal">
-    <h2>Start in 30 seconds</h2>
-    <p>Free plan, no credit card. Get your API key now and score your first headline.</p>
-    <a href="https://rapidapi.com/captainarmoreddude/api/contentforge1" class="btn-primary" target="_blank" rel="noopener" style="display:inline-block;margin-bottom:24px;position:relative;">Get Your Free API Key →</a>
+    <h2>Use the scorer first</h2>
+    <p>Try the live compare workflow, inspect the rules, then decide if you need the API or extension when approval lands.</p>
+    <a href="#try" class="btn-primary" style="display:inline-block;margin-bottom:24px;position:relative;">Try The Live Scorer →</a>
+    <br>
+    <a href="https://rapidapi.com/captainarmoreddude/api/contentforge1" class="btn-secondary" target="_blank" rel="noopener" style="display:inline-block;margin-bottom:20px;position:relative;">Developer Access on RapidAPI</a>
     <br>
     <p style="font-size:0.85rem;color:#555566;margin-top:8px;position:relative;">Questions? <a href="mailto:captainarmoreddude@gmail.com" style="color:#7c6af7;">captainarmoreddude@gmail.com</a></p>
   </div>
@@ -1768,24 +968,12 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   </div>
 </section>
 
-<!-- SELF HOST -->
-<section class="reveal" style="max-width:900px;margin:0 auto 72px;padding:0 24px;">
-  <h2 style="text-align:center;font-size:1.7rem;margin-bottom:10px;color:#e0e0e0;">Self-Host It</h2>
-  <p class="section-sub" style="text-align:center;max-width:540px;margin:0 auto 24px;">Run the entire scoring engine locally. Scoring uses zero AI calls. Open source, AGPL-3.0.</p>
-  <div style="border:1px solid #2a2a4a;border-radius:12px;background:#09091a;padding:20px 24px;">
-    <pre style="margin:0;font-size:0.82rem;color:#a0b0d0;line-height:1.8;overflow:auto;"><span style="color:#666;">$</span> git clone https://github.com/CaptainFredric/ContentForge.git
-<span style="color:#666;">$</span> pip install -r requirements.txt
-<span style="color:#666;">$</span> python scripts/api_prototype.py
-<span style="color:#5ec8a0;">Listening on http://localhost:5000 — all 50 endpoints active</span></pre>
-  </div>
-</section>
-
 <!-- FAQ -->
 <section style="max-width:800px;margin:0 auto 64px;padding:0 24px;" id="faq">
   <h2 style="text-align:center;font-size:1.6rem;margin-bottom:32px;color:#e0e0e0;">Frequently Asked Questions</h2>
   <details style="margin-bottom:12px;border:1px solid #1e1e3a;border-radius:10px;padding:14px 18px;background:#0d0d1a;">
     <summary style="cursor:pointer;font-weight:600;font-size:0.95rem;color:#e0e0e0;">Is ContentForge free?</summary>
-    <p style="margin-top:10px;font-size:0.85rem;color:#8888aa;line-height:1.6;">Yes. The BASIC plan gives you 50 AI calls and 300 requests per month at no cost, no credit card required. Paid plans start at $9.99/month for higher volume.</p>
+    <p style="margin-top:10px;font-size:0.85rem;color:#8888aa;line-height:1.6;">The live scorer on this page is free to try. The API is available separately through RapidAPI if you want programmatic access and higher-volume usage.</p>
   </details>
   <details style="margin-bottom:12px;border:1px solid #1e1e3a;border-radius:10px;padding:14px 18px;background:#0d0d1a;">
     <summary style="cursor:pointer;font-weight:600;font-size:0.95rem;color:#e0e0e0;">Do you store or read my content?</summary>
@@ -1797,11 +985,15 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
   </details>
   <details style="margin-bottom:12px;border:1px solid #1e1e3a;border-radius:10px;padding:14px 18px;background:#0d0d1a;">
     <summary style="cursor:pointer;font-weight:600;font-size:0.95rem;color:#e0e0e0;">What platforms does the Chrome extension support?</summary>
-    <p style="margin-top:10px;font-size:0.85rem;color:#8888aa;line-height:1.6;">The extension is available on the <a href="https://chromewebstore.google.com/detail/contentforge-score-before/jjbhcmnmjhhepiinipaamjnfogalnibb" target="_blank" rel="noopener" style="color:#a78bfa;">Chrome Web Store</a>. It shows a floating score badge on Twitter/X, LinkedIn, Instagram, Threads, and Facebook. You can also use the popup on any page to score content for 12 different platforms including TikTok, YouTube, and email.</p>
+    <p style="margin-top:10px;font-size:0.85rem;color:#8888aa;line-height:1.6;">The extension workflow is built for Twitter/X, LinkedIn, Instagram, Threads, and Facebook, with popup scoring for other content types. Public installation is still waiting on Chrome Web Store approval, so the safest current path is the live scorer on this page or the extension preview on <a href="https://github.com/CaptainFredric/ContentForge/tree/main/extension" target="_blank" rel="noopener" style="color:#a78bfa;">GitHub</a>.</p>
   </details>
   <details style="margin-bottom:12px;border:1px solid #1e1e3a;border-radius:10px;padding:14px 18px;background:#0d0d1a;">
     <summary style="cursor:pointer;font-weight:600;font-size:0.95rem;color:#e0e0e0;">Is the scoring AI or rule-based?</summary>
     <p style="margin-top:10px;font-size:0.85rem;color:#8888aa;line-height:1.6;">The instant scoring endpoints use deterministic rule-based analysis (no LLM, no latency, no hallucinations). The AI endpoints use Ollama-backed language models for content generation, rewriting, and deep analysis.</p>
+  </details>
+  <details style="margin-bottom:12px;border:1px solid #1e1e3a;border-radius:10px;padding:14px 18px;background:#0d0d1a;">
+    <summary style="cursor:pointer;font-weight:600;font-size:0.95rem;color:#e0e0e0;">Can I still use the API?</summary>
+    <p style="margin-top:10px;font-size:0.85rem;color:#8888aa;line-height:1.6;">Yes. The API still exists for compare mode, scoring, and automation. It is just no longer the main thing the landing page should sell while the product is still proving the core scorer.</p>
   </details>
   <details style="margin-bottom:12px;border:1px solid #1e1e3a;border-radius:10px;padding:14px 18px;background:#0d0d1a;">
     <summary style="cursor:pointer;font-weight:600;font-size:0.95rem;color:#e0e0e0;">Can I see the scoring logic?</summary>
@@ -1865,15 +1057,6 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     });
   }, { threshold: 0.5 });
   document.querySelectorAll('.stat-num[data-count]').forEach(el => counterObserver.observe(el));
-
-  // ── Endpoint Filter ──
-  function filterEndpoints(kind, btn) {
-    document.querySelectorAll('.ep-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.endpoint-card[data-kind]').forEach(card => {
-      card.style.display = (kind === 'all' || card.dataset.kind === kind) ? '' : 'none';
-    });
-  }
 
   // ── Platform Selector ──
   const PLATFORM_CONFIG = {
@@ -2252,45 +1435,6 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
     }, 400);
   }
 
-  function runRevenueMatrix() {
-    const posts = Math.max(1, parseFloat(document.getElementById('mxPosts').value || '0'));
-    const ctr = Math.max(0, parseFloat(document.getElementById('mxCtr').value || '0')) / 100;
-    const lift = Math.max(0, parseFloat(document.getElementById('mxLift').value || '0')) / 100;
-    const clickValue = Math.max(0, parseFloat(document.getElementById('mxValue').value || '0'));
-
-    const baseClicks = posts * ctr * 1000;
-    const improvedClicks = baseClicks * (1 + lift);
-    const extraClicks = improvedClicks - baseClicks;
-    const monthlyDelta = extraClicks * clickValue;
-    const yearlyDelta = monthlyDelta * 12;
-
-    const out = document.getElementById('mxOutput');
-    out.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
-        <div style="background:#181832;border:1px solid #313150;border-radius:10px;padding:12px;">
-          <div style="font-size:0.72rem;color:#8f8fb0;text-transform:uppercase;">Baseline Clicks / mo</div>
-          <div style="font-size:1.35rem;font-weight:800;color:#f2f2ff;">${Math.round(baseClicks).toLocaleString()}</div>
-        </div>
-        <div style="background:#181832;border:1px solid #313150;border-radius:10px;padding:12px;">
-          <div style="font-size:0.72rem;color:#8f8fb0;text-transform:uppercase;">Extra Clicks / mo</div>
-          <div style="font-size:1.35rem;font-weight:800;color:#8bd5a8;">+${Math.round(extraClicks).toLocaleString()}</div>
-        </div>
-        <div style="background:#181832;border:1px solid #313150;border-radius:10px;padding:12px;">
-          <div style="font-size:0.72rem;color:#8f8fb0;text-transform:uppercase;">Revenue Lift / mo</div>
-          <div style="font-size:1.35rem;font-weight:800;color:#7c6af7;">$${monthlyDelta.toFixed(2)}</div>
-        </div>
-        <div style="background:#181832;border:1px solid #313150;border-radius:10px;padding:12px;">
-          <div style="font-size:0.72rem;color:#8f8fb0;text-transform:uppercase;">Revenue Lift / yr</div>
-          <div style="font-size:1.35rem;font-weight:800;color:#f3c178;">$${yearlyDelta.toFixed(2)}</div>
-        </div>
-      </div>
-      <p style="margin-top:12px;font-size:0.82rem;color:#9999b8;line-height:1.5;">
-        Practical assumption model: 1,000 impressions per post baseline. Replace with your own real impression count in your sales deck.
-      </p>
-    `;
-    out.style.display = 'block';
-  }
-
   function escapeMarkup(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
@@ -2382,27 +1526,6 @@ r = requests.post(<span class="c-str">"https://contentforge-api-lpp9.onrender.co
         },
       });
     }
-  }
-
-  // ── Endpoint Card Click-Expand ──
-  document.querySelectorAll('.endpoint-card[data-ep]').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if (e.target.classList.contains('ep-rapid-link') || e.target.closest('.ep-rapid-link')) return;
-      const isOpen = card.classList.contains('open');
-      document.querySelectorAll('.endpoint-card.open').forEach(c => c.classList.remove('open'));
-      if (!isOpen) card.classList.add('open');
-    });
-  });
-
-  // ── Copy Path ──
-  function copyPath(e, path) {
-    e.stopPropagation();
-    navigator.clipboard.writeText(path).then(() => {
-      const btn = e.target;
-      btn.textContent = 'copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
-    });
   }
 
   // Allow Ctrl+Enter or Cmd+Enter to trigger scoring in textarea
