@@ -1,7 +1,7 @@
 # ContentForge — Operational Plan
 
-**Last updated:** 2026-04-05
-**Status:** Surge (Phase 2 of 3) — Saturday launch live
+**Last updated:** 2026-04-23
+**Status:** Surge (Phase 2 of 3) — CWS APPROVED ✅ | Extension live on Chrome Web Store
 
 ---
 
@@ -102,12 +102,13 @@ The only technical work permitted during this phase:
 
 ### Immediate (Day of CWS approval):
 
-| Task | Time est. | Priority |
-|---|---|---|
-| Swap CWS store icon to crystal logo from PH | 15 min | P0 |
-| Landing page: CTAs auto-activate (already wired) | 0 min | Done |
-| Update PH listing with live CWS link | 10 min | P1 |
-| Post standalone tweet: "Extension is live on Chrome Web Store" | 5 min | P1 |
+| Task | Time est. | Priority | Status |
+|---|---|---|---|
+| Swap CWS store icon to crystal logo from PH | 15 min | P0 | ⏳ Manual — do in CWS dashboard |
+| Landing page: CTAs activated with live CWS link | 0 min | Done | ✅ Done (April 23) |
+| Scoring engine: 6 bugs fixed (grades unified, LinkedIn URL, Reddit #1, tweet length, email spam) | — | Done | ✅ Done (April 23) |
+| Update PH listing with live CWS link | 10 min | P1 | ⏳ Todo |
+| Post standalone tweet: "Extension is live on Chrome Web Store" | 5 min | P1 | ⏳ Draft ready below |
 
 ### Week 1 — Distribution + Calibration Acquisition (April 6–12):
 
