@@ -1,12 +1,13 @@
 # Why We Replaced LLMs with If-Statements (And Why That Was the Right Call)
 
-*For Hacker News. Submission format: "Show HN: ContentForge, content quality gate using deterministic heuristics instead of LLMs"*
+*For Hacker News. Submission title: "Show HN: ContentForge – deterministic content scoring instead of LLM black boxes"*
+*Target: submit Tuesday–Thursday any week after CWS approval lands (first comment links to demo + GitHub Discussion)*
 
 ---
 
-Six months ago I had a perfectly reasonable idea: use an LLM to score social media content before posting. Give it a tweet, get a quality score back, use that score as a publish/hold gate in my automation pipeline.
+Six months ago I had a perfectly reasonable idea: use an LLM to score a headline before posting it. Give it a draft, get a quality score back, use that score to decide whether to post or keep editing.
 
-It did not work. Not because the LLM was dumb. It was perceptive about what makes content good. It failed because of this:
+It did not work. Not because the model was wrong. It failed because of this:
 
 ```bash
 $ curl -s -X POST .../score \
@@ -22,19 +23,21 @@ $ curl -s -X POST .../score \
 
 Same text. Same prompt. Same model. Different numbers.
 
-For a subjective creative opinion, variance is fine. For a binary publish/hold gate in an automated pipeline it is a dealbreaker. You cannot build a reliable workflow on a coin flip.
+For a creative opinion, variance is fine. For a publish/hold gate — whether that is a solo creator deciding whether a headline is ready, or an automated pipeline deciding whether to ship — it is a dealbreaker. You cannot build a reliable loop on a coin flip.
 
 ---
 
 ## The Diagnostic Problem
 
-When an LLM scores content, it does something like retrieval and synthesis over its training distribution. Two things are simultaneously true:
+When an LLM scores content, two things are simultaneously true:
 
-1. It captures real signals. It has been trained on enough human feedback to know that a tweet with a strong hook and a specific number outperforms a vague statement.
+1. It captures real signals. It knows that a tweet with a strong hook and a specific number outperforms a vague opener.
 
-2. It cannot tell you which signals fired. You get a number. Sometimes you get a brief explanation. But the explanation is also generated. There is no traceable rule that produced the deduction.
+2. It cannot tell you which signals fired. You get a number, sometimes a brief explanation. But the explanation is also generated. There is no traceable rule that produced each deduction.
 
-For individual use ("is this tweet good?"), that is acceptable. For a pipeline that needs to audit why content passed or failed a quality check, for a client report, for a compliance review, for an ML training label, it is not.
+For individual use ("is this headline good?"), that is often fine. For editing loops — where you need to know *what to fix*, not just that something is wrong — it is not.
+
+The feedback "this could be punchier" tells you nothing actionable. "Missing hook in first 10 words (-12 pts), 4 hashtags when 1–2 is optimal (-15 pts)" tells you exactly where to edit.
 
 ---
 
@@ -44,16 +47,17 @@ Content quality on a given platform is largely determined by a small number of d
 
 - Hook in the first 10 words
 - Specific number or stat
-- 1-2 hashtags (not 0, not 5)
-- 71-120 characters (not 40, not 280)
+- 1–2 hashtags (not 0, not 5)
+- 71–240 characters
 - Question or strong CTA
 
 LinkedIn penalizes:
 - More than 5 hashtags
 - Wall-of-text paragraphs with no line breaks
+- External URLs (other than LinkedIn's own domain)
 - Zero professional CTA
 
-These are not opinions. They are documented in platform engineering posts, in creator economy research, and in what every serious content practitioner already does by instinct.
+These are not opinions. They are documented in platform engineering posts, creator research, and what every serious content practitioner already does by instinct.
 
 The hypothesis: **you can encode most of the predictive signal in deterministic rules, and the residual that LLMs capture better is smaller than you would expect.**
 
@@ -69,20 +73,22 @@ def score_tweet(text: str) -> dict:
 
     # Length signal
     char_count = len(text)
-    if 71 <= char_count <= 120:
-        score += 15          # optimal range
-    elif 121 <= char_count <= 200:
-        score += 8
-    elif char_count > 200:
-        score -= 5           # too long for engagement
+    if 71 <= char_count <= 100:
+        score += 20          # sweet spot
+    elif 50 <= char_count <= 240:
+        score += 10          # valid engagement range
+    elif char_count <= 30:
+        score -= 15          # too short to carry context
+    elif char_count > 240:
+        score -= 8
 
     # Hook signal: question in first 15 words
     first_words = " ".join(text.split()[:15])
     if "?" in first_words:
         score += 12
 
-    # Hashtag density
-    hashtags = re.findall(r'#\w+', text)
+    # Hashtag density — require letter after # so ordinals (#1, #2) don't flag
+    hashtags = re.findall(r'#[a-zA-Z]\w*', text)
     if len(hashtags) == 1:
         score += 8           # sweet spot
     elif len(hashtags) == 2:
@@ -97,25 +103,25 @@ def score_tweet(text: str) -> dict:
     return {"score": score, "grade": ..., "quality_gate": ..., "suggestions": [...]}
 ```
 
-The response includes not just the score but the specific deductions. If a post scores 58, you know it is in REVIEW because it is missing a CTA (-8), has 4 hashtags when 1-2 is optimal (-10), and the opening line has no hook signal. That is an audit trail.
+The response includes the specific deductions, not just the score. If a post scores 58, you know it is in REVIEW because it is missing a CTA (-8), has 4 hashtags when 1–2 is optimal (-10), and the opening line has no hook signal. That is an audit trail.
 
 The same endpoint called with the same input ten times returns the same result ten times. There is nothing to sample, nothing to temperature-adjust, nothing to hallucinate.
 
 ---
 
-## What LLMs Are Actually For
+## What We Use LLMs For
 
 We did not remove LLMs from the system. We moved them to where they are irreplaceable.
 
 The heuristic engine scores content. It cannot write content. It cannot take "I want to post about my API launch" and generate a high-scoring tweet. It cannot rewrite a failing draft into something that passes.
 
-So ContentForge uses a two-tier architecture:
+So the system uses a two-tier architecture:
 
 **Tier 1: Deterministic scoring.** Pure Python, no API calls, under 50ms, zero variance. All 12 platform scorers live here.
 
 **Tier 2: Generative creation.** Ollama locally or Gemini for rewrites, hook generation, content calendars. When you call `/v1/auto_improve`, it:
 1. Scores your draft with the heuristic engine
-2. If it fails the quality gate, calls the LLM with the scorer's own suggestions as explicit context ("this post lost points for missing CTA and 4 hashtags, fix them")
+2. If it fails the quality gate, calls the LLM with the scorer's own suggestions as explicit context ("this post lost points for missing CTA and 4 hashtags — fix them")
 3. Re-scores the rewrite
 4. Iterates until PASSED or max iterations
 
@@ -123,31 +129,39 @@ The LLM writes. The heuristic judges. The LLM never judges, because it cannot do
 
 ---
 
-## The Performance Numbers
+## The Numbers
 
 On the scoring path:
-- Median response time: 12ms on warm instance
+- Median response time: ~12ms on warm instance
 - Variance on repeated calls: 0% (deterministic)
 - Cost per scoring call: $0, no tokens
-- Explainability: full itemized deductions
+- Explainability: full itemized deductions in every response
 
 On a typical LLM scoring approach:
 - Median response time: 1.2 to 4 seconds
 - Variance on same input: 15 to 30% score delta
-- Cost per call: $0.001 to $0.01 depending on model
+- Cost per call: $0.001 to $0.01
 - Explainability: generated text, not traced rules
 
-For a pipeline running 1,000 content pieces per day, the math is obvious. But even at 10 posts per day, the variance problem makes the LLM-only approach unusable as a gate.
+For a pipeline running 1,000 content pieces per day the math is obvious. But even at 10 posts per day, the variance problem makes LLM-only scoring unusable as a gate.
+
+---
+
+## The Chrome Extension
+
+We shipped a Chrome extension last week. It injects a floating score badge into the compose window on Twitter/X, LinkedIn, Instagram, Threads, and Facebook. You get a live score as you type — same deterministic scorer, no API calls from the extension, badge updates on every keystroke.
+
+The use case is simpler than I expected: it is not primarily for pipelines. It is for the moment when you have written a headline and are not sure if it is ready to post. The badge is a second opinion that never changes its mind.
 
 ---
 
 ## Being Honest About Calibration
 
-Here is the part I want to be upfront about: the heuristic weights are based on documented platform best practices, not validated against a real engagement corpus.
+The heuristic weights are based on documented platform best practices, not validated against a real engagement corpus.
 
-I know the signals matter. I do not have precise coefficients verified against 10,000 data points yet. That is what we are building now. A Blind Taste Test where creators submit 10 historical posts (5 winners, 5 flops) without labeling them. We rank by score, they verify the ranking, we track accuracy.
+I know the signals matter. I do not have precise coefficients verified against 10,000 data points yet. That is what we are building now with a Blind Taste Test: creators submit 10 historical posts (5 winners, 5 flops) without labeling them. We rank by score, they verify the ranking, we track accuracy.
 
-The engine currently hits around 70-80% correct ranking in informal testing. The target before any serious B2B pitch is 80%+ validated across 3 or more platforms.
+The engine currently hits around 70–80% correct ranking in informal testing. The target before any serious B2B pitch is 80%+ validated across three or more platforms.
 
 If you have 10 historical posts with engagement data and want to stress-test the weights: https://github.com/CaptainFredric/ContentForge/discussions/4
 
@@ -159,19 +173,19 @@ Worth being direct about the failure modes:
 
 **Platform algorithm changes.** If Twitter/X changes what it rewards next month, our weights are wrong until we update them. An LLM trained on recent data adapts implicitly.
 
-**Niche communities.** A tweet that scores 45 in our engine might be perfect for a specialized crypto or academic audience where the normal engagement signals are inverted.
+**Niche communities.** A tweet that scores 45 might be perfect for a specialized academic or crypto audience where normal engagement signals are inverted.
 
-**Novel formats.** The engine does not understand new content formats it has not been explicitly programmed for.
+**Novel formats.** The engine does not understand formats it has not been explicitly programmed for.
 
-**Nuance.** A tweet can have perfect structural signals (right length, hook, hashtag count) and still be badly written. The heuristic will not catch that. The LLM might.
+**Nuance.** A tweet can have perfect structural signals and still be badly written. The heuristic will not catch that. The LLM might.
 
-These are real. Our position is not "heuristics are better than LLMs universally." It is "for a publish/hold quality gate in an automation pipeline, deterministic and auditable beats smart and stochastic."
+Our position is not "heuristics are better than LLMs universally." It is "for a publish/hold quality gate, deterministic and auditable beats smart and stochastic."
 
 ---
 
 ## The Broader Principle
 
-There is a class of problems where the question is "does this input meet a defined standard?" and not "what is the best possible output I can generate?" For that class:
+There is a class of problems where the question is "does this input meet a defined standard?" rather than "what is the best possible output I can generate?" For that class:
 
 - Code linters do not use GPT-4 to decide if a variable is named correctly.
 - Form validators do not use Claude to check if an email address has an `@`.
@@ -183,12 +197,14 @@ The heuristic is the ruler. It does not need to understand why 12 inches is 12 i
 
 ---
 
+**Demo (score any headline instantly):** https://nullmark.tech/r/contentforge
+**Chrome extension:** https://chromewebstore.google.com/detail/contentforge-score-before/jjbhcmnmjhhepiinipaamjnfogalnibb
 **GitHub (AGPL-3.0):** https://github.com/CaptainFredric/ContentForge
-**API and demo:** https://nullmark.tech/r/contentforge
-**Free tier:** https://rapidapi.com/captainarmoreddude/api/contentforge1
+**Blind Taste Test (weights calibration):** https://github.com/CaptainFredric/ContentForge/discussions/4
 
 ---
 
-*Target: Submit to HN Wednesday or Thursday this week, after r/SideProject and r/selfhosted posts land and produce organic links to the repo.*
-
-*Include a brief first comment linking directly to the demo and the GitHub Discussion.*
+*First comment to post after submission:*
+> Demo link: https://nullmark.tech/r/contentforge — paste any headline or tweet draft, see the score and exactly which rules fired. The `quality_gate` field is the binary gate: PASSED / REVIEW / FAILED.
+> 
+> Blind Taste Test details in GitHub Discussion if you want to stress-test the weights against your own historical data.
