@@ -1379,11 +1379,11 @@ def score_tweet(text: str) -> dict:
     # Scoring
     score = 40  # baseline
 
-    # Character count sweet spot: 71-100 for engagement per studies
+    # Character count: 71-100 is peak, 50-240 is solid, outside that penalise
     if 71 <= char_count <= 100:
         score += 20
-    elif 50 <= char_count <= 140:
-        score += 12
+    elif 50 <= char_count <= 240:
+        score += 10  # covers 50-70, 101-240 — all valid engagement territory
     elif char_count <= 30:
         score -= 15
     elif char_count > 240:
@@ -1435,7 +1435,7 @@ def score_tweet(text: str) -> dict:
         score += 5
 
     score = max(0, min(100, int(score)))
-    grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
+    grade = "A" if score >= 90 else "B" if score >= 75 else "C" if score >= 60 else "D" if score >= 45 else "F"
 
     suggestions = []
     if char_count > 240:
@@ -1669,8 +1669,9 @@ def score_linkedin_post(text: str) -> dict:
     # -- Power words --
     score += min(12, len(pw_found) * 3)
 
-    # -- URL penalty (LinkedIn suppresses posts with outbound links) --
-    if urls:
+    # -- URL penalty (LinkedIn suppresses external outbound links; on-platform links are fine) --
+    external_urls = [u for u in urls if "linkedin.com" not in u]
+    if external_urls:
         score -= 5
 
     # -- ALL CAPS abuse (exclude common acronyms) --
@@ -1701,10 +1702,10 @@ def score_linkedin_post(text: str) -> dict:
 
     score = max(0, min(100, int(score)))
     grade = (
-        "A" if score >= 80 else
-        "B" if score >= 60 else
-        "C" if score >= 40 else
-        "D" if score >= 20 else
+        "A" if score >= 90 else
+        "B" if score >= 75 else
+        "C" if score >= 60 else
+        "D" if score >= 45 else
         "F"
     )
 
@@ -1774,7 +1775,7 @@ def score_linkedin_post(text: str) -> dict:
             "or 'Save this for later'). Comments drive reach on LinkedIn."
         )
 
-    if urls:
+    if external_urls:
         suggestions.append(
             "LinkedIn suppresses posts with external links. Put the URL in "
             "the first comment instead of the post body for better reach."
@@ -2047,10 +2048,10 @@ def score_instagram_caption(text: str) -> dict:
 
     score = max(0, min(100, int(score)))
     grade = (
-        "A" if score >= 80 else
-        "B" if score >= 60 else
-        "C" if score >= 40 else
-        "D" if score >= 20 else
+        "A" if score >= 90 else
+        "B" if score >= 75 else
+        "C" if score >= 60 else
+        "D" if score >= 45 else
         "F"
     )
 
@@ -2359,10 +2360,10 @@ def score_youtube_title(text: str, thumbnail_text: str = "") -> dict:
 
     score = max(0, min(100, int(score)))
     grade = (
-        "A" if score >= 80 else
-        "B" if score >= 60 else
-        "C" if score >= 40 else
-        "D" if score >= 20 else
+        "A" if score >= 90 else
+        "B" if score >= 75 else
+        "C" if score >= 60 else
+        "D" if score >= 45 else
         "F"
     )
 
@@ -2593,8 +2594,16 @@ def score_email_subject(text: str, preview_text: str = "") -> dict:
         "opt in", "please read", "prize", "promise", "risk free",
         "satisfaction guaranteed", "special promotion", "this isn't spam",
         "unsolicited", "winner", "you have been selected", "$$",
+        # standalone high-signal spam words
+        "free money", "win cash", "you won", "click now", "money back",
+        "extra cash", "free gift", "limited offer", "urgent",
     }
-    spam_found = [t for t in spam_triggers if t in subj.lower()]
+    subj_lower = subj.lower()
+    spam_found = [t for t in spam_triggers if t in subj_lower]
+    # also flag isolated HIGH-risk words that appear as whole words
+    _high_risk = {"free", "win", "cash", "prize", "winner"}
+    import re as _re_spam
+    spam_found += [w for w in _high_risk if _re_spam.search(rf'\b{w}\b', subj_lower)]
 
     # ALL CAPS detection
     caps_words = sum(
@@ -2701,10 +2710,10 @@ def score_email_subject(text: str, preview_text: str = "") -> dict:
 
     score = max(0, min(100, int(score)))
     grade = (
-        "A" if score >= 80 else
-        "B" if score >= 60 else
-        "C" if score >= 40 else
-        "D" if score >= 20 else
+        "A" if score >= 90 else
+        "B" if score >= 75 else
+        "C" if score >= 60 else
+        "D" if score >= 45 else
         "F"
     )
 
@@ -3008,13 +3017,13 @@ def score_readability(text: str) -> dict:
     score = max(0, min(100, score))
 
     # --- Grade ---------------------------------------------------------------
-    if score >= 80:
+    if score >= 90:
         grade = "A"
-    elif score >= 65:
+    elif score >= 75:
         grade = "B"
-    elif score >= 50:
+    elif score >= 60:
         grade = "C"
-    elif score >= 35:
+    elif score >= 45:
         grade = "D"
     else:
         grade = "F"
@@ -3627,13 +3636,13 @@ def score_tiktok_caption(text: str) -> dict:
     score = max(0, min(100, score))
 
     # Grade
-    if score >= 80:
+    if score >= 90:
         grade = "A"
-    elif score >= 65:
+    elif score >= 75:
         grade = "B"
-    elif score >= 50:
+    elif score >= 60:
         grade = "C"
-    elif score >= 35:
+    elif score >= 45:
         grade = "D"
     else:
         grade = "F"
@@ -3858,13 +3867,13 @@ def analyze_hashtags(hashtags_input: str, platform: str = "twitter") -> dict:
     score = max(0, min(100, score))
 
     # Grade
-    if score >= 80:
+    if score >= 90:
         grade = "A"
-    elif score >= 65:
+    elif score >= 75:
         grade = "B"
-    elif score >= 50:
+    elif score >= 60:
         grade = "C"
-    elif score >= 35:
+    elif score >= 45:
         grade = "D"
     else:
         grade = "F"
@@ -4834,7 +4843,8 @@ def score_reddit_post(text: str, title: str = "") -> dict:
     word_count = len(words)
 
     # Signals
-    hashtags = re.findall(r'#\w+', combined)
+    # Require letter after # so "#1" / "#2" ordinals aren't flagged as hashtags
+    hashtags = re.findall(r'#[a-zA-Z]\w*', combined)
     hashtag_count = len(hashtags)
     emojis = re.findall(
         r'[\U0001F300-\U0001F9FF\U00002600-\U000027BF\U0001FA00-\U0001FA9F]',
